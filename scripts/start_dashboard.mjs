@@ -16,11 +16,11 @@ function startOnAvailablePort(initialPort = 3333) {
 
   server.listen(port, () => {
     console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-    console.log("║    🟢 BOMBERCYBER MATRIX DEVSECOPS CONSOLE ONLINE!                   ║");
+    console.log("║    🟢 OBSIDIANSEC // DEVSECOPS DEFENSE PLATFORM ONLINE!              ║");
     console.log("╠══════════════════════════════════════════════════════════════════════╣");
     console.log(`║    👉 Acesse no seu navegador: http://localhost:${port}               ║`);
     console.log("║    🎓 Diagnóstico Pedagógico & Por que da Pontuação Ativo            ║");
-    console.log("║    🧠 Suporte a Google Gemini 3 Flash & Ollama Local Integrados     ║");
+    console.log("║    🧠 Suporte a Google Gemini 3.7 Flash & Fallback Cognitivo Ativo  ║");
     console.log("╚══════════════════════════════════════════════════════════════════════╝\n");
   });
 }

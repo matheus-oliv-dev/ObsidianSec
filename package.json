@@ -1,7 +1,7 @@
 {
-  "name": "bomber-cyber-security",
+  "name": "obsidiansec",
   "version": "1.0.0",
-  "description": "Ecossistema de Segurança Defensiva, Testes de Penetração, Resiliência & DevSecOps",
+  "description": "ObsidianSec - DevSecOps Platform & Defense Encyclopedia",
   "type": "module",
   "scripts": {
     "test": "vitest run",
@@ -22,9 +22,11 @@
     "sast",
     "chaos-engineering",
     "anti-cheat",
-    "browser-shield"
+    "browser-shield",
+    "zero-trust",
+    "lgpd"
   ],
-  "author": "BomberCyber Team",
+  "author": "ObsidianSec Team",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
