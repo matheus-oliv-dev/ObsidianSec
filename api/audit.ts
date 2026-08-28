@@ -243,6 +243,10 @@ async function generateAiDiagnosis(auditReport: any, score: number, grade: strin
 Gere uma análise pedagógica, tática e defensiva curta (3 a 4 parágrafos) em português, destacando os riscos reais e como aplicar as correções.`;
 
   if (finalApiKey) {
+    const maestroSystemPrompt = `Você é o OBSIDIANSEC MASTER ORCHESTRATOR (CyberBrain Maestro), o cérebro supremo de IA do Esquadrão DevSecOps ObsidianSec.
+Sua missão: fornecer diagnósticos táticos, pedagógicos, investigativos e de alta autoridade técnica sobre a segurança de borda, cabeçalhos HTTP, arquitetura Zero Trust (NIST SP 800-207), OWASP Top 10 e conformidade LGPD.
+Tom de voz: Tático, analítico, imponente, preciso e orientador.`;
+
     for (const model of models) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${finalApiKey}`;
@@ -250,8 +254,9 @@ Gere uma análise pedagógica, tática e defensiva curta (3 a 4 parágrafos) em 
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            system_instruction: { parts: [{ text: maestroSystemPrompt }] },
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { maxOutputTokens: 800, temperature: 0.2 },
+            generationConfig: { maxOutputTokens: 1000, temperature: 0.2 },
           }),
         });
 
