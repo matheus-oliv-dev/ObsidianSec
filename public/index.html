@@ -756,7 +756,13 @@
         });
 
         clearInterval(interval);
-        const data = await res.json();
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          throw new Error(rawText ? rawText.slice(0, 180) : "Falha na comunicação com o servidor.");
+        }
 
         if (!res.ok) {
           throw new Error(data.error || "Falha ao realizar a auditoria.");

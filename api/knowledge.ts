@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { KNOWLEDGE_BASE } from "../src/data/knowledge.ts";
+import { KNOWLEDGE_BASE } from "../src/data/knowledge";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("X-Content-Type-Options", "nosniff");

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { auditUniversalEndpoint } from "../src/scanner/universal-web-scanner.ts";
-import { analyzeCspPolicy } from "../src/lib/security/csp-analyzer.ts";
-import { GeminiProvider, BuiltinCognitiveSimulator } from "../src/agents/ai/llm-provider.ts";
-import { CYBERBRAIN_SYSTEM_PROMPT } from "../src/agents/ai/prompts.ts";
+import { auditUniversalEndpoint } from "../src/scanner/universal-web-scanner";
+import { analyzeCspPolicy } from "../src/lib/security/csp-analyzer";
+import { GeminiProvider, BuiltinCognitiveSimulator } from "../src/agents/ai/llm-provider";
+import { CYBERBRAIN_SYSTEM_PROMPT } from "../src/agents/ai/prompts";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -17,7 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { url, acceptedTerms, apiKey, aiProvider } = req.body || {};
+    const rawBody = req.body;
+    const body = typeof rawBody === "string" ? JSON.parse(rawBody || "{}") : (rawBody || {});
+    const { url, acceptedTerms, apiKey, aiProvider } = body;
 
     if (!acceptedTerms) {
       res.status(403).json({
