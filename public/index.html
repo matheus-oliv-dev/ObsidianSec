@@ -801,8 +801,8 @@
       const earnedList = document.getElementById('earnedList');
       const missedList = document.getElementById('missedList');
 
-      const earned = data.scoreBreakdown?.earnedItems || [];
-      const missed = data.scoreBreakdown?.missedItems || [];
+      const earned = data.scoreBreakdown?.earned || data.scoreBreakdown?.earnedItems || [];
+      const missed = data.scoreBreakdown?.missed || data.scoreBreakdown?.missedItems || [];
 
       if (earned.length > 0) {
         earnedList.innerHTML = earned.map(item => `
@@ -860,10 +860,12 @@
 
       // 3. AI DIAGNOSIS
       const aiDiv = document.getElementById('aiDiagnosisContent');
-      document.getElementById('aiProviderBadge').innerText = (data.aiAnalysis?.providerUsed || 'GOOGLE GEMINI 3 FLASH').toUpperCase();
+      const providerName = data.aiAnalysis?.providerUsed || data.aiDiagnosis?.provider || 'GOOGLE GEMINI 3.7 FLASH';
+      document.getElementById('aiProviderBadge').innerText = providerName.toUpperCase();
 
-      if (data.aiAnalysis?.customAnalysis) {
-        aiDiv.innerHTML = `<div class="whitespace-pre-line text-neutral-200 leading-relaxed font-sans text-base">${data.aiAnalysis.customAnalysis}</div>`;
+      const aiText = data.aiAnalysis?.customAnalysis || data.aiDiagnosis?.analysis || '';
+      if (aiText) {
+        aiDiv.innerHTML = `<div class="whitespace-pre-line text-neutral-200 leading-relaxed font-sans text-base">${escapeHtml(aiText)}</div>`;
       } else {
         const missedControls = missed.map(m => m.control);
         aiDiv.innerHTML = `

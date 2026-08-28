@@ -409,16 +409,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (h.coop.present) {
       earnedItems.push({
         control: "Cross-Origin-Opener-Policy (COOP)",
-        points: 10,
+        points: 5,
         explanation: "Isolamento de contexto de janela ('same-origin') ativo.",
         lesson: "Protege o processo do navegador contra ataques de canal lateral como Spectre.",
       });
     } else {
       missedItems.push({
         control: "Cross-Origin-Opener-Policy (COOP)",
-        lostPoints: 10,
+        lostPoints: 5,
         risk: "Janelas abertas podem manter referências de contexto acessíveis a janelas maliciosas.",
         lesson: "Adicione 'Cross-Origin-Opener-Policy: same-origin'.",
+      });
+    }
+
+    if (h.referrerPolicy.present) {
+      earnedItems.push({
+        control: "Referrer-Policy",
+        points: 5,
+        explanation: "Isolamento de metadados em navegação externa ativo.",
+        lesson: "Evita o vazamento de caminhos de URLs internas para domínios de terceiros.",
+      });
+    } else {
+      missedItems.push({
+        control: "Referrer-Policy",
+        lostPoints: 5,
+        risk: "URLs com dados sensíveis podem ser expostas no cabeçalho Referer em cliques externos.",
+        lesson: "Adicione 'Referrer-Policy: strict-origin-when-cross-origin'.",
       });
     }
 
@@ -455,9 +471,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       scoreBreakdown: {
         earned: earnedItems,
         missed: missedItems,
+        earnedItems,
+        missedItems,
+        totalEarned: totalScore,
       },
       securityHeaders: auditReport.securityHeaders,
       aiDiagnosis,
+      aiAnalysis: {
+        providerUsed: aiDiagnosis.provider,
+        customAnalysis: aiDiagnosis.analysis,
+      },
       remediationSnippets: auditReport.remediationSnippets,
     });
   } catch (err: any) {
