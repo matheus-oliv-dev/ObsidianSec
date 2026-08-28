@@ -1,0 +1,13 @@
+#!/bin/sh
+# Hook de pré-commit do BomberCyber DevSecOps Squad
+echo "🛡️ Executando Esquadrão DevSecOps no pré-commit..."
+
+node scripts/run-security-audit.mjs
+
+if [ $? -ne 0 ]; then
+  echo "❌ Commit bloqueado pelo Quality Gate de Segurança."
+  exit 1
+fi
+
+echo "✅ Verificação de segurança aprovada."
+exit 0

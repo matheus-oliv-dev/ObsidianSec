@@ -1,0 +1,39 @@
+{
+  "name": "bomber-cyber-security",
+  "version": "1.0.0",
+  "description": "Ecossistema de Segurança Defensiva, Testes de Penetração, Resiliência & DevSecOps",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "security:audit": "node scripts/run-security-audit.mjs",
+    "security:sast": "node scripts/security_squad/sast_sentinel.mjs",
+    "security:db": "node scripts/security_squad/db_guardian.mjs",
+    "squad:audit": "node --loader ts-node/esm scripts/squad_audit.mjs || node scripts/run-security-audit.mjs",
+    "ai:audit": "node scripts/ai_squad_runner.mjs",
+    "dashboard": "node scripts/start_dashboard.mjs",
+    "start": "node scripts/start_dashboard.mjs"
+  },
+  "keywords": [
+    "security",
+    "devsecops",
+    "dast",
+    "sast",
+    "chaos-engineering",
+    "anti-cheat",
+    "browser-shield"
+  ],
+  "author": "BomberCyber Team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "@vercel/node": "^5.1.8",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.6"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "public": false,
+  "routes": [
+    {
+      "src": "/api/audit",
+      "dest": "/api/audit.ts"
+    },
+    {
+      "src": "/api/knowledge",
+      "dest": "/api/knowledge.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}

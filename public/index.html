@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOMBERCYBER // DEVSECOPS AUDIT & DEFENSE SYSTEM</title>
+  
+  <!-- Fonts Google: Chakra Petch (Quadrada/Agressiva), Orbitron, Space Grotesk, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@500;700;800&family=Orbitron:wght@700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Font Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            boxy: ['"Chakra Petch"', 'sans-serif'],
+            cyber: ['Orbitron', 'sans-serif'],
+            grotesk: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            monoblack: {
+              1000: '#000000',
+              950: '#050505',
+              900: '#0a0a0a',
+              850: '#111111',
+              800: '#181818',
+              border: '#2a2a2a',
+              borderBold: '#444444',
+              textDim: '#888888',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ================================================================= */
+    /* TEMA BRUTALISTA PRETO & BRANCO // LINHAS QUADRADAS E AGRESSIVAS   */
+    /* ================================================================= */
+    :root {
+      --bg-black: #000000;
+      --card-black: #080808;
+      --border-sharp: #333333;
+      --text-white: #ffffff;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Chakra Petch', sans-serif;
+      overflow-x: hidden;
+      letter-spacing: 0.02em;
+    }
+
+    /* Grade Geométrica Rígida */
+    .brutal-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    }
+
+    /* Card Angular Brutalista */
+    .brutal-card {
+      background: #080808;
+      border: 2px solid #282828;
+      border-radius: 0px;
+      position: relative;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.9);
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .brutal-card:hover {
+      border-color: #ffffff;
+    }
+
+    /* Cantoneiras Táticas Industriais */
+    .corner-mark::before {
+      content: "";
+      position: absolute;
+      top: -2px; left: -2px; width: 8px; height: 8px;
+      background-color: #ffffff;
+    }
+    .corner-mark::after {
+      content: "";
+      position: absolute;
+      bottom: -2px; right: -2px; width: 8px; height: 8px;
+      background-color: #ffffff;
+    }
+
+    /* Bloco de Código Preto e Branco Monocromático */
+    .mono-code-box {
+      background-color: #050505;
+      color: #ffffff;
+      border: 2px solid #333333;
+      border-radius: 0px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbar Preto e Branco */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333333;
+      border-radius: 0px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ffffff;
+    }
+
+    /* Radar Tático Angular */
+    @keyframes radar-sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-beam {
+      animation: radar-sweep 1.5s linear infinite;
+      transform-origin: center center;
+    }
+  </style>
+</head>
+<body class="brutal-grid min-h-screen flex flex-col selection:bg-white selection:text-black relative">
+
+  <!-- ================================================================= -->
+  <!-- HEADER AGRESSIVO MONOCROMÁTICO                                    -->
+  <!-- ================================================================= -->
+  <header class="border-b-2 border-monoblack-border bg-black/95 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo Boxy -->
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-black text-2xl border-2 border-white shadow-lg">
+          <i class="fa-solid fa-shield"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="font-boxy font-black tracking-widest text-2xl sm:text-3xl text-white uppercase leading-none">
+              BOMBER<span class="text-neutral-400">CYBER</span>
+            </span>
+            <span class="text-xs font-mono font-bold tracking-widest text-black bg-white px-2.5 py-1 uppercase">
+              DEFENSE_SYS
+            </span>
+          </div>
+          <p class="text-xs text-neutral-400 font-mono tracking-wider uppercase mt-0.5">DEVSECOPS SCANNER & KNOWLEDGE BASE</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Config -->
+      <div class="flex items-center gap-3 text-sm">
+        <div class="flex items-center gap-2 bg-monoblack-900 border-2 border-monoblack-border p-1">
+          <button 
+            onclick="switchView('scanner')" 
+            id="navScannerBtn"
+            class="px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm"
+          >
+            <i class="fa-solid fa-radar mr-2"></i> SCANNER
+          </button>
+          <button 
+            onclick="switchView('wiki')" 
+            id="navWikiBtn"
+            class="px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-book-skull mr-2"></i> BASE DE CONHECIMENTO
+          </button>
+        </div>
+
+        <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
+          <i class="fa-solid fa-scale-balanced"></i>
+          <span>LGPD & TERMOS</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- MAIN VIEWPORT                                                     -->
+  <!-- ================================================================= -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-12 flex flex-col gap-10 z-10">
+
+    <!-- ============================================================= -->
+    <!-- VIEW 1: URL SECURITY SCANNER                                  -->
+    <!-- ============================================================= -->
+    <div id="scannerSection" class="space-y-10">
+      
+      <!-- HERO BANNER AGRESSIVO -->
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <span class="w-2.5 h-2.5 bg-white inline-block"></span>
+          <span>SONDA TÁTICA DE INFRAESTRUTURA & LGPD COMPLIANCE</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-7xl font-boxy font-black tracking-tight text-white uppercase leading-none">
+          AUDITORIA DE SEGURANÇA <br>
+          <span class="text-neutral-400">
+            & BLINDAGEM DE BORDA
+          </span>
+        </h1>
+
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans font-medium leading-relaxed">
+          Inspecione cabeçalhos de rede, descubra o diagnóstico técnico e gere patches defensivos em preto e branco prontos para merge na sua infraestrutura.
+        </p>
+      </div>
+
+      <!-- SCANNER SEARCH CONSOLE -->
+      <div class="brutal-card corner-mark p-8 sm:p-10 space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4 text-xs font-mono">
+          <div class="flex items-center gap-3 font-bold">
+            <span class="w-3 h-3 bg-white inline-block"></span>
+            <span class="text-white text-sm uppercase tracking-wider">TERMINAL DE SONDAGEM TÁTICA</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono text-neutral-400">
+            <span class="w-2 h-2 bg-green-400 inline-block"></span>
+            <span class="uppercase font-bold tracking-wider">SISTEMA ONLINE</span>
+          </div>
+        </div>
+
+        <form id="auditForm" onsubmit="handleAuditSubmit(event)" class="space-y-6">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-neutral-400 text-lg">
+                <i class="fa-solid fa-terminal"></i>
+              </div>
+              <input 
+                type="url" 
+                id="targetUrl" 
+                placeholder="https://alvo-seguro.com.br" 
+                required
+                class="w-full pl-14 pr-5 py-4 bg-monoblack-1000 border-2 border-monoblack-border focus:border-white text-white placeholder-neutral-600 text-base font-mono uppercase tracking-wider transition outline-none"
+              >
+            </div>
+            <button 
+              type="submit" 
+              id="submitBtn"
+              class="px-10 py-4 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-base uppercase tracking-wider transition flex items-center justify-center gap-3 shadow-xl active:scale-98"
+            >
+              <i class="fa-solid fa-radar text-lg"></i>
+              <span>DISPARAR SONDA</span>
+            </button>
+          </div>
+
+          <!-- LGPD TERMS CHECKBOX -->
+          <div class="flex items-start gap-3 pt-3 text-xs text-neutral-300 border-t-2 border-monoblack-border font-mono">
+            <input 
+              type="checkbox" 
+              id="termsCheckbox" 
+              required
+              class="mt-1 w-5 h-5 rounded-none border-2 border-white bg-black text-white focus:ring-0 cursor-pointer accent-white"
+            >
+            <label for="termsCheckbox" class="cursor-pointer select-none leading-relaxed text-xs">
+              DECLARO SOB A <strong class="text-white font-bold underline">LGPD (LEI Nº 13.709/2018)</strong> SER O PROPRIETÁRIO OU POSSUIR AUTORIZAÇÃO PRÉVIA PARA ESTA SONDAGEM PASSIVA. CONCORDO COM OS 
+              <button type="button" onclick="openTermsModal()" class="text-white underline font-black">[TERMOS DE ISENÇÃO LEGAL & PRIVACIDADE]</button>.
+            </label>
+          </div>
+        </form>
+      </div>
+
+      <!-- RADAR SCANNING LOADER -->
+      <div id="scanLoader" class="hidden brutal-card corner-mark p-12 text-center space-y-6">
+        <div class="relative w-36 h-36 mx-auto">
+          <div class="absolute inset-0 border-2 border-neutral-800"></div>
+          <div class="absolute inset-3 border-2 border-neutral-700"></div>
+          <div class="absolute inset-6 border-2 border-neutral-600"></div>
+          <div class="absolute inset-0 border-t-4 border-white animate-spin"></div>
+
+          <div class="absolute inset-0 radar-beam">
+            <div class="w-1/2 h-1/2 bg-gradient-to-br from-white/40 to-transparent"></div>
+          </div>
+          
+          <div class="absolute inset-0 flex items-center justify-center text-white text-2xl">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="inline-block px-5 py-2 bg-monoblack-900 border-2 border-white text-white font-mono text-sm font-black uppercase tracking-widest" id="loaderStage">
+            [FASE 1/4] AUDITANDO PROTOCOLOS DE BORDA...
+          </div>
+          <p class="text-xs text-neutral-400 font-mono uppercase" id="loaderDetails">Edge Guardian · Code Sentinel · Google Gemini 3 Flash</p>
+        </div>
+      </div>
+
+      <!-- ERROR NOTIFICATION -->
+      <div id="errorAlert" class="hidden brutal-card p-6 border-2 border-white bg-monoblack-900 text-white flex items-start gap-4">
+        <i class="fa-solid fa-triangle-exclamation text-2xl mt-0.5"></i>
+        <div>
+          <div class="font-boxy font-black uppercase text-base tracking-wider">FALHA NA SONDAGEM TÁTICA</div>
+          <div id="errorMessage" class="text-neutral-300 mt-1 font-mono text-sm"></div>
+        </div>
+      </div>
+
+      <!-- AUDIT RESULT DASHBOARD -->
+      <div id="auditResult" class="hidden space-y-8">
+
+        <!-- TOP SCORE TELEMETRY -->
+        <div class="brutal-card corner-mark p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="space-y-3 text-center md:text-left">
+            <div class="flex items-center gap-3 justify-center md:justify-start">
+              <span class="text-xs font-mono font-black uppercase tracking-widest text-neutral-400">[DIAGNÓSTICO DO ALVO]</span>
+              <span id="serverBadge" class="text-xs font-mono font-bold px-3 py-1 bg-monoblack-1000 border border-white text-white uppercase">
+                CLOUDFLARE
+              </span>
+            </div>
+            <h2 id="resultUrl" class="text-2xl sm:text-4xl font-boxy font-black text-white break-all tracking-tight uppercase">
+              HTTPS://ALVO.COM.BR
+            </h2>
+            <p id="gradeVerdictText" class="text-base text-neutral-300 max-w-2xl font-sans font-medium leading-relaxed">
+              Veredito de segurança e blindagem de borda.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-8 border-t-2 md:border-t-0 md:border-l-2 border-monoblack-border pt-6 md:pt-0 md:pl-8">
+            <div class="text-center font-mono">
+              <div class="text-xs uppercase font-bold text-neutral-400 mb-1">SCORE DE BLINDAGEM</div>
+              <div id="scoreNumber" class="text-5xl sm:text-6xl font-black text-white font-boxy">
+                100<span class="text-base font-normal text-neutral-400">/100</span>
+              </div>
+            </div>
+            
+            <div id="gradeBadge" class="w-24 h-24 bg-black border-4 border-white text-white flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl">
+              A+
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- POR QUE ESTA PONTUAÇÃO? (BREAKDOWN DIDÁTICO MONOCROMÁTICO)    -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span>POR QUE ESTA PONTUAÇÃO? // CRITÉRIOS DE AVALIAÇÃO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[ANÁLISE_DIDÁTICA]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- PONTOS GANHOS -->
+            <div class="space-y-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+              <div class="flex items-center gap-3 text-sm font-boxy font-black text-white uppercase border-b-2 border-monoblack-border pb-3">
+                <i class="fa-solid fa-circle-check text-base"></i>
+                <span>PONTOS CONQUISTADOS (DEFESAS ATIVAS)</span>
+              </div>
+              <div id="earnedList" class="space-y-4 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+
+            <!-- PONTOS PERDIDOS -->
+            <div class="space-y-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+              <div class="flex items-center gap-3 text-sm font-boxy font-black text-white uppercase border-b-2 border-monoblack-border pb-3">
+                <i class="fa-solid fa-circle-xmark text-base"></i>
+                <span>PONTOS PERDIDOS (VULNERABILIDADES ABERTAS)</span>
+              </div>
+              <div id="missedList" class="space-y-4 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECURITY CONTROLS GRID -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between text-sm font-boxy font-bold text-white uppercase tracking-wider">
+            <span class="flex items-center gap-3">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>CONTROLES DE BORDA AVALIADOS</span>
+            </span>
+            <span class="text-neutral-400 font-mono text-xs">[6 VETORES OWASP HARDENING]</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="controlsGrid">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+
+        <!-- CYBERBRAIN AI INSIGHTS -->
+        <div class="brutal-card p-8 space-y-5">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-brain"></i>
+              <span>PARECER COGNITIVO // CYBERBRAIN AI</span>
+            </div>
+            <span class="text-xs font-mono font-bold px-3 py-1 bg-monoblack-1000 border border-white text-white uppercase" id="aiProviderBadge">
+              GOOGLE GEMINI 3 FLASH
+            </span>
+          </div>
+          
+          <div id="aiDiagnosisContent" class="text-sm text-neutral-200 space-y-3 leading-relaxed font-sans font-medium">
+            <!-- Conteúdo da IA -->
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- REMEDIATION CODE PATCHES (PRETO E BRANCO TOTAL)               -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-5">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-code"></i>
+              <span>PATCHES DE AUTO-REMEDIAÇÃO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[PRONTOS PARA MERGE]</span>
+          </div>
+
+          <!-- Server Tabs -->
+          <div class="flex gap-2 pb-2 overflow-x-auto text-xs font-mono" id="patchTabs">
+            <!-- Abas de servidores -->
+          </div>
+
+          <!-- Monochrome Code Container -->
+          <div class="mono-code-box">
+            <div class="flex items-center justify-between px-5 py-3 bg-monoblack-900 border-b-2 border-monoblack-border text-xs">
+              <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-white inline-block"></span>
+                <span class="text-white font-mono font-bold uppercase tracking-wider" id="currentSnippetLabel">CONFIG.CONF</span>
+              </div>
+              <button 
+                onclick="copySnippet()" 
+                id="copyBtn"
+                class="bg-white text-black hover:bg-neutral-200 transition flex items-center gap-2 px-4 py-1.5 font-bold uppercase text-xs"
+              >
+                <i class="fa-regular fa-copy"></i>
+                <span id="copyText">COPIAR PATCH</span>
+              </button>
+            </div>
+            <pre id="codeSnippetBox" class="p-6 text-white font-mono text-sm overflow-x-auto leading-relaxed max-h-96"></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 2: OPEN INFOSEC ENCYCLOPEDIA (MONOCHROME CARDS)          -->
+    <!-- ============================================================= -->
+    <div id="wikiSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>BASE DE CONHECIMENTO ABERTA & LGPD</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          ENCICLOPÉDIA DE SEGURANÇA DA INFORMAÇÃO
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Guias práticos, padrões globais (NIST, OWASP, LGPD, CIS) e código defensivo aberto para engenheiros de software e segurança.
+        </p>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex flex-wrap gap-3 justify-center text-xs font-mono font-bold uppercase" id="wikiFilterBar">
+        <button onclick="filterKnowledge('ALL')" class="px-5 py-2.5 bg-white text-black shadow-md">TODOS</button>
+        <button onclick="filterKnowledge('Governance')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">LGPD & GOVERNANÇA</button>
+        <button onclick="filterKnowledge('ZeroTrust')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">ZERO TRUST</button>
+        <button onclick="filterKnowledge('Cryptography')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">CRIPTOGRAFIA PQC</button>
+        <button onclick="filterKnowledge('DevSecOps')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">SUPPLY CHAIN & SBOM</button>
+        <button onclick="filterKnowledge('CloudNative')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">CLOUD & CONTÊINERES</button>
+        <button onclick="filterKnowledge('ApplicationSecurity')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">OWASP ASVS</button>
+      </div>
+
+      <!-- Knowledge Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="knowledgeGrid">
+        <!-- Cards gerados dinamicamente via JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: DETALHES DO ARTIGO DA WIKI                                 -->
+  <!-- ================================================================= -->
+  <div id="knowledgeDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+    <div class="brutal-card max-w-3xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between border-b-2 border-monoblack-border pb-4">
+        <div class="space-y-2">
+          <span id="modalCategoryBadge" class="text-xs font-mono font-black px-3 py-1 bg-white text-black uppercase">CATEGORIA</span>
+          <h3 id="modalTitle" class="text-2xl font-boxy font-black text-white uppercase leading-snug">TÍTULO DO ARTIGO</h3>
+        </div>
+        <button onclick="closeKnowledgeModal()" class="text-neutral-400 hover:text-white transition text-2xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 text-sm font-sans text-neutral-200">
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">📋 VISÃO GERAL & FUNDAMENTO:</span>
+          <p id="modalSummary" class="text-neutral-300 leading-relaxed text-sm font-sans"></p>
+        </div>
+
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">🚨 AMEAÇA MITIGADA:</span>
+          <p id="modalThreat" class="text-neutral-400 leading-relaxed font-sans"></p>
+        </div>
+
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">🛡️ CONTRAMEDIDAS DEFENSIVAS:</span>
+          <ul id="modalMitigations" class="list-disc list-inside space-y-1.5 text-neutral-300 font-sans"></ul>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <span class="font-boxy font-black text-white text-base block uppercase tracking-wider" id="modalCodeTitle">IMPLEMENTAÇÃO DE REFERÊNCIA:</span>
+          <div class="mono-code-box p-5 text-sm font-mono overflow-x-auto max-h-80 leading-relaxed">
+            <pre id="modalCodeSnippet" class="text-white"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t-2 border-monoblack-border flex justify-end">
+        <button onclick="closeKnowledgeModal()" class="px-8 py-3 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-sm uppercase tracking-wider">
+          FECHAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: TERMOS DE USO & CONFORMIDADE LGPD                          -->
+  <!-- ================================================================= -->
+  <div id="termsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+    <div class="brutal-card max-w-2xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white text-black flex items-center justify-center font-black">
+            <i class="fa-solid fa-scale-balanced text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-boxy font-black text-white uppercase tracking-wider">TERMOS DE USO & CONFORMIDADE LGPD</h2>
+            <p class="text-xs font-mono text-neutral-400 uppercase">LEI Nº 13.709/2018 & DIRETRIZES DEVSECOPS</p>
+          </div>
+        </div>
+        <button onclick="closeTermsModal()" class="text-neutral-400 hover:text-white transition text-2xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 text-xs text-neutral-300 leading-relaxed font-mono">
+        <p class="text-white font-bold uppercase">
+          AO UTILIZAR A SUÍTE BOMBERCYBER, VOCÊ CONCORDA DE FORMA EXPRESSA, INFORMADA E INEQUÍVOCA COM AS SEGUINTES DIRETRIZES:
+        </p>
+
+        <div class="space-y-4 pl-4 border-l-2 border-white">
+          <div>
+            <span class="font-bold text-white uppercase">[01. AUTORIZAÇÃO & BASE LEGAL (ART. 7º E 10º DA LGPD)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">O usuário declara ser o proprietário legítimo (Controlador) ou dispor de consentimento expresso e legítimo interesse para auditar a infraestrutura indicada.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[02. MINIMIZAÇÃO DE DADOS & PRIVACIDADE (ART. 6º, III)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">A ferramenta opera sob o princípio de <em>Privacy by Design</em>: coleta estritamente metadados técnicos públicos de rede e cabeçalhos. NÃO coletamos, não armazenamos e não processamos Dados Pessoais Sensíveis (PII) dos alvos auditados.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[03. NATUREZA PASSIVA & SEGURANÇA (ART. 46)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">A auditoria é estritamente passiva e não destrutiva. O sistema não executa ataques de negação de serviço (DoS) e não realiza injeções de payloads invasivos.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[04. ISENÇÃO TOTAL DE RESPONSABILIDADE]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">Os mantenedores NÃO se responsabilizam pelo uso indevido, não autorizado ou ilícito da ferramenta por terceiros contra domínios alheios.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t-2 border-monoblack-border flex justify-end gap-3 font-boxy font-black text-xs">
+        <button 
+          type="button" 
+          onclick="closeTermsModal()" 
+          class="px-8 py-3 bg-white hover:bg-neutral-200 text-black uppercase tracking-wider"
+        >
+          ACEITAR & CONTINUAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- FOOTER AGRESSIVO                                                  -->
+  <!-- ================================================================= -->
+  <footer class="border-t-2 border-monoblack-border bg-black py-8 text-xs font-mono text-neutral-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 bg-white inline-block"></span>
+        <span class="uppercase tracking-wider">© 2026 BOMBERCYBER · PLATAFORMA ABERTA DE DEFESA CIBERNÉTICA & LGPD.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button onclick="switchView('wiki')" class="hover:text-white transition uppercase font-bold">[BASE DE CONHECIMENTO]</button>
+        <span class="text-neutral-700">|</span>
+        <button onclick="openTermsModal()" class="hover:text-white transition uppercase font-bold">[LGPD & TERMOS]</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================= -->
+  <!-- JAVASCRIPT LOGIC                                                  -->
+  <!-- ================================================================= -->
+  <script>
+    // =================================================================
+    // FUNÇÃO DEFENSIVA CONTRA DOM XSS (SANITIZAÇÃO DE STRINGS EXTERNAS)
+    // =================================================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    let currentSnippets = [];
+    let currentActiveTab = 0;
+    let rawKnowledgeItems = [];
+
+    function switchView(viewName) {
+      const scannerSec = document.getElementById('scannerSection');
+      const wikiSec = document.getElementById('wikiSection');
+      const navScanner = document.getElementById('navScannerBtn');
+      const navWiki = document.getElementById('navWikiBtn');
+
+      if (viewName === 'wiki') {
+        scannerSec.classList.add('hidden');
+        wikiSec.classList.remove('hidden');
+        navWiki.className = "px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
+        navScanner.className = "px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
+        if (rawKnowledgeItems.length === 0) loadKnowledgeBase();
+      } else {
+        wikiSec.classList.add('hidden');
+        scannerSec.classList.remove('hidden');
+        navScanner.className = "px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
+        navWiki.className = "px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
+      }
+    }
+
+    async function loadKnowledgeBase() {
+      try {
+        const res = await fetch('/api/knowledge');
+        const data = await res.json();
+        rawKnowledgeItems = data.items || [];
+        renderKnowledgeCards(rawKnowledgeItems);
+      } catch (err) {
+        console.error("Falha ao carregar a base de conhecimento", err);
+      }
+    }
+
+    function renderKnowledgeCards(items) {
+      const grid = document.getElementById('knowledgeGrid');
+      grid.innerHTML = items.map(item => `
+        <div class="brutal-card p-6 space-y-4 flex flex-col justify-between transition cursor-pointer" onclick="openKnowledgeModal('${item.id}')">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="px-3 py-1 bg-white text-black font-black uppercase text-[10px]">${item.category}</span>
+              <span class="text-neutral-400 uppercase font-bold">[${item.difficulty}]</span>
+            </div>
+            <h3 class="font-boxy font-black text-white text-xl uppercase leading-snug">${item.title}</h3>
+            <p class="text-sm text-neutral-300 font-sans line-clamp-3 leading-relaxed">${item.summary}</p>
+          </div>
+
+          <div class="pt-4 border-t-2 border-monoblack-border flex items-center justify-between text-xs font-boxy font-black text-white uppercase tracking-wider">
+            <span>LER GUIA & CÓDIGO COMPLETO</span>
+            <i class="fa-solid fa-arrow-right text-sm"></i>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterKnowledge(cat) {
+      if (cat === 'ALL') {
+        renderKnowledgeCards(rawKnowledgeItems);
+      } else {
+        const filtered = rawKnowledgeItems.filter(i => i.category === cat);
+        renderKnowledgeCards(filtered);
+      }
+    }
+
+    function openKnowledgeModal(itemId) {
+      const item = rawKnowledgeItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('modalCategoryBadge').innerText = `${item.category} · ${item.difficulty}`;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalSummary').innerText = item.summary;
+      document.getElementById('modalThreat').innerText = item.threatMitigated;
+      document.getElementById('modalMitigations').innerHTML = item.mitigations.map(m => `<li>${m}</li>`).join('');
+      document.getElementById('modalCodeTitle').innerText = item.codeExample.title;
+      document.getElementById('modalCodeSnippet').innerText = item.codeExample.code;
+
+      document.getElementById('knowledgeDetailModal').classList.remove('hidden');
+    }
+
+    function closeKnowledgeModal() {
+      document.getElementById('knowledgeDetailModal').classList.add('hidden');
+    }
+
+    function openTermsModal() {
+      document.getElementById('termsModal').classList.remove('hidden');
+    }
+
+    function closeTermsModal() {
+      document.getElementById('termsModal').classList.add('hidden');
+      document.getElementById('termsCheckbox').checked = true;
+    }
+
+    async function handleAuditSubmit(e) {
+      e.preventDefault();
+      const url = document.getElementById('targetUrl').value.trim();
+      const acceptedTerms = document.getElementById('termsCheckbox').checked;
+
+      if (!acceptedTerms) {
+        openTermsModal();
+        return;
+      }
+
+      document.getElementById('errorAlert').classList.add('hidden');
+      document.getElementById('auditResult').classList.add('hidden');
+      document.getElementById('scanLoader').classList.remove('hidden');
+      document.getElementById('submitBtn').disabled = true;
+
+      const stages = [
+        "[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...",
+        "[FASE 2/4] VERIFICANDO CSP LEVEL 3 & CLICKJACKING...",
+        "[FASE 3/4] ANALISANDO ISOLAMENTO COOP & MIME...",
+        "[FASE 4/4] SINTETIZANDO DIAGNÓSTICO COGNITIVO COM IA..."
+      ];
+      let stageIdx = 0;
+      const interval = setInterval(() => {
+        stageIdx = (stageIdx + 1) % stages.length;
+        document.getElementById('loaderStage').innerText = stages[stageIdx];
+      }, 350);
+
+      try {
+        const res = await fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url, 
+            acceptedTerms 
+          })
+        });
+
+        clearInterval(interval);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Falha ao realizar a auditoria.");
+        }
+
+        renderAuditResult(data);
+      } catch (err) {
+        clearInterval(interval);
+        document.getElementById('errorMessage').innerText = err.message;
+        document.getElementById('errorAlert').classList.remove('hidden');
+      } finally {
+        document.getElementById('scanLoader').classList.add('hidden');
+        document.getElementById('submitBtn').disabled = false;
+      }
+    }
+
+    function renderAuditResult(data) {
+      document.getElementById('resultUrl').innerText = data.url;
+      document.getElementById('serverBadge').innerText = data.serverDetected || "DESCONHECIDO";
+      document.getElementById('scoreNumber').innerHTML = `${data.score}<span class="text-base font-normal text-neutral-400">/100</span>`;
+      document.getElementById('gradeVerdictText').innerText = data.gradeVerdict;
+      
+      const gradeEl = document.getElementById('gradeBadge');
+      gradeEl.innerText = data.grade;
+
+      // Grade com cores semafóricas
+      if (data.grade === 'A+' || data.grade === 'A') {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-green-500 text-green-400 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-green-500/20";
+      } else if (data.grade === 'B') {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-yellow-400 text-yellow-400 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-yellow-500/20";
+      } else {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-red-500 text-red-500 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-red-500/20";
+      }
+
+      // 1. RENDER EDUCATIONAL SCORE BREAKDOWN (VERDE / AMARELO / VERMELHO)
+      const earnedList = document.getElementById('earnedList');
+      const missedList = document.getElementById('missedList');
+
+      const earned = data.scoreBreakdown?.earnedItems || [];
+      const missed = data.scoreBreakdown?.missedItems || [];
+
+      if (earned.length > 0) {
+        earnedList.innerHTML = earned.map(item => `
+          <div class="border-l-4 border-green-500 pl-4 py-2 bg-green-950/20">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm font-boxy uppercase">${escapeHtml(item.control)}</span>
+              <span class="text-green-400 font-black font-mono text-base">+${item.points} PTS</span>
+            </div>
+            <p class="text-xs text-neutral-300 mt-1 font-sans">${escapeHtml(item.explanation)}</p>
+            <div class="text-xs text-green-300 font-bold mt-1.5 uppercase font-mono">💡 LIÇÃO: ${escapeHtml(item.lesson)}</div>
+          </div>
+        `).join('');
+      } else {
+        earnedList.innerHTML = `<p class="text-neutral-500 text-xs">NENHUM CONTROLE DE SEGURANÇA PONTUADO.</p>`;
+      }
+
+      if (missed.length > 0) {
+        missedList.innerHTML = missed.map(item => `
+          <div class="border-l-4 border-red-500 pl-4 py-2 bg-red-950/20">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm font-boxy uppercase">${escapeHtml(item.control)}</span>
+              <span class="text-red-400 font-black font-mono text-base">-${item.lostPoints} PTS</span>
+            </div>
+            <p class="text-xs text-red-200 mt-1 font-sans">⚠️ RISCO: ${escapeHtml(item.risk)}</p>
+            <div class="text-xs text-yellow-400 font-bold mt-1.5 uppercase font-mono">🔧 CORREÇÃO: ${escapeHtml(item.lesson)}</div>
+          </div>
+        `).join('');
+      } else {
+        missedList.innerHTML = `<p class="text-green-400 font-bold text-sm uppercase">🎉 EXCELENTE! TODOS OS CONTROLES AVALIADOS ESTÃO ATIVOS (+100%).</p>`;
+      }
+
+      // 2. RENDER CONTROLS GRID (VERDE / VERMELHO VIBRANTE)
+      const headers = data.securityHeaders;
+      const controls = [
+        { name: "Content-Security-Policy", active: headers.csp.present, desc: "Proteção contra injeção de scripts e XSS" },
+        { name: "X-Frame-Options", active: headers.xFrameOptions.present, desc: "Defesa anti-Clickjacking e bloqueio de iframes" },
+        { name: "Strict-Transport-Security", active: headers.hsts.present, desc: "HTTPS forçado e tráfego criptografado (HSTS)" },
+        { name: "X-Content-Type-Options", active: headers.xContentTypeOptions.present, desc: "Prevenção de ataques de MIME Sniffing" },
+        { name: "Permissions-Policy", active: headers.permissionsPolicy.present, desc: "Restrição de acesso a câmera, GPS e áudio" },
+        { name: "Referrer-Policy", active: headers.referrerPolicy.present, desc: "Isolamento de metadados em navegação externa" },
+      ];
+
+      const grid = document.getElementById('controlsGrid');
+      grid.innerHTML = controls.map(c => `
+        <div class="brutal-card p-5 space-y-3 ${c.active ? 'border-green-500/80' : 'border-red-500/80'}">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-white truncate uppercase">${c.name}</span>
+            <span class="text-[11px] font-black uppercase px-2.5 py-1 ${c.active ? 'bg-green-500 text-black shadow-md shadow-green-500/30' : 'bg-red-500 text-white shadow-md shadow-red-500/30'}">
+              ${c.active ? 'ATIVO' : 'AUSENTE'}
+            </span>
+          </div>
+          <p class="text-xs text-neutral-300 font-sans leading-relaxed">${c.desc}</p>
+        </div>
+      `).join('');
+
+      // 3. AI DIAGNOSIS
+      const aiDiv = document.getElementById('aiDiagnosisContent');
+      document.getElementById('aiProviderBadge').innerText = (data.aiAnalysis?.providerUsed || 'GOOGLE GEMINI 3 FLASH').toUpperCase();
+
+      if (data.aiAnalysis?.customAnalysis) {
+        aiDiv.innerHTML = `<div class="whitespace-pre-line text-neutral-200 leading-relaxed font-sans text-base">${data.aiAnalysis.customAnalysis}</div>`;
+      } else {
+        const missedControls = missed.map(m => m.control);
+        aiDiv.innerHTML = `
+          <p class="font-bold text-white text-base">${data.gradeVerdict}</p>
+          ${missedControls.length > 0 ? `
+            <div class="mt-4 space-y-2">
+              <div class="text-xs font-boxy font-black uppercase tracking-wider text-yellow-400">AÇÕES PRIORITÁRIAS PARA ELEVAR A NOTA:</div>
+              <ul class="list-disc list-inside text-sm text-neutral-300 space-y-1 font-sans">
+                ${missedControls.map(c => `<li>Aplicar patch para <strong class="text-white">${c}</strong></li>`).join('')}
+              </ul>
+            </div>
+          ` : '<p class="text-sm text-green-400 font-bold">🎉 NENHUMA VULNERABILIDADE CRÍTICA PENDENTE. EXCELENTE CONFIGURAÇÃO DE BORDA!</p>'}
+        `;
+      }
+
+      currentSnippets = data.remediationSnippets || [];
+      renderTabs();
+
+      document.getElementById('auditResult').classList.remove('hidden');
+    }
+
+    function renderTabs() {
+      const tabsContainer = document.getElementById('patchTabs');
+      tabsContainer.innerHTML = currentSnippets.map((s, idx) => `
+        <button 
+          onclick="selectTab(${idx})" 
+          class="px-4 py-2 border-2 transition font-mono uppercase font-bold text-xs ${currentActiveTab === idx ? 'bg-white text-black border-white' : 'text-neutral-400 hover:text-white border-monoblack-border bg-monoblack-900'}"
+        >
+          ${s.serverType.split(' ')[0]}
+        </button>
+      `).join('');
+
+      if (currentSnippets[currentActiveTab]) {
+        document.getElementById('currentSnippetLabel').innerText = currentSnippets[currentActiveTab].serverType.toUpperCase();
+        document.getElementById('codeSnippetBox').innerText = currentSnippets[currentActiveTab].snippet;
+      }
+    }
+
+    function selectTab(idx) {
+      currentActiveTab = idx;
+      renderTabs();
+    }
+
+    function copySnippet() {
+      if (!currentSnippets[currentActiveTab]) return;
+      navigator.clipboard.writeText(currentSnippets[currentActiveTab].snippet);
+      
+      const copyText = document.getElementById('copyText');
+      copyText.innerText = "COPIADO!";
+      setTimeout(() => {
+        copyText.innerText = "COPIAR PATCH";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
