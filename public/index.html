@@ -155,6 +155,9 @@
 </head>
 <body class="brutal-grid min-h-screen flex flex-col selection:bg-white selection:text-black relative">
 
+  <!-- GLOBAL MATRIX BACKGROUND CANVAS (0 E 1) -->
+  <canvas id="bgMatrixCanvas" class="fixed inset-0 pointer-events-none z-0 w-full h-full opacity-25"></canvas>
+
   <!-- ================================================================= -->
   <!-- HEADER AGRESSIVO MONOCROMÁTICO                                    -->
   <!-- ================================================================= -->
@@ -988,6 +991,87 @@
       setTimeout(() => {
         copyText.innerText = "COPIAR PATCH";
       }, 2000);
+    }
+
+    // =========================================================================
+    // ANIMAÇÃO GLOBAL DE FUNDO (CASCATA DE 0 E 1 // CYBER MATRIX BACKGROUND)
+    // =========================================================================
+    function initGlobalBackgroundMatrix() {
+      const canvas = document.getElementById('bgMatrixCanvas');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      let width = 0;
+      let height = 0;
+      let columns = 0;
+      let drops = [];
+      const fontSize = 16;
+      const binaryChars = ['0', '1'];
+
+      const resize = () => {
+        const dpr = window.devicePixelRatio || 1;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        columns = Math.max(1, Math.floor(width / fontSize));
+        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * -60));
+      };
+
+      resize();
+      window.addEventListener('resize', resize, { passive: true });
+
+      // Fundo preto inicial
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+
+      function renderBg() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.07)';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.font = `bold ${fontSize}px 'JetBrains Mono', monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+          const char = binaryChars[Math.floor(Math.random() * binaryChars.length)];
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          if (y > 0 && y < height + fontSize) {
+            // Ponta brilhante e corpo verde escuro/sutil
+            if (Math.random() > 0.45) {
+              ctx.fillStyle = '#22c55e';
+              ctx.shadowColor = '#15803d';
+              ctx.shadowBlur = 4;
+            } else {
+              ctx.fillStyle = '#ffffff';
+              ctx.shadowColor = '#4ade80';
+              ctx.shadowBlur = 6;
+            }
+
+            ctx.fillText(char, x, y);
+            ctx.shadowBlur = 0;
+          }
+
+          if (y > height && Math.random() > 0.975) {
+            drops[i] = 0;
+          } else {
+            drops[i]++;
+          }
+        }
+
+        requestAnimationFrame(renderBg);
+      }
+
+      requestAnimationFrame(renderBg);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initGlobalBackgroundMatrix);
+    } else {
+      initGlobalBackgroundMatrix();
     }
   </script>
 </body>
