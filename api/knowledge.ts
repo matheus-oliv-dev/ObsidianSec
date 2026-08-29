@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "../src/types/index.ts";
 
 export const KNOWLEDGE_BASE = [
   {
