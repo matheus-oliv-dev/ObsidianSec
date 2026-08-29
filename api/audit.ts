@@ -326,16 +326,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
       return;
     }
-
-    if (!url || typeof url !== "string" || !url.startsWith("http")) {
+    let targetUrl = typeof url === "string" ? url.trim() : "";
+    if (!targetUrl) {
       res.status(400).json({
-        error: "URL inválida. Informe uma URL válida iniciando com http:// ou https://",
+        error: "URL inválida. Informe um domínio ou endereço web para a sondagem.",
       });
       return;
     }
 
+    if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
+      targetUrl = `https://${targetUrl}`;
+    }
+
     // 1. Auditoria de Rede e Cabeçalhos
-    const auditReport = await auditUniversalEndpoint(url);
+    const auditReport = await auditUniversalEndpoint(targetUrl);
 
     // 2. Cálculo Pedagógico da Pontuação
     const earnedItems: Array<{ control: string; points: number; explanation: string; lesson: string }> = [];

@@ -177,20 +177,25 @@ export function createWebServer() {
               return;
             }
 
-            if (!url || typeof url !== "string" || !url.startsWith("http")) {
+            let targetUrl = typeof url === "string" ? url.trim() : "";
+            if (!targetUrl) {
               res.writeHead(400, { "Content-Type": "application/json" });
               res.end(
                 JSON.stringify({
-                  error: "URL inválida. Informe uma URL válida iniciando com http:// ou https://",
+                  error: "URL inválida. Informe um domínio ou endereço web para a sondagem.",
                 }),
               );
               return;
             }
 
+            if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
+              targetUrl = `https://${targetUrl}`;
+            }
+
             // 1. Auditoria Universal de Protocolos e Cabeçalhos com Proteção de Socket
             let auditReport;
             try {
-              auditReport = await auditUniversalEndpoint(url);
+              auditReport = await auditUniversalEndpoint(targetUrl);
             } catch (scanErr: any) {
               res.writeHead(502, { "Content-Type": "application/json" });
               res.end(JSON.stringify({ error: `Não foi possível conectar ao alvo: ${scanErr?.message || "Conexão recusada ou timeout."}` }));

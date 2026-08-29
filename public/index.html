@@ -256,9 +256,9 @@
                 <i class="fa-solid fa-terminal"></i>
               </div>
               <input 
-                type="url" 
+                type="text" 
                 id="targetUrl" 
-                placeholder="https://alvo-seguro.com.br" 
+                placeholder="ex: gov.br ou https://alvo-seguro.com.br" 
                 required
                 class="w-full pl-14 pr-5 py-4 bg-monoblack-1000 border-2 border-monoblack-border focus:border-white text-white placeholder-neutral-600 text-base font-mono uppercase tracking-wider transition outline-none"
               >
@@ -800,12 +800,19 @@
 
     async function handleAuditSubmit(e) {
       e.preventDefault();
-      const url = document.getElementById('targetUrl').value.trim();
+      let url = document.getElementById('targetUrl').value.trim();
       const acceptedTerms = document.getElementById('termsCheckbox').checked;
 
       if (!acceptedTerms) {
         openTermsModal();
         return;
+      }
+
+      if (!url) return;
+
+      // Auto-prefixa https:// se o usuário digitar apenas o domínio (ex: gov.br)
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
       }
 
       document.getElementById('errorAlert').classList.add('hidden');
