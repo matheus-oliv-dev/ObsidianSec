@@ -219,7 +219,19 @@ Set Dynamic Header:
     };
   } catch (err: any) {
     clearTimeout(timeoutId);
-    throw new Error(err.message || "Falha na conexão com o alvo.");
+    const msg = (err?.message || "").toLowerCase();
+    const causeMsg = String(err?.cause?.message || err?.cause?.code || "").toLowerCase();
+
+    if (msg.includes("abort") || msg.includes("timeout")) {
+      throw new Error("Tempo limite de conexão esgotado (timeout). O servidor alvo demorou a responder.");
+    }
+    if (msg.includes("fetch failed") || causeMsg.includes("enotfound") || causeMsg.includes("eai_again")) {
+      throw new Error("Não foi possível localizar o endereço (DNS/Domínio não encontrado). Verifique se o domínio foi digitado corretamente.");
+    }
+    if (causeMsg.includes("econnrefused")) {
+      throw new Error("Conexão recusada pelo servidor de destino.");
+    }
+    throw new Error(err?.message || "Falha ao conectar com o servidor alvo.");
   }
 }
 

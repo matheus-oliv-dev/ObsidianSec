@@ -134,14 +134,32 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 export async function auditUniversalEndpoint(targetUrl: string): Promise<UniversalAuditReport> {
   const url = targetUrl.startsWith("http") ? targetUrl : `https://${targetUrl}`;
 
-  const res = await fetch(url, {
-    method: "GET",
-    redirect: "follow",
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    },
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (err: any) {
+    const msg = (err?.message || "").toLowerCase();
+    const causeMsg = String(err?.cause?.message || err?.cause?.code || "").toLowerCase();
+
+    if (msg.includes("abort") || msg.includes("timeout")) {
+      throw new Error("Tempo limite de conexão esgotado (timeout). O servidor alvo demorou a responder.");
+    }
+    if (msg.includes("fetch failed") || causeMsg.includes("enotfound") || causeMsg.includes("eai_again")) {
+      throw new Error("Não foi possível localizar o endereço (DNS/Domínio não encontrado). Verifique se o domínio foi digitado corretamente.");
+    }
+    if (causeMsg.includes("econnrefused")) {
+      throw new Error("Conexão recusada pelo servidor de destino.");
+    }
+    throw new Error(err?.message || "Falha ao conectar com o servidor alvo.");
+  }
 
   const headers = res.headers;
   const finalUrl = res.url || url;
