@@ -1,3 +1,4 @@
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   isPrivateOrMetadataIp,
@@ -44,7 +45,7 @@ describe("☁️ Cloud, Metadata Security & Path Traversal Suite", () => {
   });
 
   describe("2. Path Traversal & LFI Shield", () => {
-    const baseDir = "C:\\app\\storage\\uploads";
+    const baseDir = path.resolve("app", "storage", "uploads");
 
     it("TEST-096: bloqueia travessia de diretório com ../ e resolve canônico", () => {
       expect(() => resolveSafePath(baseDir, "../../../../etc/passwd")).toThrow(

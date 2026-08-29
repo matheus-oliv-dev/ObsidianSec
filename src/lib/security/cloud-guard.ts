@@ -91,12 +91,16 @@ export function resolveSafePath(baseDir: string, userPath: string): string {
   // Remove caracteres de controle perigosos
   decoded = decoded.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
 
+  // Normaliza barras invertidas (\) para forward slashes (/) garantindo bloqueio em Windows e Linux
+  const normalizedUserPath = decoded.replace(/\\/g, "/");
+
   // Resolve o caminho canônico
   const canonicalBase = path.resolve(baseDir);
-  const resolvedTarget = path.resolve(canonicalBase, decoded);
+  const resolvedTarget = path.resolve(canonicalBase, normalizedUserPath);
 
-  // Verifica se o caminho resolvido inicia com o diretório base permitido
-  if (!resolvedTarget.startsWith(canonicalBase)) {
+  // Verifica se o caminho resolvido escapa do diretório base permitido
+  const relative = path.relative(canonicalBase, resolvedTarget);
+  if (relative.startsWith("..") || path.isAbsolute(relative) || !resolvedTarget.startsWith(canonicalBase)) {
     throw new Error("[SecurityError]: Path traversal detectado. Acesso negado fora do diretório base.");
   }
 
