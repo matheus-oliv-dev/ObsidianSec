@@ -290,54 +290,23 @@
       </div>
 
       <!-- CYBER BINARY STREAM LOADER (TELA COM 0 E 1) -->
-      <div id="scanLoader" class="hidden brutal-card corner-mark p-0 overflow-hidden border-2 border-white/90 shadow-2xl">
+      <div id="scanLoader" class="hidden brutal-card corner-mark p-0 overflow-hidden border-2 border-white shadow-2xl">
         <!-- Terminal Top Bar -->
         <div class="flex items-center justify-between px-4 py-2.5 bg-monoblack-900 border-b-2 border-monoblack-border text-xs font-mono select-none">
           <div class="flex items-center gap-3">
             <span class="w-2.5 h-2.5 bg-green-400 animate-pulse inline-block shadow-sm shadow-green-400"></span>
-            <span class="text-white font-black tracking-wider uppercase">[SONDA BINÁRIA // CAPTURA DE PACOTES RAW]</span>
+            <span id="loaderStage" class="text-white font-black tracking-wider uppercase">[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...</span>
           </div>
           <div class="flex items-center gap-4 text-xs font-mono text-neutral-400">
             <span id="binaryBytesCount" class="text-green-400 font-bold tracking-widest">BYTES: 0x0000 | 0.0 KB</span>
             <span class="hidden sm:inline text-neutral-600">|</span>
-            <span class="hidden sm:inline uppercase text-white font-bold bg-monoblack-1000 border border-monoblack-border px-2 py-0.5 text-[10px]">60 FPS STREAM</span>
+            <span class="hidden sm:inline uppercase text-white font-bold bg-monoblack-1000 border border-monoblack-border px-2 py-0.5 text-[10px]">STREAM LIVE</span>
           </div>
         </div>
 
-        <!-- Binary Matrix Stream Screen -->
-        <div class="relative w-full h-80 sm:h-96 cyber-crt flex flex-col items-center justify-center">
-          <!-- Canvas with 0s and 1s waterfall -->
+        <!-- Tela Pura de Cascata Binária 0 e 1 (100% Desobstruída) -->
+        <div class="relative w-full h-80 sm:h-96 cyber-crt">
           <canvas id="binaryCanvas" class="absolute inset-0 w-full h-full block"></canvas>
-          
-          <!-- Tactical HUD Center Box -->
-          <div class="relative z-20 max-w-xl w-11/12 mx-auto p-6 sm:p-8 bg-black/90 border-2 border-white backdrop-blur-md text-center space-y-4 shadow-2xl">
-            <!-- HUD Status Header -->
-            <div class="flex items-center justify-center gap-2 text-xs font-mono text-green-400 font-bold uppercase tracking-widest">
-              <i class="fa-solid fa-satellite-dish animate-bounce text-sm"></i>
-              <span>DECODIFICANDO FLUXO DE REDE & HEADERS</span>
-            </div>
-
-            <!-- Loader Stage Title -->
-            <div class="inline-block px-5 py-2.5 bg-monoblack-900 border-2 border-white text-white font-mono text-sm sm:text-base font-black uppercase tracking-widest shadow-lg" id="loaderStage">
-              [FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...
-            </div>
-
-            <!-- Live Binary Stream Line -->
-            <div class="flex items-center justify-center gap-2 font-mono text-xs text-neutral-400 tracking-wider">
-              <span class="text-white font-bold">[BUFFER]:</span>
-              <span id="binaryStreamLine" class="text-green-400 font-bold tracking-widest font-mono text-xs sm:text-sm">01001111 01000010 01010011 01001001</span>
-            </div>
-
-            <!-- Animated Progress Bar -->
-            <div class="w-full bg-monoblack-1000 border border-neutral-700 h-2 overflow-hidden relative">
-              <div id="binaryProgressBar" class="h-full bg-white transition-all duration-300" style="width: 25%;"></div>
-            </div>
-
-            <!-- AI & Engine Telemetry -->
-            <p class="text-xs text-neutral-400 font-mono uppercase tracking-wider" id="loaderDetails">
-              Edge Guardian · Code Sentinel · Google Gemini 3.7 Flash
-            </p>
-          </div>
         </div>
       </div>
 
@@ -766,7 +735,6 @@
     }
 
     let binaryAnimId = null;
-    let binaryIntervalId = null;
     let bytesAccumulator = 0;
 
     function startBinaryStreamAnimation() {
@@ -795,12 +763,12 @@
       let frameCount = 0;
 
       // Fundo escuro inicial
-      ctx.fillStyle = '#020403';
+      ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, dims.width, dims.height);
 
       function draw() {
         // Overlay translúcido para rastro de fósforo verde/branco
-        ctx.fillStyle = 'rgba(2, 4, 3, 0.18)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
         ctx.fillRect(0, 0, dims.width, dims.height);
 
         ctx.font = `bold ${fontSize}px 'JetBrains Mono', monospace`;
@@ -811,7 +779,7 @@
           const y = drops[i] * fontSize;
 
           if (y > 0 && y < dims.height + fontSize) {
-            // Caractere da ponta brilha em branco puro e neon verde
+            // Caractere da ponta brilha em branco puro e verde neon
             if (Math.random() > 0.35) {
               ctx.fillStyle = '#ffffff';
               ctx.shadowColor = '#4ade80';
@@ -834,8 +802,8 @@
         }
 
         frameCount++;
-        if (frameCount % 3 === 0) {
-          bytesAccumulator += Math.floor(Math.random() * 380 + 190);
+        if (frameCount % 2 === 0) {
+          bytesAccumulator += Math.floor(Math.random() * 512 + 256);
           const bytesEl = document.getElementById('binaryBytesCount');
           if (bytesEl) {
             const hex = bytesAccumulator.toString(16).toUpperCase().padStart(4, '0');
@@ -847,15 +815,6 @@
         binaryAnimId = requestAnimationFrame(draw);
       }
 
-      if (binaryIntervalId) clearInterval(binaryIntervalId);
-      binaryIntervalId = setInterval(() => {
-        const streamEl = document.getElementById('binaryStreamLine');
-        if (streamEl) {
-          const makeByte = () => Array.from({length: 8}, () => Math.random() > 0.5 ? '1' : '0').join('');
-          streamEl.innerText = `${makeByte()} ${makeByte()} ${makeByte()} ${makeByte()}`;
-        }
-      }, 70);
-
       if (binaryAnimId) cancelAnimationFrame(binaryAnimId);
       binaryAnimId = requestAnimationFrame(draw);
     }
@@ -864,10 +823,6 @@
       if (binaryAnimId) {
         cancelAnimationFrame(binaryAnimId);
         binaryAnimId = null;
-      }
-      if (binaryIntervalId) {
-        clearInterval(binaryIntervalId);
-        binaryIntervalId = null;
       }
     }
 
@@ -886,23 +841,19 @@
       document.getElementById('scanLoader').classList.remove('hidden');
       document.getElementById('submitBtn').disabled = true;
 
-      // Inicia a tela de animação da cascata binária 0 e 1
+      // Inicia a tela de animação da cascata binária 0 e 1 (100% desobstruída)
       startBinaryStreamAnimation();
 
-      const progressBar = document.getElementById('binaryProgressBar');
-      if (progressBar) progressBar.style.width = '25%';
-
       const stages = [
-        { text: "[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...", pct: "25%" },
-        { text: "[FASE 2/4] VERIFICANDO CSP LEVEL 3 & CLICKJACKING...", pct: "50%" },
-        { text: "[FASE 3/4] ANALISANDO ISOLAMENTO COOP & MIME...", pct: "75%" },
-        { text: "[FASE 4/4] SINTETIZANDO DIAGNÓSTICO COGNITIVO COM IA...", pct: "92%" }
+        "[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...",
+        "[FASE 2/4] VERIFICANDO CSP LEVEL 3 & CLICKJACKING...",
+        "[FASE 3/4] ANALISANDO ISOLAMENTO COOP & MIME...",
+        "[FASE 4/4] SINTETIZANDO DIAGNÓSTICO COGNITIVO COM IA..."
       ];
       let stageIdx = 0;
       const interval = setInterval(() => {
         stageIdx = (stageIdx + 1) % stages.length;
-        document.getElementById('loaderStage').innerText = stages[stageIdx].text;
-        if (progressBar) progressBar.style.width = stages[stageIdx].pct;
+        document.getElementById('loaderStage').innerText = stages[stageIdx];
       }, 350);
 
       try {
