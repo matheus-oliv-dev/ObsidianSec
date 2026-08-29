@@ -34,6 +34,11 @@
       ]
     }
   ],
+  "functions": {
+    "api/audit.ts": {
+      "maxDuration": 15
+    }
+  },
   "rewrites": [
     {
       "source": "/api/audit",

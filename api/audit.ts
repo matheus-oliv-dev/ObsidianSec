@@ -294,6 +294,13 @@ Tom de voz: Tático, analítico, imponente, preciso e orientador.`;
 }
 
 // ============================================================================
+// CONFIGURAÇÃO DA SERVERLESS FUNCTION (VERCEL EDGE / NODE RUNTIME)
+// ============================================================================
+export const config = {
+  maxDuration: 15,
+};
+
+// ============================================================================
 // HANDLER PRINCIPAL DA SERVERLESS FUNCTION
 // ============================================================================
 export default async function handler(req: VercelRequest, res: VercelResponse) {
