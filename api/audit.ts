@@ -57,7 +57,7 @@ async function auditUniversalEndpoint(targetUrl: string) {
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
 
   try {
     const res = await fetch(targetUrl, {
@@ -228,7 +228,7 @@ Set Dynamic Header:
 // ============================================================================
 async function generateAiDiagnosis(auditReport: any, score: number, grade: string, apiKey?: string) {
   const finalApiKey = apiKey || process.env.GEMINI_API_KEY || "";
-  const models = ["gemini-3.7-flash", "gemini-3-flash-preview", "gemini-3.6-flash", "gemini-3.5-flash"];
+  const models = ["gemini-3-flash-preview", "gemini-3.6-flash", "gemini-3.7-flash"];
 
   const prompt = `Você é o CyberBrain da plataforma ObsidianSec. Analise o relatório de segurança do site: ${auditReport.targetUrl}
 - Score: ${score}/100 (Grade ${grade})
@@ -258,15 +258,20 @@ Tom de voz: Tático, analítico, imponente, preciso e orientador.`;
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { maxOutputTokens: 1000, temperature: 0.2 },
           }),
+          signal: AbortSignal.timeout(3000),
         });
 
         if (resp.ok) {
           const data = await resp.json();
           const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return { provider: "Google Gemini 3.7 Flash", analysis: text };
+          if (text) return { provider: "Google Gemini 3 Flash", analysis: text };
+        }
+
+        if (resp.status === 503 || resp.status === 429) {
+          break; // Google com pico de demanda: ativa fallback cognitivo instantâneo sem delay
         }
       } catch {
-        // Tenta o próximo modelo
+        break; // Timeout ou erro de rede: ativa fallback cognitivo instantâneo sem travar
       }
     }
   }

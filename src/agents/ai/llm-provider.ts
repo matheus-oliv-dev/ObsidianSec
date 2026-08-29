@@ -19,10 +19,10 @@ export interface LLMProvider {
  * Modelos Ativos Confirmados na sua Conta Google AI Studio (com Rotação Inteligente de Cota)
  */
 export const GEMINI_ACTIVE_MODELS = [
-  "gemini-3.7-flash",        // Pool 1 (20 RPD / 5 RPM)
-  "gemini-3-flash-preview",  // Pool 2 (20 RPD / 5 RPM)
-  "gemini-3.5-flash",        // Pool 3 (20 RPD / 5 RPM)
-  "gemini-3.6-flash",        // Pool 4 (20 RPD / 5 RPM)
+  "gemini-3-flash-preview",  // Pool 1 (Ultra-rápido ~1.2s)
+  "gemini-3.6-flash",        // Pool 2 (~2.3s)
+  "gemini-3.7-flash",        // Pool 3
+  "gemini-3.5-flash",        // Pool 4
 ];
 
 // Contador de Round-Robin para balanceamento de carga entre as cotas
@@ -92,7 +92,7 @@ export class GeminiProvider implements LLMProvider {
             "x-goog-api-key": this.apiKey,
           },
           body: JSON.stringify(body),
-          signal: AbortSignal.timeout(6000),
+          signal: AbortSignal.timeout(2500),
         });
 
         if (res.ok) {
@@ -103,12 +103,19 @@ export class GeminiProvider implements LLMProvider {
           }
         }
 
+        if (res.status === 503 || res.status === 429) {
+          console.warn(`[GEMINI API] Google AI ocupado (${res.status}). Ativando fallback cognitivo instantâneo...`);
+          throw new Error(`Google Gemini com sobrecarga (${res.status}). Ativando fallback seguro.`);
+        }
+
         const errText = await res.text();
         console.warn(`[GEMINI API] Modelo ${model} (${res.status}): ${errText.slice(0, 80)}... Rotacionando para próximo pool...`);
         lastError = new Error(`Erro Gemini [${model}]: ${errText}`);
       } catch (err: any) {
+        if (err.message.includes("sobrecarga")) throw err;
         console.warn(`[GEMINI API] Exceção em ${model}: ${err.message}. Rotacionando...`);
         lastError = err;
+        break; // Não trava o usuário em múltiplos timeouts sucessivos
       }
     }
 
