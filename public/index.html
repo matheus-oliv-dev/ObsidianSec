@@ -289,22 +289,8 @@
         </form>
       </div>
 
-      <!-- CYBER BINARY STREAM LOADER (TELA COM 0 E 1) -->
+      <!-- CYBER BINARY STREAM LOADER (TELA PURA COM 0 E 1) -->
       <div id="scanLoader" class="hidden brutal-card corner-mark p-0 overflow-hidden border-2 border-white shadow-2xl">
-        <!-- Terminal Top Bar -->
-        <div class="flex items-center justify-between px-4 py-2.5 bg-monoblack-900 border-b-2 border-monoblack-border text-xs font-mono select-none">
-          <div class="flex items-center gap-3">
-            <span class="w-2.5 h-2.5 bg-green-400 animate-pulse inline-block shadow-sm shadow-green-400"></span>
-            <span id="loaderStage" class="text-white font-black tracking-wider uppercase">[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...</span>
-          </div>
-          <div class="flex items-center gap-4 text-xs font-mono text-neutral-400">
-            <span id="binaryBytesCount" class="text-green-400 font-bold tracking-widest">BYTES: 0x0000 | 0.0 KB</span>
-            <span class="hidden sm:inline text-neutral-600">|</span>
-            <span class="hidden sm:inline uppercase text-white font-bold bg-monoblack-1000 border border-monoblack-border px-2 py-0.5 text-[10px]">STREAM LIVE</span>
-          </div>
-        </div>
-
-        <!-- Tela Pura de Cascata Binária 0 e 1 (100% Desobstruída) -->
         <div class="relative w-full h-80 sm:h-96 cyber-crt">
           <canvas id="binaryCanvas" class="absolute inset-0 w-full h-full block"></canvas>
         </div>
@@ -735,7 +721,6 @@
     }
 
     let binaryAnimId = null;
-    let bytesAccumulator = 0;
 
     function startBinaryStreamAnimation() {
       const canvas = document.getElementById('binaryCanvas');
@@ -754,13 +739,11 @@
       };
 
       let dims = resizeCanvas();
-      const fontSize = 15;
+      const fontSize = 16;
       let columns = Math.max(1, Math.floor(dims.width / fontSize));
       let drops = Array.from({ length: columns }, () => Math.floor(Math.random() * -30));
 
       const binaryChars = ['0', '1'];
-      bytesAccumulator = 0;
-      let frameCount = 0;
 
       // Fundo escuro inicial
       ctx.fillStyle = '#000000';
@@ -801,17 +784,6 @@
           }
         }
 
-        frameCount++;
-        if (frameCount % 2 === 0) {
-          bytesAccumulator += Math.floor(Math.random() * 512 + 256);
-          const bytesEl = document.getElementById('binaryBytesCount');
-          if (bytesEl) {
-            const hex = bytesAccumulator.toString(16).toUpperCase().padStart(4, '0');
-            const kb = (bytesAccumulator / 1024).toFixed(1);
-            bytesEl.innerText = `BYTES: 0x${hex} | ${kb} KB`;
-          }
-        }
-
         binaryAnimId = requestAnimationFrame(draw);
       }
 
@@ -841,20 +813,8 @@
       document.getElementById('scanLoader').classList.remove('hidden');
       document.getElementById('submitBtn').disabled = true;
 
-      // Inicia a tela de animação da cascata binária 0 e 1 (100% desobstruída)
+      // Inicia a tela de animação da cascata binária 0 e 1 (100% pura)
       startBinaryStreamAnimation();
-
-      const stages = [
-        "[FASE 1/4] AUDITANDO CABEÇALHOS HTTP/HTTPS...",
-        "[FASE 2/4] VERIFICANDO CSP LEVEL 3 & CLICKJACKING...",
-        "[FASE 3/4] ANALISANDO ISOLAMENTO COOP & MIME...",
-        "[FASE 4/4] SINTETIZANDO DIAGNÓSTICO COGNITIVO COM IA..."
-      ];
-      let stageIdx = 0;
-      const interval = setInterval(() => {
-        stageIdx = (stageIdx + 1) % stages.length;
-        document.getElementById('loaderStage').innerText = stages[stageIdx];
-      }, 350);
 
       try {
         const res = await fetch('/api/audit', {
@@ -866,7 +826,6 @@
           })
         });
 
-        clearInterval(interval);
         const rawText = await res.text();
         let data;
         try {
@@ -881,7 +840,6 @@
 
         renderAuditResult(data);
       } catch (err) {
-        clearInterval(interval);
         document.getElementById('errorMessage').innerText = err.message;
         document.getElementById('errorAlert').classList.remove('hidden');
       } finally {
