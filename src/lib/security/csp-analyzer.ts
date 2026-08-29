@@ -60,7 +60,7 @@ export function analyzeCspPolicy(cspString: string): CspAnalysisResult {
 
   // 5. Análise de 'unsafe-eval'
   if (scriptSources.includes("'unsafe-eval'")) {
-    warnings.push("Uso de 'unsafe-eval' permite execução dinâmica via eval().");
+    warnings.push("Uso de 'unsafe-eval' permite execução dinâmica de código via eval.");
     score -= 15;
   }
 
