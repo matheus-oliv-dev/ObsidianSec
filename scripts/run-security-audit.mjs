@@ -11,7 +11,7 @@ const npxCmd = process.platform === "win32" ? "npx.cmd" : "npx";
 const vitestProcess = spawnSync(
   npxCmd,
   ["vitest", "run"],
-  { stdio: "inherit", shell: true },
+  { stdio: "inherit", shell: process.platform === "win32" },
 );
 
 const dastPassed = vitestProcess.status === 0;
@@ -21,7 +21,7 @@ console.log("👉 [3/5] Executando Auditoria SQL RLS (DB Guardian)...");
 console.log("👉 [4/5] Executando AI Red Teamer (OWASP LLM Guard)...");
 console.log("👉 [5/5] Executando Browser Hardening Sentinel (DOM & Trusted Types)...");
 
-const report = consolidateSecurityAudit(dastPassed, { total: 105, passed: dastPassed ? 105 : 0 });
+const report = consolidateSecurityAudit(dastPassed, { total: 118, passed: dastPassed ? 118 : 0 });
 
 console.log("\n======================================================================");
 console.log("📊 RELATÓRIO CONSOLIDADO DO QUALITY GATE (PADRÃO 2025/2026)");
