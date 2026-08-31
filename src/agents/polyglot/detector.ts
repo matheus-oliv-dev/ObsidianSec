@@ -125,20 +125,97 @@ export function detectLocalTechStack(rootDir: string): TechStackInfo {
 }
 
 /**
- * Detecta servidores e tecnologias a partir dos cabeçalhos HTTP de um site ao vivo.
+ * Detecta servidores e tecnologias a partir dos cabeçalhos HTTP de um site ao vivo (Inspirado no Nmap Service Fingerprinting).
  */
-export function detectRemoteTechStack(headers: Headers): { server: string; frameworkHint?: string } {
-  const server = headers.get("server") || headers.get("x-powered-by") || "Desconhecido / Genérico";
-  const xPowered = headers.get("x-powered-by")?.toLowerCase() || "";
-  let frameworkHint: string | undefined;
+export function detectRemoteTechStack(headers: Headers): {
+  server: string;
+  frameworkHint?: string;
+  cdnOrProxy?: string;
+  rawServerHeader?: string;
+  versionExposed: boolean;
+} {
+  const getH = (name: string): string => (headers.get(name) || "").toLowerCase();
 
-  if (xPowered.includes("php")) frameworkHint = "PHP";
-  if (xPowered.includes("express")) frameworkHint = "Express (Node.js)";
-  if (xPowered.includes("next.js")) frameworkHint = "Next.js";
-  if (xPowered.includes("asp.net")) frameworkHint = "ASP.NET (.NET)";
+  const serverHeader = headers.get("server") || "";
+  const xPowered = headers.get("x-powered-by") || "";
+  const via = headers.get("via") || "";
+  const sLower = serverHeader.toLowerCase();
+  const vLower = via.toLowerCase();
+
+  let server = "Servidor Web Oculto / Personalizado";
+  let cdnOrProxy: string | undefined;
+  let frameworkHint: string | undefined;
+  let versionExposed = false;
+
+  // 1. CDN & Edge Networks (Nmap Edge Fingerprinting)
+  if (sLower.includes("cloudflare") || headers.get("cf-ray") || headers.get("cf-cache-status")) {
+    cdnOrProxy = "Cloudflare Edge Global CDN";
+    server = "Cloudflare Edge";
+  } else if (vLower.includes("cloudfront") || headers.get("x-amz-cf-id") || headers.get("x-amz-cf-pop")) {
+    cdnOrProxy = "AWS CloudFront CDN";
+    server = "Amazon Web Services (CloudFront)";
+  } else if (vLower.includes("fastly") || headers.get("x-served-by")?.includes("cache-") || headers.get("fastly-restarts")) {
+    cdnOrProxy = "Fastly Real-Time Edge";
+    server = "Fastly Edge Network";
+  } else if (headers.get("x-akamai-transformed") || sLower.includes("akamaighost")) {
+    cdnOrProxy = "Akamai Intelligent Edge";
+    server = "Akamai Edge Platform";
+  } else if (headers.get("x-vercel-id") || headers.get("x-vercel-cache") || sLower.includes("vercel")) {
+    cdnOrProxy = "Vercel Edge Network";
+    server = "Vercel Serverless Edge";
+  } else if (headers.get("x-nf-request-id") || sLower.includes("netlify")) {
+    cdnOrProxy = "Netlify Global Edge";
+    server = "Netlify Edge Server";
+  } else if (vLower.includes("varnish") || headers.get("x-varnish")) {
+    cdnOrProxy = "Varnish Cache Reverse Proxy";
+  }
+
+  // 2. Servidores Web e Reverse Proxies
+  if (sLower.includes("nginx")) {
+    server = serverHeader;
+    if (/\d+\.\d+/.test(serverHeader)) versionExposed = true;
+  } else if (sLower.includes("apache")) {
+    server = serverHeader;
+    if (/\d+\.\d+/.test(serverHeader)) versionExposed = true;
+  } else if (sLower.includes("caddy")) {
+    server = "Caddy Modern Web Server";
+  } else if (sLower.includes("litespeed") || sLower.includes("openlitespeed")) {
+    server = "LiteSpeed High-Performance Web Server";
+  } else if (sLower.includes("traefik")) {
+    server = "Traefik Cloud Native Edge Router";
+  } else if (sLower.includes("envoy") || headers.get("x-envoy-upstream-service-time")) {
+    server = "Envoy Proxy (Service Mesh / Cloud Native)";
+  } else if (sLower.includes("openresty")) {
+    server = "OpenResty (Nginx + Lua Engine)";
+  } else if (sLower.includes("microsoft-iis") || sLower.includes("iis")) {
+    server = serverHeader || "Microsoft IIS Web Server";
+    if (/\d+\.\d+/.test(serverHeader)) versionExposed = true;
+  } else if (sLower.includes("gunicorn") || sLower.includes("uvicorn")) {
+    server = "Python WSGI/ASGI Server (Gunicorn/Uvicorn)";
+  } else if (sLower.includes("kestrel")) {
+    server = "Kestrel (.NET Core Web Server)";
+  } else if (sLower.includes("kong")) {
+    server = "Kong API Gateway";
+  } else if (serverHeader && server === "Servidor Web Oculto / Personalizado") {
+    server = serverHeader;
+  }
+
+  // 3. Frameworks
+  const xpLower = xPowered.toLowerCase();
+  if (xpLower.includes("next.js") || headers.get("x-nextjs-cache")) frameworkHint = "Next.js (React Fullstack)";
+  else if (xpLower.includes("express")) frameworkHint = "Express.js (Node.js)";
+  else if (xpLower.includes("php")) frameworkHint = xPowered;
+  else if (xpLower.includes("asp.net")) frameworkHint = "ASP.NET (.NET)";
+  else if (xpLower.includes("nuxt")) frameworkHint = "Nuxt.js (Vue Fullstack)";
+  else if (headers.get("x-drupal-cache")) frameworkHint = "Drupal CMS (PHP)";
+  else if (headers.get("x-pingback")?.includes("xmlrpc.php")) frameworkHint = "WordPress CMS (PHP)";
+  else if (headers.get("x-django-version")) frameworkHint = "Django (Python)";
 
   return {
     server,
     frameworkHint,
+    cdnOrProxy,
+    rawServerHeader: serverHeader || undefined,
+    versionExposed,
   };
 }

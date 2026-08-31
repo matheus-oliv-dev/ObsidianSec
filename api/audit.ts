@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from "../src/types/index.ts";
+import { runBurpHeaderAudit } from "../src/lib/security/cookie-cors-analyzer.ts";
+import { buildAttackChainGraph } from "../src/lib/security/attack-chain-analyzer.ts";
 
 // ============================================================================
 // VALIDAÇÃO DE SEGURANÇA & SSRF SHIELD
@@ -197,6 +199,27 @@ Set Dynamic Header:
       },
     ];
 
+    const rawSetCookies: string[] = [];
+    if (typeof (headers as any).getSetCookie === "function") {
+      rawSetCookies.push(...(headers as any).getSetCookie());
+    } else {
+      const sc = headers.get("set-cookie");
+      if (sc) rawSetCookies.push(sc);
+    }
+
+    const burpInspection = runBurpHeaderAudit(headers, rawSetCookies);
+
+    const attackChain = buildAttackChainGraph(targetUrl, {
+      hasCsp: !!cspVal,
+      hasXFrameOptions: !!xfoVal,
+      hasHsts: !!hstsVal,
+      hasNosniff: !!xctoVal,
+      hasPermissionsPolicy: !!permVal,
+      hasSecureCookies: burpInspection.cookies.length === 0 || burpInspection.cookies.every((c) => c.isHttpOnly && c.isSecure),
+      hasStrictCors: burpInspection.cors.severity === "PASSED",
+      serverVersionExposed: /\d+\.\d+/.test(serverHeader),
+    });
+
     return {
       targetUrl,
       httpStatus: res.status,
@@ -215,6 +238,8 @@ Set Dynamic Header:
         referrerPolicy: { present: !!refVal, value: refVal || undefined },
         coop: { present: !!coopVal, value: coopVal || undefined },
       },
+      burpInspection,
+      attackChain,
       remediationSnippets,
     };
   } catch (err: any) {
@@ -509,6 +534,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         totalEarned: totalScore,
       },
       securityHeaders: auditReport.securityHeaders,
+      burpInspection: auditReport.burpInspection,
+      attackChain: auditReport.attackChain,
       aiDiagnosis,
       aiAnalysis: {
         providerUsed: aiDiagnosis.provider,

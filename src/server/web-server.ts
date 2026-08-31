@@ -404,6 +404,8 @@ export function createWebServer() {
                   totalEarned: score,
                 },
                 securityHeaders: auditReport.securityHeaders,
+                burpInspection: auditReport.burpInspection,
+                attackChain: auditReport.attackChain,
                 cspAnalysis,
                 aiAnalysis: {
                   providerUsed: aiProviderName,

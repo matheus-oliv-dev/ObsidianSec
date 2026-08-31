@@ -1,10 +1,14 @@
 import { detectRemoteTechStack } from "../agents/polyglot/detector.ts";
+import { runBurpHeaderAudit, HeaderAuditBurpResult } from "../lib/security/cookie-cors-analyzer.ts";
+import { buildAttackChainGraph, AttackChainReport } from "../lib/security/attack-chain-analyzer.ts";
 
 export interface UniversalAuditReport {
   targetUrl: string;
   httpStatus: number;
   serverDetected: string;
   frameworkDetected?: string;
+  cdnOrProxy?: string;
+  versionExposed: boolean;
   securityHeaders: {
     csp: { present: boolean; value?: string; isReportOnly?: boolean };
     xFrameOptions: { present: boolean; value?: string };
@@ -14,6 +18,8 @@ export interface UniversalAuditReport {
     referrerPolicy: { present: boolean; value?: string };
     coop: { present: boolean; value?: string };
   };
+  burpInspection: HeaderAuditBurpResult;
+  attackChain: AttackChainReport;
   remediationSnippets: {
     serverType: string;
     snippet: string;
@@ -35,7 +41,8 @@ add_header X-Content-Type-Options "nosniff" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Permissions-Policy "microphone=(self), camera=(), geolocation=(), payment=()" always;
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none';" always;`,
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none';" always;
+server_tokens off;`,
   });
 
   // APACHE / .HTACCESS
@@ -48,7 +55,9 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
   Header always set Permissions-Policy "microphone=(self), camera=(), geolocation=(), payment=()"
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; frame-ancestors 'none'; object-src 'none';"
-</IfModule>`,
+</IfModule>
+ServerSignature Off
+ServerTokens Prod`,
   });
 
   // VERCEL / NEXT.JS
@@ -67,6 +76,72 @@ add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style
       ]
     }
   ]
+}`,
+  });
+
+  // PYTHON / FASTAPI
+  snippets.push({
+    serverType: "PYTHON FASTAPI (main.py)",
+    snippet: `from fastapi import FastAPI, Response, Request
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)`,
+  });
+
+  // NODE.JS / EXPRESS (HELMET)
+  snippets.push({
+    serverType: "NODE.JS EXPRESS (app.js / server.ts)",
+    snippet: `import express from "express";
+import helmet from "helmet";
+
+const app = express();
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  frameguard: { action: "deny" },
+  noSniff: true,
+}));`,
+  });
+
+  // GO / FIBER
+  snippets.push({
+    serverType: "GO FIBER (main.go)",
+    snippet: `package main
+
+import (
+    "github.com/gofiber/fiber/v2"
+    "github.com/gofiber/fiber/v2/middleware/helmet"
+)
+
+func main() {
+    app := fiber.New()
+    app.Use(helmet.New(helmet.Config{
+        XFrameOptions: "DENY",
+        ContentTypeNosniff: "nosniff",
+        HSTSMaxAge: 31536000,
+        ContentSecurityPolicy: "default-src 'self'; frame-ancestors 'none';",
+        ReferrerPolicy: "strict-origin-when-cross-origin",
+    }))
+    app.Listen(":3000")
 }`,
   });
 
@@ -177,6 +252,27 @@ export async function auditUniversalEndpoint(targetUrl: string): Promise<Univers
   const referrer = headers.get("referrer-policy");
   const coop = headers.get("cross-origin-opener-policy");
 
+  const rawSetCookies: string[] = [];
+  if (typeof (headers as any).getSetCookie === "function") {
+    rawSetCookies.push(...(headers as any).getSetCookie());
+  } else {
+    const sc = headers.get("set-cookie");
+    if (sc) rawSetCookies.push(sc);
+  }
+
+  const burpInspection = runBurpHeaderAudit(headers, rawSetCookies);
+
+  const attackChain = buildAttackChainGraph(finalUrl, {
+    hasCsp: !!cspEnforcing,
+    hasXFrameOptions: !!xFrame,
+    hasHsts: !!hsts,
+    hasNosniff: !!nosniff,
+    hasPermissionsPolicy: !!perm,
+    hasSecureCookies: burpInspection.cookies.length === 0 || burpInspection.cookies.every((c) => c.isHttpOnly && c.isSecure),
+    hasStrictCors: burpInspection.cors.severity === "PASSED",
+    serverVersionExposed: stack.versionExposed,
+  });
+
   const isSecure = !!(cspEnforcing && xFrame && nosniff && perm && hsts);
 
   const snippets = generateRemediationSnippets(stack.server);
@@ -186,6 +282,8 @@ export async function auditUniversalEndpoint(targetUrl: string): Promise<Univers
     httpStatus: res.status,
     serverDetected: stack.server,
     frameworkDetected: stack.frameworkHint,
+    cdnOrProxy: stack.cdnOrProxy,
+    versionExposed: stack.versionExposed,
     securityHeaders: {
       csp: {
         present: !!cspValue,
@@ -199,6 +297,8 @@ export async function auditUniversalEndpoint(targetUrl: string): Promise<Univers
       referrerPolicy: { present: !!referrer, value: referrer || undefined },
       coop: { present: !!coop, value: coop || undefined },
     },
+    burpInspection,
+    attackChain,
     remediationSnippets: snippets,
     overallStatus: isSecure ? "SECURE" : "ACTION_REQUIRED",
   };

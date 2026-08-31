@@ -229,4 +229,126 @@ export const UserRegistrationSchema = z.object({
 }`,
     },
   },
+  {
+    id: "cookie-hardening-prefixes",
+    title: "Hardening de Cookies & Padrão de Prefixos __Host- / __Secure- (Burp Suite Standard)",
+    category: "ApplicationSecurity",
+    difficulty: "Intermediário",
+    frameworks: {
+      nist: "SP 800-63B (Section 7.1 Session Management)",
+      owasp: "ASVS V3.4 (Session Management) & W3C Cookie Prefixes",
+      mitre: "T1539 (Steal Web Session Cookie)",
+    },
+    summary:
+      "Eliminação de ataques de fixação de sessão e sequestro de cookies através dos prefixos rígidos __Host- e __Secure-, flags HttpOnly, Secure e SameSite=Strict.",
+    threatMitigated: "Exfiltração de sessão via XSS, sequestro de requisições cross-site (CSRF) e sobrescrita de cookies a partir de subdomínios vulneráveis.",
+    mitigations: [
+      "Utilizar o prefixo '__Host-session_id' garantindo que o cookie só seja aceito via HTTPS, sem subdomínios e com path=/.",
+      "Definir estritamente 'HttpOnly; Secure; SameSite=Strict'.",
+      "Rotacionar o token de sessão imediatamente após qualquer mudança de privilégio ou login.",
+    ],
+    codeExample: {
+      language: "typescript",
+      title: "Criação de Cookie com Prefixo __Host- e Flags Máximas",
+      code: `export function setSecureSessionCookie(res: Response, token: string) {
+  res.setHeader("Set-Cookie", [
+    \`__Host-auth_token=\${token}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=3600; Priority=High\`
+  ]);
+}`,
+    },
+  },
+  {
+    id: "cors-zero-trust",
+    title: "CORS Zero Trust: Defesa contra Origens Maliciosas & Prevenção de Exfiltração",
+    category: "ZeroTrust",
+    difficulty: "Intermediário",
+    frameworks: {
+      nist: "SP 800-207 (Section 3.1 Policy Decision)",
+      owasp: "API Security Top 10 API7:2023 (Server-Side Security Misconfiguration)",
+      mitre: "T1557 (Adversary-in-the-Middle)",
+    },
+    summary:
+      "Configuração à prova de balas de Cross-Origin Resource Sharing, bloqueando wildcard (*) associado a credenciais, reflexão cega de cabeçalho Origin e origem 'null'.",
+    threatMitigated: "Roubo de dados autenticados por sites de terceiros e envenenamento de cache de API (Cache Poisoning).",
+    mitigations: [
+      "Nunca combinar 'Access-Control-Allow-Origin: *' com 'Access-Control-Allow-Credentials: true'.",
+      "Validar origens contra uma allowlist estrita e incluir sempre o cabeçalho 'Vary: Origin'.",
+      "Rejeitar 'Origin: null' para impedir explorações via iframes sandboxed.",
+    ],
+    codeExample: {
+      language: "typescript",
+      title: "Middleware CORS Seguro com Allowlist Rigorosa e Vary Origin",
+      code: `const ALLOWED_ORIGINS = new Set(["https://app.obsidiansec.dev", "https://admin.obsidiansec.dev"]);
+
+export function corsGuard(req: Request, res: Response): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // Requisições same-origin
+
+  if (ALLOWED_ORIGINS.has(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+    res.headers.set("Vary", "Origin");
+    return true;
+  }
+  return false; // Bloqueia origens não auditadas
+}`,
+    },
+  },
+  {
+    id: "kdf-password-argon2id",
+    title: "Derivação de Chaves e Hashing Moderno com Argon2id (Anti-GPU / Hashcat)",
+    category: "Cryptography",
+    difficulty: "Avançado",
+    frameworks: {
+      nist: "SP 800-63B (Section 5.1.1.2 Memorized Secret Verifiers)",
+      owasp: "Password Storage Cheat Sheet (Argon2id Recommendation)",
+    },
+    summary:
+      "Implementação do algoritmo Argon2id (Memory-Hard) para hashing de credenciais, neutralizando ataques massivos de quebra por clusters de GPU e chips ASIC.",
+    threatMitigated: "Quebra offline de bancos de dados vazados via dicionários e força bruta de alta velocidade (Hashcat/John the Ripper).",
+    mitigations: [
+      "Configurar custo de memória mínimo de 64MB (m=65536) e 3 iterações (t=3).",
+      "Abandonar completamente MD5, SHA-1 e SHA-256 sem KDF para armazenamento de senhas.",
+      "Adicionar 'Pepper' criptográfico server-side armazenado em HSM / KMS seguro.",
+    ],
+    codeExample: {
+      language: "typescript",
+      title: "Parâmetros Recomendados para Hashing com Argon2id",
+      code: `export const ARGON2ID_SECURITY_PROFILE = {
+  memoryCost: 65536, // 64 MB de RAM
+  timeCost: 3,       // 3 iterações
+  parallelism: 4,    // 4 threads concorrentes
+  hashLength: 32,    // 256 bits de saída
+};`,
+    },
+  },
+  {
+    id: "bloodhound-attack-graph",
+    title: "Mapeamento de Grafo de Ataque & Redução do Raio de Explosão (Blast Radius)",
+    category: "DevSecOps",
+    difficulty: "Especialista",
+    frameworks: {
+      nist: "SP 800-53 (AC-6 Least Privilege)",
+      mitre: "Enterprise ATT&CK Matrix (Lateral Movement & Privilege Escalation)",
+      cis: "CIS Control 5 (Account Management)",
+    },
+    summary:
+      "Aplicação de Teoria dos Grafos para identificar o menor caminho entre uma brecha inicial (ex: XSS ou SSRF) e a tomada de controle total da infraestrutura, eliminando elos fracos.",
+    threatMitigated: "Movimentação lateral de atacantes e escalada de privilégios de contas de serviço até permissões de Super Admin.",
+    mitigations: [
+      "Mapear todos os relacionamentos de confiança entre microsserviços e bancos de dados.",
+      "Segregar privilégios através de tokens efêmeros com escopo mínimo (Princípio do Menor Privilégio).",
+      "Impor autenticação mTLS e Zero Trust entre pods e serviços internos.",
+    ],
+    codeExample: {
+      language: "typescript",
+      title: "Validador de Escopo de Token para Confinamento de Raio de Explosão",
+      code: `export function enforceStrictScope(tokenScopes: string[], requiredScope: string): void {
+  if (!tokenScopes.includes(requiredScope)) {
+    throw new Error(\`[SecurityViolation]: Escopo insuficiente. Raio de explosão contido para '\${requiredScope}'.\`);
+  }
+}`,
+    },
+  },
 ];
+

@@ -391,6 +391,66 @@
           </div>
         </div>
 
+        <!-- ============================================================= -->
+        <!-- BLOODHOUND ATTACK PATH & CHAIN CORRELATION                    -->
+        <!-- ============================================================= -->
+        <div id="attackChainSection" class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-diagram-project text-red-500"></i>
+              <span>CADEIA DE ATAQUE // BLOODHOUND GRAPH ENGINE</span>
+            </div>
+            <span id="attackImpactBadge" class="text-xs font-mono font-bold px-3 py-1 bg-red-950 border border-red-500 text-red-400 uppercase">
+              ALERTA DE IMPACTO
+            </span>
+          </div>
+
+          <div id="attackChainSummary" class="text-xs font-mono text-neutral-300 bg-monoblack-950 p-4 border-l-4 border-red-500">
+            <!-- Resumo do Grafo -->
+          </div>
+
+          <div id="attackChainFlow" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Nós do Grafo Injetados via JS -->
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- BURP SUITE PASSIVE INSPECTOR (COOKIES & CORS)                 -->
+        <!-- ============================================================= -->
+        <div id="burpInspectionSection" class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-bolt text-yellow-400"></i>
+              <span>INSPEÇÃO PASSIVA DE SESSÃO & CORS // BURP SUITE ENGINE</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[PASSIVE_AUDIT]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- COOKIES AUDIT -->
+            <div class="space-y-3 bg-monoblack-950 p-5 border-2 border-monoblack-border">
+              <div class="flex items-center justify-between text-xs font-boxy font-black text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-solid fa-cookie-bite mr-2 text-yellow-400"></i> COOKIES (SET-COOKIE)</span>
+                <span id="cookieCountBadge" class="font-mono text-neutral-400">0 AUDITADOS</span>
+              </div>
+              <div id="cookieAuditList" class="space-y-2 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+
+            <!-- CORS AUDIT -->
+            <div class="space-y-3 bg-monoblack-950 p-5 border-2 border-monoblack-border">
+              <div class="flex items-center justify-between text-xs font-boxy font-black text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-solid fa-arrows-split-up-and-left mr-2 text-cyan-400"></i> POLÍTICA CORS</span>
+                <span id="corsStatusBadge" class="font-mono text-neutral-400">AUDITADO</span>
+              </div>
+              <div id="corsAuditDetails" class="space-y-2 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- CYBERBRAIN AI INSIGHTS -->
         <div class="brutal-card p-8 space-y-5">
           <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
@@ -935,7 +995,89 @@
         </div>
       `).join('');
 
-      // 3. AI DIAGNOSIS
+      // 3. RENDER BLOODHOUND ATTACK CHAIN
+      const attackSec = document.getElementById('attackChainSection');
+      const chainData = data.attackChain;
+      if (chainData && chainData.nodes && chainData.nodes.length > 0) {
+        attackSec.classList.remove('hidden');
+        document.getElementById('attackChainSummary').innerText = chainData.riskSummary;
+        
+        const impactBadge = document.getElementById('attackImpactBadge');
+        impactBadge.innerText = `IMPACTO MÁXIMO: ${chainData.maxImpactLevel}`;
+        if (chainData.maxImpactLevel === 'CRITICAL') {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-red-950 border border-red-500 text-red-400 uppercase";
+        } else if (chainData.maxImpactLevel === 'HIGH') {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-yellow-950 border border-yellow-500 text-yellow-400 uppercase";
+        } else {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-neutral-900 border border-neutral-600 text-neutral-300 uppercase";
+        }
+
+        const flowContainer = document.getElementById('attackChainFlow');
+        flowContainer.innerHTML = chainData.nodes.map((node, idx) => `
+          <div class="bg-monoblack-950 p-4 border-2 border-monoblack-border space-y-2 relative">
+            <div class="flex items-center justify-between text-[11px] font-mono">
+              <span class="px-2 py-0.5 bg-red-500/20 text-red-400 font-bold uppercase border border-red-500/40">PASSO ${idx + 1}: ${node.stage}</span>
+              <span class="text-neutral-500 text-[10px]">${escapeHtml(node.mitreTechnique.split(' ')[0])}</span>
+            </div>
+            <div class="font-boxy font-black text-white text-xs uppercase">${escapeHtml(node.title)}</div>
+            <p class="text-neutral-300 text-xs font-sans line-clamp-3">${escapeHtml(node.description)}</p>
+          </div>
+        `).join('');
+      } else {
+        attackSec.classList.add('hidden');
+      }
+
+      // 4. RENDER BURP SUITE PASSIVE INSPECTION (COOKIES & CORS)
+      const burp = data.burpInspection;
+      const cookieList = document.getElementById('cookieAuditList');
+      const cookieBadge = document.getElementById('cookieCountBadge');
+      const corsDetails = document.getElementById('corsAuditDetails');
+      const corsBadge = document.getElementById('corsStatusBadge');
+
+      if (burp && burp.cookies && burp.cookies.length > 0) {
+        cookieBadge.innerText = `${burp.cookies.length} AUDITADOS`;
+        cookieList.innerHTML = burp.cookies.map(c => `
+          <div class="border-l-2 ${c.severity === 'PASSED' ? 'border-green-500 bg-green-950/20' : 'border-yellow-500 bg-yellow-950/20'} pl-3 py-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-white font-bold">${escapeHtml(c.name)}</span>
+              <span class="${c.severity === 'PASSED' ? 'text-green-400' : 'text-yellow-400'} font-bold">[${c.severity}]</span>
+            </div>
+            <div class="text-[11px] text-neutral-400 mt-0.5">
+              HttpOnly: <strong class="${c.isHttpOnly ? 'text-green-400' : 'text-red-400'}">${c.isHttpOnly ? 'SIM' : 'NÃO'}</strong> |
+              Secure: <strong class="${c.isSecure ? 'text-green-400' : 'text-red-400'}">${c.isSecure ? 'SIM' : 'NÃO'}</strong> |
+              SameSite: <strong class="text-white">${c.sameSite}</strong>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        cookieBadge.innerText = "0 EXPOSTOS";
+        cookieList.innerHTML = `<p class="text-neutral-400 text-xs">Nenhum cookie Set-Cookie emitido na resposta inicial (Excelente higiene de borda).</p>`;
+      }
+
+      if (burp && burp.cors) {
+        const cors = burp.cors;
+        corsBadge.innerText = cors.severity === 'PASSED' ? 'SEGURO' : cors.severity;
+        corsBadge.className = `font-mono ${cors.severity === 'PASSED' ? 'text-green-400' : 'text-red-400'}`;
+        corsDetails.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-neutral-400">Allow-Origin:</span>
+              <span class="text-white font-bold">${escapeHtml(cors.allowOrigin || 'Não Definido (Same-Origin Estrito)')}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-neutral-400">Allow-Credentials:</span>
+              <span class="${cors.allowCredentials ? 'text-yellow-400' : 'text-neutral-300'} font-bold">${cors.allowCredentials ? 'Ativo (true)' : 'Inativo / False'}</span>
+            </div>
+            ${cors.issues.length > 0 ? `
+              <div class="mt-2 text-red-300 text-[11px] space-y-1">
+                ${cors.issues.map(i => `<div>⚠️ ${escapeHtml(i)}</div>`).join('')}
+              </div>
+            ` : '<div class="text-green-400 text-xs mt-2">✓ Nenhuma brecha de CORS detectada.</div>'}
+          </div>
+        `;
+      }
+
+      // 5. AI DIAGNOSIS
       const aiDiv = document.getElementById('aiDiagnosisContent');
       const providerName = data.aiAnalysis?.providerUsed || data.aiDiagnosis?.provider || 'GOOGLE GEMINI 3.7 FLASH';
       document.getElementById('aiProviderBadge').innerText = providerName.toUpperCase();
