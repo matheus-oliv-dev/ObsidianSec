@@ -1,6 +1,165 @@
 import type { VercelRequest, VercelResponse } from "../src/types/index.ts";
-import { runBurpHeaderAudit } from "../src/lib/security/cookie-cors-analyzer.ts";
-import { buildAttackChainGraph } from "../src/lib/security/attack-chain-analyzer.ts";
+
+// ============================================================================
+// BURP SUITE & BLOODHOUND EMBEDDED ANALYZERS (SELF-CONTAINED FOR VERCEL)
+// ============================================================================
+function analyzeSetCookieHeader(cookieStr: string) {
+  const parts = cookieStr.split(";").map((p) => p.trim());
+  const [nameValue, ...attributes] = parts;
+  const name = nameValue.split("=")[0] || "";
+  const attrLower = attributes.map((a) => a.toLowerCase());
+
+  const isHttpOnly = attrLower.some((a) => a === "httponly");
+  const isSecure = attrLower.some((a) => a === "secure");
+  
+  let sameSite: "Strict" | "Lax" | "None" | "Missing" = "Missing";
+  const sameSiteAttr = attributes.find((a) => a.toLowerCase().startsWith("samesite="));
+  if (sameSiteAttr) {
+    const val = sameSiteAttr.split("=")[1]?.trim().toLowerCase();
+    if (val === "strict") sameSite = "Strict";
+    else if (val === "lax") sameSite = "Lax";
+    else if (val === "none") sameSite = "None";
+  }
+
+  const issues: string[] = [];
+  if (!isHttpOnly) issues.push("Ausência da flag 'HttpOnly'.");
+  if (!isSecure) issues.push("Ausência da flag 'Secure'.");
+  if (sameSite === "Missing" || sameSite === "None") issues.push("Configuração frouxa de SameSite.");
+
+  let severity: "LOW" | "MEDIUM" | "HIGH" | "PASSED" = "PASSED";
+  if (!isHttpOnly && !isSecure) severity = "HIGH";
+  else if (!isHttpOnly || !isSecure) severity = "MEDIUM";
+  else if (sameSite === "Missing") severity = "LOW";
+
+  return { name, isHttpOnly, isSecure, sameSite, issues, severity };
+}
+
+function analyzeCorsHeaders(headers: Headers) {
+  const allowOrigin = headers.get("access-control-allow-origin") || undefined;
+  const allowCredentials = headers.get("access-control-allow-credentials")?.toLowerCase() === "true";
+  const vary = headers.get("vary") || "";
+
+  const issues: string[] = [];
+  let hasWildcardWithCredentials = false;
+
+  if (allowOrigin === "*" && allowCredentials) {
+    hasWildcardWithCredentials = true;
+    issues.push("CORS Crítico: 'Access-Control-Allow-Origin: *' combinado com 'Credentials: true'.");
+  }
+  if (allowOrigin === "null") {
+    issues.push("CORS Inseguro: 'Access-Control-Allow-Origin: null' vulnerável a sandboxed iframes.");
+  }
+  if (allowOrigin && allowOrigin !== "*" && !vary.toLowerCase().includes("origin")) {
+    issues.push("Risco de Cache Poisoning: Falta 'Vary: Origin'.");
+  }
+
+  let severity: "LOW" | "MEDIUM" | "HIGH" | "PASSED" = "PASSED";
+  if (hasWildcardWithCredentials || allowOrigin === "null") severity = "HIGH";
+  else if (issues.length > 0) severity = "MEDIUM";
+
+  return { allowOrigin, allowCredentials, hasWildcardWithCredentials, issues, severity };
+}
+
+function runBurpHeaderAudit(headers: Headers, rawCookies: string[] = []) {
+  const cookies = rawCookies.map(analyzeSetCookieHeader);
+  const cors = analyzeCorsHeaders(headers);
+  const findingsCount = cookies.filter((c) => c.severity !== "PASSED").length + (cors.severity !== "PASSED" ? 1 : 0);
+  return { cookies, cors, findingsCount };
+}
+
+function buildAttackChainGraph(targetUrl: string, defenses: {
+  hasCsp: boolean;
+  hasXFrameOptions: boolean;
+  hasHsts: boolean;
+  hasNosniff: boolean;
+  hasPermissionsPolicy: boolean;
+  hasSecureCookies: boolean;
+  hasStrictCors: boolean;
+  serverVersionExposed: boolean;
+}) {
+  const nodes: Array<{ id: string; stage: string; title: string; description: string; mitreTechnique: string }> = [];
+  const primaryPath: string[] = [];
+  const priorities: string[] = [];
+
+  if (defenses.serverVersionExposed) {
+    nodes.push({
+      id: "node-recon-server",
+      stage: "RECON",
+      title: "Identificação de Versão de Servidor Web (Server Fingerprinting)",
+      description: "O cabeçalho 'Server' expõe a versão exata do software.",
+      mitreTechnique: "T1592.002",
+    });
+    primaryPath.push("Identificação de Versão");
+  }
+
+  if (!defenses.hasCsp) {
+    nodes.push({
+      id: "node-xss-injection",
+      stage: "INITIAL_ACCESS",
+      title: "Injeção de Scripts Maliciosos (Cross-Site Scripting - XSS)",
+      description: "A ausência de Content-Security-Policy permite execução irrestrita de scripts.",
+      mitreTechnique: "T1189",
+    });
+    primaryPath.push("Injeção de Script (XSS)");
+    priorities.push("Configurar Content-Security-Policy (CSP) estrito.");
+  }
+
+  if (!defenses.hasCsp && !defenses.hasSecureCookies) {
+    nodes.push({
+      id: "node-session-hijack",
+      stage: "EXECUTION",
+      title: "Exfiltração de Cookies e Sequestro de Sessão (Session Hijacking)",
+      description: "Cookies sem HttpOnly podem ser exfiltrados por scripts maliciosos.",
+      mitreTechnique: "T1539",
+    });
+    primaryPath.push("Roubo de Cookie (Session Hijacking)");
+    priorities.push("Habilitar flag HttpOnly em todos os cookies de sessão.");
+  }
+
+  if (!defenses.hasXFrameOptions) {
+    nodes.push({
+      id: "node-clickjacking",
+      stage: "INITIAL_ACCESS",
+      title: "Sequestro de Interface e Ações Invisíveis (Clickjacking)",
+      description: "Páginas autenticadas podem ser incorporadas em iframes transparentes.",
+      mitreTechnique: "T1204.001",
+    });
+    priorities.push("Adicionar 'X-Frame-Options: DENY'.");
+  }
+
+  let maxImpactLevel: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" = "LOW";
+  if (nodes.some((n) => n.id === "node-session-hijack")) {
+    nodes.push({
+      id: "node-account-takeover",
+      stage: "IMPACT",
+      title: "Tomada Completa de Conta (Account Takeover)",
+      description: "Atacante utiliza a sessão roubada para assumir identidade da vítima.",
+      mitreTechnique: "T1078",
+    });
+    primaryPath.push("Comprometimento de Conta");
+    maxImpactLevel = "CRITICAL";
+  } else if (nodes.some((n) => n.id === "node-xss-injection") || nodes.some((n) => n.id === "node-clickjacking")) {
+    maxImpactLevel = "HIGH";
+  } else if (nodes.length > 0) {
+    maxImpactLevel = "MEDIUM";
+  }
+
+  const riskSummary =
+    primaryPath.length > 1
+      ? `Cadeia de Ataque Detectada: ${primaryPath.join(" ➔ ")}`
+      : nodes.length > 0
+        ? `Superfície de Risco Identificada com ${nodes.length} vetores potenciais de invasão.`
+        : "Nenhum vetor crítico de encadeamento de ataque detectado nas camadas de borda.";
+
+  return {
+    target: targetUrl,
+    riskSummary,
+    primaryAttackPath: primaryPath,
+    nodes,
+    maxImpactLevel,
+    tacticalDefensePriority: priorities,
+  };
+}
 
 // ============================================================================
 // VALIDAÇÃO DE SEGURANÇA & SSRF SHIELD
