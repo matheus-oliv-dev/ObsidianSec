@@ -898,6 +898,9 @@
         try {
           data = JSON.parse(rawText);
         } catch {
+          if (rawText.includes("FUNCTION_INVOCATION_FAILED") || rawText.includes("FUNCTION_INVOCATION_TIMEOUT")) {
+            throw new Error("O servidor de sondagem está inicializando ou o alvo demorou a responder. Por favor, tente novamente em alguns segundos.");
+          }
           throw new Error(rawText ? rawText.slice(0, 180) : "Falha na comunicação com o servidor.");
         }
 
@@ -974,12 +977,12 @@
       // 2. RENDER CONTROLS GRID (VERDE / VERMELHO VIBRANTE)
       const headers = data.securityHeaders;
       const controls = [
-        { name: "Content-Security-Policy", active: headers.csp.present, desc: "Proteção contra injeção de scripts e XSS" },
-        { name: "X-Frame-Options", active: headers.xFrameOptions.present, desc: "Defesa anti-Clickjacking e bloqueio de iframes" },
-        { name: "Strict-Transport-Security", active: headers.hsts.present, desc: "HTTPS forçado e tráfego criptografado (HSTS)" },
-        { name: "X-Content-Type-Options", active: headers.xContentTypeOptions.present, desc: "Prevenção de ataques de MIME Sniffing" },
-        { name: "Permissions-Policy", active: headers.permissionsPolicy.present, desc: "Restrição de acesso a câmera, GPS e áudio" },
-        { name: "Referrer-Policy", active: headers.referrerPolicy.present, desc: "Isolamento de metadados em navegação externa" },
+        { name: "Content-Security-Policy", active: headers?.csp?.present, desc: "Proteção contra injeção de scripts e XSS" },
+        { name: "X-Frame-Options", active: headers?.xFrameOptions?.present, desc: "Defesa anti-Clickjacking e bloqueio de iframes" },
+        { name: "Strict-Transport-Security", active: headers?.hsts?.present, desc: "HTTPS forçado e tráfego criptografado (HSTS)" },
+        { name: "X-Content-Type-Options", active: headers?.xContentTypeOptions?.present, desc: "Prevenção de ataques de MIME Sniffing" },
+        { name: "Permissions-Policy", active: headers?.permissionsPolicy?.present, desc: "Restrição de acesso a câmera, GPS e áudio" },
+        { name: "Referrer-Policy", active: headers?.referrerPolicy?.present, desc: "Isolamento de metadados em navegação externa" },
       ];
 
       const grid = document.getElementById('controlsGrid');
@@ -1000,10 +1003,10 @@
       const chainData = data.attackChain;
       if (chainData && chainData.nodes && chainData.nodes.length > 0) {
         attackSec.classList.remove('hidden');
-        document.getElementById('attackChainSummary').innerText = chainData.riskSummary;
+        document.getElementById('attackChainSummary').innerText = chainData.riskSummary || '';
         
         const impactBadge = document.getElementById('attackImpactBadge');
-        impactBadge.innerText = `IMPACTO MÁXIMO: ${chainData.maxImpactLevel}`;
+        impactBadge.innerText = `IMPACTO MÁXIMO: ${chainData.maxImpactLevel || 'MÉDIO'}`;
         if (chainData.maxImpactLevel === 'CRITICAL') {
           impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-red-950 border border-red-500 text-red-400 uppercase";
         } else if (chainData.maxImpactLevel === 'HIGH') {
@@ -1017,7 +1020,7 @@
           <div class="bg-monoblack-950 p-4 border-2 border-monoblack-border space-y-2 relative">
             <div class="flex items-center justify-between text-[11px] font-mono">
               <span class="px-2 py-0.5 bg-red-500/20 text-red-400 font-bold uppercase border border-red-500/40">PASSO ${idx + 1}: ${node.stage}</span>
-              <span class="text-neutral-500 text-[10px]">${escapeHtml(node.mitreTechnique.split(' ')[0])}</span>
+              <span class="text-neutral-500 text-[10px]">${escapeHtml((node.mitreTechnique || '').split(' ')[0])}</span>
             </div>
             <div class="font-boxy font-black text-white text-xs uppercase">${escapeHtml(node.title)}</div>
             <p class="text-neutral-300 text-xs font-sans line-clamp-3">${escapeHtml(node.description)}</p>
