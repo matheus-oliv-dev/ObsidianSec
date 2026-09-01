@@ -551,6 +551,12 @@ async function auditUniversalEndpoint(targetUrl) {
   };
 }
 
+// src/lib/security/captcha.ts
+var CAPTCHA_TTL_MS = 120 * 1e3;
+
+// src/lib/security/token.ts
+var DEFAULT_SECRET = process.env.SUPABASE_JWT_SECRET || process.env.RATE_LIMIT_SECRET || "default-secret-jwt-key-min-32-chars";
+
 // src/lib/security/dns-security-analyzer.ts
 function parseSpfRecord(txtRecords) {
   const spfRaw = txtRecords.find((r) => r.toLowerCase().startsWith("v=spf1"));
@@ -738,6 +744,57 @@ async function auditDomainDnsSecurity(domainInput) {
     dnssecActive,
     emailSecurityScore: score,
     overallStatus,
+    recommendations
+  };
+}
+
+// src/lib/security/crypto-entropy-analyzer.ts
+function calculatePasswordEntropy(password) {
+  const len = password.length;
+  if (len === 0) {
+    return {
+      entropyBits: 0,
+      charsetSize: 0,
+      length: 0,
+      strengthCategory: "VERY_WEAK",
+      estimatedCrackTimeGpuCluster: "Instant\xE2neo (0s)",
+      recommendations: ["Forne\xE7a uma senha n\xE3o vazia."]
+    };
+  }
+  let charset = 0;
+  if (/[a-z]/.test(password)) charset += 26;
+  if (/[A-Z]/.test(password)) charset += 26;
+  if (/[0-9]/.test(password)) charset += 10;
+  if (/[^a-zA-Z0-9]/.test(password)) charset += 33;
+  const entropyBits = Math.round(len * Math.log2(charset || 1));
+  const recommendations = [];
+  let strength = "VERY_WEAK";
+  let crackTime = "Instant\xE2neo (< 1 segundo)";
+  if (entropyBits < 36) {
+    strength = "VERY_WEAK";
+    crackTime = "Menos de 1 segundo";
+    recommendations.push("Aumente o comprimento da senha para pelo menos 14 caracteres.");
+  } else if (entropyBits < 56) {
+    strength = "WEAK";
+    crackTime = "Alguns minutos / horas em GPU cluster (RTX 4090)";
+    recommendations.push("Adicione caracteres especiais, n\xFAmeros e letras mai\xFAsculas.");
+  } else if (entropyBits < 72) {
+    strength = "FAIR";
+    crackTime = "Alguns meses a anos";
+    recommendations.push("Considere utilizar uma frase-senha (passphrase) de 4+ palavras aleat\xF3rias.");
+  } else if (entropyBits < 96) {
+    strength = "STRONG";
+    crackTime = "Centenas de anos (Resistente a ataques de for\xE7a bruta)";
+  } else {
+    strength = "VERY_STRONG";
+    crackTime = "Milh\xF5es de anos (Seguran\xE7a criptogr\xE1fica de n\xEDvel militar)";
+  }
+  return {
+    entropyBits,
+    charsetSize: charset,
+    length: len,
+    strengthCategory: strength,
+    estimatedCrackTimeGpuCluster: crackTime,
     recommendations
   };
 }
@@ -1148,57 +1205,6 @@ async function discoverSubdomains(domainInput) {
       error: err.message?.includes("abort") ? "Tempo limite esgotado ao consultar logs p\xFAblicos de certificados." : `Erro na consulta de subdom\xEDnios: ${err.message || "Falha de rede"}`
     };
   }
-}
-
-// src/lib/security/crypto-entropy-analyzer.ts
-function calculatePasswordEntropy(password) {
-  const len = password.length;
-  if (len === 0) {
-    return {
-      entropyBits: 0,
-      charsetSize: 0,
-      length: 0,
-      strengthCategory: "VERY_WEAK",
-      estimatedCrackTimeGpuCluster: "Instant\xE2neo (0s)",
-      recommendations: ["Forne\xE7a uma senha n\xE3o vazia."]
-    };
-  }
-  let charset = 0;
-  if (/[a-z]/.test(password)) charset += 26;
-  if (/[A-Z]/.test(password)) charset += 26;
-  if (/[0-9]/.test(password)) charset += 10;
-  if (/[^a-zA-Z0-9]/.test(password)) charset += 33;
-  const entropyBits = Math.round(len * Math.log2(charset || 1));
-  const recommendations = [];
-  let strength = "VERY_WEAK";
-  let crackTime = "Instant\xE2neo (< 1 segundo)";
-  if (entropyBits < 36) {
-    strength = "VERY_WEAK";
-    crackTime = "Menos de 1 segundo";
-    recommendations.push("Aumente o comprimento da senha para pelo menos 14 caracteres.");
-  } else if (entropyBits < 56) {
-    strength = "WEAK";
-    crackTime = "Alguns minutos / horas em GPU cluster (RTX 4090)";
-    recommendations.push("Adicione caracteres especiais, n\xFAmeros e letras mai\xFAsculas.");
-  } else if (entropyBits < 72) {
-    strength = "FAIR";
-    crackTime = "Alguns meses a anos";
-    recommendations.push("Considere utilizar uma frase-senha (passphrase) de 4+ palavras aleat\xF3rias.");
-  } else if (entropyBits < 96) {
-    strength = "STRONG";
-    crackTime = "Centenas de anos (Resistente a ataques de for\xE7a bruta)";
-  } else {
-    strength = "VERY_STRONG";
-    crackTime = "Milh\xF5es de anos (Seguran\xE7a criptogr\xE1fica de n\xEDvel militar)";
-  }
-  return {
-    entropyBits,
-    charsetSize: charset,
-    length: len,
-    strengthCategory: strength,
-    estimatedCrackTimeGpuCluster: crackTime,
-    recommendations
-  };
 }
 
 // src/lib/security/waf-detector-analyzer.ts

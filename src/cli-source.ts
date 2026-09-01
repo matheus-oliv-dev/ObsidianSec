@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-import { auditUniversalEndpoint } from "../src/scanner/universal-web-scanner.ts";
-import { auditDomainDnsSecurity } from "../src/lib/security/dns-security-analyzer.ts";
-import { scanDirectoryForSecrets } from "../src/lib/security/local-secret-scanner.ts";
-import { auditJwtToken } from "../src/lib/security/jwt-token-analyzer.ts";
-import { discoverSubdomains } from "../src/lib/security/subdomain-recon-analyzer.ts";
-import { calculatePasswordEntropy } from "../src/lib/security/crypto-entropy-analyzer.ts";
-import { detectWaf } from "../src/lib/security/waf-detector-analyzer.ts";
-import { scanHostCriticalPorts } from "../src/lib/security/tcp-port-scanner.ts";
+import { auditUniversalEndpoint } from "./scanner/universal-web-scanner.ts";
+import {
+  auditDomainDnsSecurity,
+  scanDirectoryForSecrets,
+  auditJwtToken,
+  discoverSubdomains,
+  calculatePasswordEntropy,
+  detectWaf,
+  scanHostCriticalPorts,
+} from "./lib/security/index.ts";
 
 const args = process.argv.slice(2);
 const command = args[0] || "help";
