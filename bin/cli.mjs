@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-#!/usr/bin/env node
 
 // src/agents/polyglot/detector.ts
 function detectRemoteTechStack(headers) {
