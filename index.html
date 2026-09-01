@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OBSIDIANSEC // DEVSECOPS AUDIT & DEFENSE SYSTEM</title>
+  
+  <!-- Fonts Google: Chakra Petch (Quadrada/Agressiva), Orbitron, Space Grotesk, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=JetBrains+Mono:wght@500;700;800&family=Orbitron:wght@700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Font Awesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            boxy: ['"Chakra Petch"', 'sans-serif'],
+            cyber: ['Orbitron', 'sans-serif'],
+            grotesk: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            monoblack: {
+              1000: '#000000',
+              950: '#050505',
+              900: '#0a0a0a',
+              850: '#111111',
+              800: '#181818',
+              border: '#2a2a2a',
+              borderBold: '#444444',
+              textDim: '#888888',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ================================================================= */
+    /* TEMA BRUTALISTA PRETO & BRANCO // LINHAS QUADRADAS E AGRESSIVAS   */
+    /* ================================================================= */
+    :root {
+      --bg-black: #000000;
+      --card-black: #080808;
+      --border-sharp: #333333;
+      --text-white: #ffffff;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: 'Chakra Petch', sans-serif;
+      overflow-x: hidden;
+      letter-spacing: 0.02em;
+    }
+
+    /* Grade Geométrica Rígida */
+    .brutal-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    }
+
+    /* Card Angular Brutalista */
+    .brutal-card {
+      background: #080808;
+      border: 2px solid #282828;
+      border-radius: 0px;
+      position: relative;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.9);
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .brutal-card:hover {
+      border-color: #ffffff;
+    }
+
+    /* Cantoneiras Táticas Industriais */
+    .corner-mark::before {
+      content: "";
+      position: absolute;
+      top: -2px; left: -2px; width: 8px; height: 8px;
+      background-color: #ffffff;
+    }
+    .corner-mark::after {
+      content: "";
+      position: absolute;
+      bottom: -2px; right: -2px; width: 8px; height: 8px;
+      background-color: #ffffff;
+    }
+
+    /* Bloco de Código Preto e Branco Monocromático */
+    .mono-code-box {
+      background-color: #050505;
+      color: #ffffff;
+      border: 2px solid #333333;
+      border-radius: 0px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbar Preto e Branco */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333333;
+      border-radius: 0px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ffffff;
+    }
+
+    /* Tela CRT / Matrix Binária */
+    .cyber-crt {
+      position: relative;
+      overflow: hidden;
+      background-color: #020403;
+    }
+    .cyber-crt::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 50%), linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(0, 255, 100, 0.01), rgba(0, 200, 255, 0.02));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .cyber-crt::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 100%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(34, 197, 94, 0.08) 50%, transparent 100%);
+      animation: scanline-pass 3s linear infinite;
+      pointer-events: none;
+      z-index: 11;
+    }
+    @keyframes scanline-pass {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+  </style>
+</head>
+<body class="brutal-grid min-h-screen flex flex-col selection:bg-white selection:text-black relative">
+
+  <!-- ================================================================= -->
+  <!-- HEADER AGRESSIVO MONOCROMÁTICO                                    -->
+  <!-- ================================================================= -->
+  <header class="border-b-2 border-monoblack-border bg-black/95 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo Boxy -->
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-black text-2xl border-2 border-white shadow-lg">
+          <i class="fa-solid fa-shield"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="font-boxy font-black tracking-widest text-2xl sm:text-3xl text-white uppercase leading-none">
+              OBSIDIAN<span class="text-neutral-400">SEC</span>
+            </span>
+            <span class="text-xs font-mono font-bold tracking-widest text-black bg-white px-2.5 py-1 uppercase">
+              DEFENSE_SYS
+            </span>
+          </div>
+          <p class="text-xs text-neutral-400 font-mono tracking-wider uppercase mt-0.5">DEVSECOPS SCANNER & KNOWLEDGE BASE</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Config -->
+      <div class="flex items-center gap-3 text-sm flex-wrap">
+        <div class="flex items-center gap-1 bg-monoblack-900 border-2 border-monoblack-border p-1">
+          <button 
+            onclick="switchView('scanner')" 
+            id="navScannerBtn"
+            class="px-4 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm"
+          >
+            <i class="fa-solid fa-radar mr-1.5"></i> SCANNER
+          </button>
+          <button 
+            onclick="switchView('playground')" 
+            id="navPlaygroundBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-key mr-1.5"></i> CRIPTO & CSP
+          </button>
+          <button 
+            onclick="switchView('dns')" 
+            id="navDnsBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-envelope-shield mr-1.5"></i> DNS & EMAIL
+          </button>
+          <button 
+            onclick="switchView('cli')" 
+            id="navCliBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-terminal mr-1"></i> CLI & NPM
+            <span class="px-1.5 py-0.5 text-[9px] bg-green-500 text-black font-black uppercase">v1.2.2</span>
+          </button>
+          <button 
+            onclick="switchView('wiki')" 
+            id="navWikiBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-book-skull mr-1.5"></i> ENCICLOPÉDIA
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a 
+            href="https://www.npmjs.com/package/obsidiansec" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="hidden sm:flex hover:bg-white hover:text-black text-white font-bold transition items-center gap-2 border-2 border-green-500/80 px-3 py-2 text-xs uppercase bg-monoblack-900"
+          >
+            <i class="fa-brands fa-npm text-red-500 text-sm"></i>
+            <span>NPM PACKAGE</span>
+          </a>
+
+          <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
+            <i class="fa-solid fa-scale-balanced"></i>
+            <span>LGPD</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- MAIN VIEWPORT                                                     -->
+  <!-- ================================================================= -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-12 flex flex-col gap-10 z-10">
+
+    <!-- ============================================================= -->
+    <!-- VIEW 1: URL SECURITY SCANNER                                  -->
+    <!-- ============================================================= -->
+    <div id="scannerSection" class="space-y-10">
+      
+      <!-- HERO BANNER AGRESSIVO -->
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <span class="w-2.5 h-2.5 bg-white inline-block"></span>
+          <span>SONDA TÁTICA DE INFRAESTRUTURA & LGPD COMPLIANCE</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-7xl font-boxy font-black tracking-tight text-white uppercase leading-none">
+          AUDITORIA DE SEGURANÇA <br>
+          <span class="text-neutral-400">
+            & BLINDAGEM DE BORDA
+          </span>
+        </h1>
+
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans font-medium leading-relaxed">
+          Inspecione cabeçalhos de rede, descubra o diagnóstico técnico e gere patches defensivos em preto e branco prontos para merge na sua infraestrutura.
+        </p>
+
+        <!-- NPX QUICK EXECUTION CALLOUT -->
+        <div class="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
+          <div class="flex items-center gap-2 bg-monoblack-900 border-2 border-monoblack-border px-4 py-2 text-neutral-300">
+            <i class="fa-solid fa-terminal text-green-400"></i>
+            <span class="text-neutral-400">CLI:</span>
+            <code class="text-green-400 font-bold">npx obsidiansec audit https://seusite.com</code>
+            <button 
+              type="button" 
+              onclick="copyNpxCommand('npx obsidiansec audit https://seusite.com')" 
+              class="ml-2 px-2 py-0.5 bg-white text-black hover:bg-neutral-200 font-boxy font-black uppercase text-[10px] transition"
+            >
+              COPIAR
+            </button>
+          </div>
+
+          <button 
+            type="button" 
+            onclick="switchView('cli')" 
+            class="px-4 py-2 border-2 border-white hover:bg-white hover:text-black font-boxy font-bold uppercase transition text-xs tracking-wider"
+          >
+            VER ARSENAL CLI (8 COMANDOS) ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- SCANNER SEARCH CONSOLE -->
+      <div class="brutal-card corner-mark p-8 sm:p-10 space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4 text-xs font-mono">
+          <div class="flex items-center gap-3 font-bold">
+            <span class="w-3 h-3 bg-white inline-block"></span>
+            <span class="text-white text-sm uppercase tracking-wider">TERMINAL DE SONDAGEM TÁTICA</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono text-neutral-400">
+            <span class="w-2 h-2 bg-green-400 inline-block"></span>
+            <span class="uppercase font-bold tracking-wider">SISTEMA ONLINE</span>
+          </div>
+        </div>
+
+        <form id="auditForm" onsubmit="handleAuditSubmit(event)" class="space-y-6">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-1">
+              <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-neutral-400 text-lg">
+                <i class="fa-solid fa-terminal"></i>
+              </div>
+              <input 
+                type="text" 
+                id="targetUrl" 
+                placeholder="ex: gov.br ou https://alvo-seguro.com.br" 
+                required
+                class="w-full pl-14 pr-5 py-4 bg-monoblack-1000 border-2 border-monoblack-border focus:border-white text-white placeholder-neutral-600 text-base font-mono uppercase tracking-wider transition outline-none"
+              >
+            </div>
+            <button 
+              type="submit" 
+              id="submitBtn"
+              class="px-10 py-4 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-base uppercase tracking-wider transition flex items-center justify-center gap-3 shadow-xl active:scale-98"
+            >
+              <i class="fa-solid fa-radar text-lg"></i>
+              <span>DISPARAR SONDA</span>
+            </button>
+          </div>
+
+          <!-- LGPD TERMS CHECKBOX -->
+          <div class="flex items-start gap-3 pt-3 text-xs text-neutral-300 border-t-2 border-monoblack-border font-mono">
+            <input 
+              type="checkbox" 
+              id="termsCheckbox" 
+              required
+              class="mt-1 w-5 h-5 rounded-none border-2 border-white bg-black text-white focus:ring-0 cursor-pointer accent-white"
+            >
+            <label for="termsCheckbox" class="cursor-pointer select-none leading-relaxed text-xs">
+              DECLARO SOB A <strong class="text-white font-bold underline">LGPD (LEI Nº 13.709/2018)</strong> SER O PROPRIETÁRIO OU POSSUIR AUTORIZAÇÃO PRÉVIA PARA ESTA SONDAGEM PASSIVA. CONCORDO COM OS 
+              <button type="button" onclick="openTermsModal()" class="text-white underline font-black">[TERMOS DE ISENÇÃO LEGAL & PRIVACIDADE]</button>.
+            </label>
+          </div>
+        </form>
+      </div>
+
+      <!-- CYBER BINARY STREAM LOADER (TELA PURA COM 0 E 1) -->
+      <div id="scanLoader" class="hidden brutal-card corner-mark p-0 overflow-hidden border-2 border-white shadow-2xl">
+        <div class="relative w-full h-80 sm:h-96 cyber-crt">
+          <canvas id="binaryCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <!-- ERROR NOTIFICATION -->
+      <div id="errorAlert" class="hidden brutal-card p-6 border-2 border-white bg-monoblack-900 text-white flex items-start gap-4">
+        <i class="fa-solid fa-triangle-exclamation text-2xl mt-0.5"></i>
+        <div>
+          <div class="font-boxy font-black uppercase text-base tracking-wider">FALHA NA SONDAGEM TÁTICA</div>
+          <div id="errorMessage" class="text-neutral-300 mt-1 font-mono text-sm"></div>
+        </div>
+      </div>
+
+      <!-- AUDIT RESULT DASHBOARD -->
+      <div id="auditResult" class="hidden space-y-8">
+
+        <!-- TOP SCORE TELEMETRY -->
+        <div class="brutal-card corner-mark p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="space-y-3 text-center md:text-left">
+            <div class="flex items-center gap-3 justify-center md:justify-start">
+              <span class="text-xs font-mono font-black uppercase tracking-widest text-neutral-400">[DIAGNÓSTICO DO ALVO]</span>
+              <span id="serverBadge" class="text-xs font-mono font-bold px-3 py-1 bg-monoblack-1000 border border-white text-white uppercase">
+                CLOUDFLARE
+              </span>
+            </div>
+            <h2 id="resultUrl" class="text-2xl sm:text-4xl font-boxy font-black text-white break-all tracking-tight uppercase">
+              HTTPS://ALVO.COM.BR
+            </h2>
+            <p id="gradeVerdictText" class="text-base text-neutral-300 max-w-2xl font-sans font-medium leading-relaxed">
+              Veredito de segurança e blindagem de borda.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-8 border-t-2 md:border-t-0 md:border-l-2 border-monoblack-border pt-6 md:pt-0 md:pl-8">
+            <div class="text-center font-mono">
+              <div class="text-xs uppercase font-bold text-neutral-400 mb-1">SCORE DE BLINDAGEM</div>
+              <div id="scoreNumber" class="text-5xl sm:text-6xl font-black text-white font-boxy">
+                100<span class="text-base font-normal text-neutral-400">/100</span>
+              </div>
+            </div>
+            
+            <div id="gradeBadge" class="w-24 h-24 bg-black border-4 border-white text-white flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl">
+              A+
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- POR QUE ESTA PONTUAÇÃO? (BREAKDOWN DIDÁTICO MONOCROMÁTICO)    -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span>POR QUE ESTA PONTUAÇÃO? // CRITÉRIOS DE AVALIAÇÃO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[ANÁLISE_DIDÁTICA]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- PONTOS GANHOS -->
+            <div class="space-y-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+              <div class="flex items-center gap-3 text-sm font-boxy font-black text-white uppercase border-b-2 border-monoblack-border pb-3">
+                <i class="fa-solid fa-circle-check text-base"></i>
+                <span>PONTOS CONQUISTADOS (DEFESAS ATIVAS)</span>
+              </div>
+              <div id="earnedList" class="space-y-4 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+
+            <!-- PONTOS PERDIDOS -->
+            <div class="space-y-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+              <div class="flex items-center gap-3 text-sm font-boxy font-black text-white uppercase border-b-2 border-monoblack-border pb-3">
+                <i class="fa-solid fa-circle-xmark text-base"></i>
+                <span>PONTOS PERDIDOS (VULNERABILIDADES ABERTAS)</span>
+              </div>
+              <div id="missedList" class="space-y-4 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECURITY CONTROLS GRID -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between text-sm font-boxy font-bold text-white uppercase tracking-wider">
+            <span class="flex items-center gap-3">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>CONTROLES DE BORDA AVALIADOS</span>
+            </span>
+            <span class="text-neutral-400 font-mono text-xs">[6 VETORES OWASP HARDENING]</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="controlsGrid">
+            <!-- Injetado via JS -->
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- BLOODHOUND ATTACK PATH & CHAIN CORRELATION                    -->
+        <!-- ============================================================= -->
+        <div id="attackChainSection" class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-diagram-project text-red-500"></i>
+              <span>CADEIA DE ATAQUE // BLOODHOUND GRAPH ENGINE</span>
+            </div>
+            <span id="attackImpactBadge" class="text-xs font-mono font-bold px-3 py-1 bg-red-950 border border-red-500 text-red-400 uppercase">
+              ALERTA DE IMPACTO
+            </span>
+          </div>
+
+          <div id="attackChainSummary" class="text-xs font-mono text-neutral-300 bg-monoblack-950 p-4 border-l-4 border-red-500">
+            <!-- Resumo do Grafo -->
+          </div>
+
+          <div id="attackChainFlow" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Nós do Grafo Injetados via JS -->
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- BURP SUITE PASSIVE INSPECTOR (COOKIES & CORS)                 -->
+        <!-- ============================================================= -->
+        <div id="burpInspectionSection" class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-bolt text-yellow-400"></i>
+              <span>INSPEÇÃO PASSIVA DE SESSÃO & CORS // BURP SUITE ENGINE</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[PASSIVE_AUDIT]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- COOKIES AUDIT -->
+            <div class="space-y-3 bg-monoblack-950 p-5 border-2 border-monoblack-border">
+              <div class="flex items-center justify-between text-xs font-boxy font-black text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-solid fa-cookie-bite mr-2 text-yellow-400"></i> COOKIES (SET-COOKIE)</span>
+                <span id="cookieCountBadge" class="font-mono text-neutral-400">0 AUDITADOS</span>
+              </div>
+              <div id="cookieAuditList" class="space-y-2 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+
+            <!-- CORS AUDIT -->
+            <div class="space-y-3 bg-monoblack-950 p-5 border-2 border-monoblack-border">
+              <div class="flex items-center justify-between text-xs font-boxy font-black text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-solid fa-arrows-split-up-and-left mr-2 text-cyan-400"></i> POLÍTICA CORS</span>
+                <span id="corsStatusBadge" class="font-mono text-neutral-400">AUDITADO</span>
+              </div>
+              <div id="corsAuditDetails" class="space-y-2 text-xs font-mono">
+                <!-- Injetado via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CYBERBRAIN AI INSIGHTS -->
+        <div class="brutal-card p-8 space-y-5">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-brain"></i>
+              <span>PARECER COGNITIVO // CYBERBRAIN AI</span>
+            </div>
+            <span class="text-xs font-mono font-bold px-3 py-1 bg-monoblack-1000 border border-white text-white uppercase" id="aiProviderBadge">
+              GOOGLE GEMINI 3 FLASH
+            </span>
+          </div>
+          
+          <div id="aiDiagnosisContent" class="text-sm text-neutral-200 space-y-3 leading-relaxed font-sans font-medium">
+            <!-- Conteúdo da IA -->
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- REMEDIATION CODE PATCHES (PRETO E BRANCO TOTAL)               -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-5">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-code"></i>
+              <span>PATCHES DE AUTO-REMEDIAÇÃO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[PRONTOS PARA MERGE]</span>
+          </div>
+
+          <!-- Server Tabs -->
+          <div class="flex gap-2 pb-2 overflow-x-auto text-xs font-mono" id="patchTabs">
+            <!-- Abas de servidores -->
+          </div>
+
+          <!-- Monochrome Code Container -->
+          <div class="mono-code-box">
+            <div class="flex items-center justify-between px-5 py-3 bg-monoblack-900 border-b-2 border-monoblack-border text-xs">
+              <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-white inline-block"></span>
+                <span class="text-white font-mono font-bold uppercase tracking-wider" id="currentSnippetLabel">CONFIG.CONF</span>
+              </div>
+              <button 
+                onclick="copySnippet()" 
+                id="copyBtn"
+                class="bg-white text-black hover:bg-neutral-200 transition flex items-center gap-2 px-4 py-1.5 font-bold uppercase text-xs"
+              >
+                <i class="fa-regular fa-copy"></i>
+                <span id="copyText">COPIAR PATCH</span>
+              </button>
+            </div>
+            <pre id="codeSnippetBox" class="p-6 text-white font-mono text-sm overflow-x-auto leading-relaxed max-h-96"></pre>
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- BADGE DO GITHUB & EXPORTADOR DE RELATÓRIO OFICIAL             -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-award text-green-400"></i>
+              <span>CERTIFICAÇÃO DE BORDA & EXPORTAÇÃO DE RELATÓRIO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[DEVOPS_TOOLING]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- GITHUB BADGE -->
+            <div class="bg-monoblack-950 p-5 border-2 border-monoblack-border space-y-4">
+              <div class="flex items-center justify-between text-xs font-boxy font-bold text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-brands fa-github mr-2"></i> BADGE PARA O README DO GITHUB</span>
+                <span class="text-green-400 font-mono">SVG LIVE</span>
+              </div>
+              <div class="flex items-center justify-center p-4 bg-black border border-neutral-800">
+                <img id="liveBadgePreview" src="/api/badge?grade=A%2B&score=100" alt="ObsidianSec Badge" class="h-7 shadow-md">
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] font-mono text-neutral-400">Copie e cole no README.md do seu repositório:</div>
+                <div class="flex gap-2">
+                  <input type="text" id="badgeMarkdownInput" readonly class="flex-1 bg-black border border-neutral-700 text-neutral-300 font-mono text-xs px-3 py-2" value="[![ObsidianSec](https://obsidiansec.dev/api/badge)](https://obsidiansec.dev)">
+                  <button onclick="copyBadgeMarkdown()" class="bg-white text-black font-bold text-xs px-3 py-2 uppercase hover:bg-neutral-200 transition">
+                    COPIAR
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- EXPORT REPORT -->
+            <div class="bg-monoblack-950 p-5 border-2 border-monoblack-border space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs font-boxy font-bold text-white uppercase border-b border-monoblack-border pb-2">
+                  <span><i class="fa-solid fa-file-shield mr-2 text-cyan-400"></i> RELATÓRIO EXECUTIVO OFICIAL</span>
+                  <span class="text-neutral-400 font-mono">C-LEVEL & DEVS</span>
+                </div>
+                <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+                  Gere um dossiê completo em Markdown com sumário executivo de risco (LGPD/OWASP), caminho de ataque e patches prontos, ou imprima a auditoria formatada.
+                </p>
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="exportReportMarkdown()" class="flex-1 bg-white text-black font-black text-xs uppercase px-4 py-3 hover:bg-neutral-200 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-download"></i>
+                  <span>BAIXAR RELATÓRIO (.MD)</span>
+                </button>
+                <button onclick="window.print()" class="bg-monoblack-900 border-2 border-white text-white font-black text-xs uppercase px-4 py-3 hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-print"></i>
+                  <span>IMPRIMIR / PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 2: PLAYGROUND DE CRIPTOGRAFIA & GERADOR VISUAL DE CSP    -->
+    <!-- ============================================================= -->
+    <div id="playgroundSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-flask"></i>
+          <span>PLAYGROUND DEFENSIVO & GERADORES DE CÓDIGO</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          LABORATÓRIO CRIPTOGRÁFICO & CSP
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Calcule entropia de senhas com fórmulas de Shannon, valide segredos JWT contra dicionários e gere políticas CSP à prova de falhas com seleção visual.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- CRIPTO & ENTROPIA (HASHCAT/SHANNON) -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-base text-white uppercase tracking-wider">
+              <i class="fa-solid fa-calculator text-yellow-400"></i>
+              <span>CALCULADORA DE ENTROPIA DE SENHAS (SHANNON)</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400">[HASHCAT_ESTIMATE]</span>
+          </div>
+
+          <div class="space-y-4 font-mono text-xs">
+            <div class="space-y-2">
+              <label class="text-neutral-300 uppercase font-bold">Digite uma senha ou frase-senha para teste:</label>
+              <input 
+                type="text" 
+                id="entropyInput" 
+                placeholder="Ex: Trator$Azul#Voador!9876" 
+                oninput="updateEntropyCalculator()"
+                class="w-full bg-monoblack-950 border-2 border-monoblack-border text-white px-4 py-3 font-mono text-sm focus:border-white focus:outline-none"
+              >
+            </div>
+
+            <!-- Métricas de Entropia -->
+            <div class="grid grid-cols-2 gap-4 bg-monoblack-950 p-4 border border-neutral-800">
+              <div>
+                <div class="text-neutral-500 uppercase text-[10px]">Bits de Entropia:</div>
+                <div id="entropyBitsVal" class="text-2xl font-black text-white font-boxy">0 BITS</div>
+              </div>
+              <div>
+                <div class="text-neutral-500 uppercase text-[10px]">Nível de Força:</div>
+                <div id="entropyStrengthVal" class="text-sm font-black text-red-400 uppercase">VAZIA</div>
+              </div>
+            </div>
+
+            <div class="space-y-1 bg-monoblack-950 p-4 border-l-4 border-yellow-400">
+              <div class="text-neutral-400 text-[11px] font-bold uppercase">Tempo Estimado de Quebra (Cluster RTX 4090):</div>
+              <div id="entropyCrackTimeVal" class="text-white text-sm font-bold font-sans">Instantâneo (0s)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GERADOR VISUAL DE CSP -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-base text-white uppercase tracking-wider">
+              <i class="fa-solid fa-shield-virus text-cyan-400"></i>
+              <span>GERADOR VISUAL DE CSP (CONTENT-SECURITY-POLICY)</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400">[ZERO_XSS]</span>
+          </div>
+
+          <div class="space-y-4 text-xs font-mono">
+            <div class="text-neutral-300">Marque os serviços legítimos que sua aplicação utiliza:</div>
+            
+            <div class="grid grid-cols-2 gap-3 text-neutral-300">
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspFonts" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Google Fonts</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspAnalytics" onchange="buildCspPreview()" class="accent-white">
+                <span>Google Analytics</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspStripe" onchange="buildCspPreview()" class="accent-white">
+                <span>Stripe / Pagamentos</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspCloudflare" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Cloudflare CDN</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspImagesData" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Imagens data: / HTTPS</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspWebSocket" onchange="buildCspPreview()" class="accent-white">
+                <span>WebSockets (wss:)</span>
+              </label>
+            </div>
+
+            <!-- Output CSP -->
+            <div class="space-y-2 pt-2">
+              <div class="flex items-center justify-between">
+                <span class="text-neutral-400 font-bold uppercase text-[11px]">DIRETIVA GERADA:</span>
+                <button onclick="copyGeneratedCsp()" class="text-white hover:underline text-[11px] font-bold uppercase">
+                  [COPIAR CSP]
+                </button>
+              </div>
+              <textarea id="cspOutputBox" readonly rows="3" class="w-full bg-black border border-neutral-700 text-green-400 font-mono text-xs p-3 focus:outline-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 3: AUDITOR DE DNS, EMAIL & ANTI-PHISHING                 -->
+    <!-- ============================================================= -->
+    <div id="dnsSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-envelope-shield"></i>
+          <span>AUDITORIA ANTI-PHISHING & INTEGRIDADE DNS</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          DNS & EMAIL SECURITY INSPECTOR
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Valide registros SPF, DMARC e DNSSEC para proteger seu domínio contra ataques de falsificação de identidade (Business Email Compromise).
+        </p>
+      </div>
+
+      <!-- SEARCH DNS CONSOLE -->
+      <div class="brutal-card p-8 space-y-6">
+        <form onsubmit="handleDnsAuditSubmit(event)" class="space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <input 
+              type="text" 
+              id="dnsTargetDomain" 
+              placeholder="Ex: gov.br ou seudominio.com.br" 
+              required
+              class="flex-1 bg-monoblack-950 border-2 border-monoblack-border text-white font-mono text-base px-6 py-4 focus:border-white focus:outline-none"
+            >
+            <button 
+              type="submit" 
+              id="dnsSubmitBtn"
+              class="bg-white text-black hover:bg-neutral-200 font-black font-boxy uppercase tracking-wider px-8 py-4 text-base transition flex items-center justify-center gap-3"
+            >
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>AUDITAR DNS</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="dnsLoader" class="hidden text-center py-8 font-mono text-xs text-neutral-400 uppercase tracking-wider">
+          <i class="fa-solid fa-spinner fa-spin text-xl text-white mb-2"></i>
+          <div>Consultando servidores DNS-over-HTTPS...</div>
+        </div>
+
+        <div id="dnsResultBox" class="hidden space-y-6 pt-4 border-t-2 border-monoblack-border">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+            <div>
+              <div class="text-xs uppercase font-bold text-neutral-400 font-mono">DOMÍNIO ANALISADO</div>
+              <div id="dnsResultDomain" class="text-2xl font-black text-white font-boxy">DOMINIO.COM</div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div>
+                <div class="text-xs uppercase font-bold text-neutral-400 font-mono text-right">SCORE EMAIL</div>
+                <div id="dnsScoreVal" class="text-3xl font-black text-white font-boxy">0/100</div>
+              </div>
+              <div id="dnsStatusBadge" class="px-4 py-2 bg-green-500 text-black font-black text-xs font-boxy uppercase">
+                SEGURO
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="dnsCardsGrid">
+            <!-- Cards SPF, DMARC, DNSSEC injetados via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 4: OPEN INFOSEC ENCYCLOPEDIA (MONOCHROME CARDS)          -->
+    <!-- ============================================================= -->
+    <div id="wikiSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>BASE DE CONHECIMENTO ABERTA & LGPD</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          ENCICLOPÉDIA DE SEGURANÇA DA INFORMAÇÃO
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Guias práticos, padrões globais (NIST, OWASP, LGPD, CIS) e código defensivo aberto para engenheiros de software e segurança.
+        </p>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex flex-wrap gap-3 justify-center text-xs font-mono font-bold uppercase" id="wikiFilterBar">
+        <button onclick="filterKnowledge('ALL')" class="px-5 py-2.5 bg-white text-black shadow-md">TODOS</button>
+        <button onclick="filterKnowledge('Governance')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">LGPD & GOVERNANÇA</button>
+        <button onclick="filterKnowledge('ZeroTrust')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">ZERO TRUST</button>
+        <button onclick="filterKnowledge('Cryptography')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">CRIPTOGRAFIA PQC</button>
+        <button onclick="filterKnowledge('DevSecOps')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">SUPPLY CHAIN & SBOM</button>
+        <button onclick="filterKnowledge('CloudNative')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">CLOUD & CONTÊINERES</button>
+        <button onclick="filterKnowledge('ApplicationSecurity')" class="px-5 py-2.5 bg-monoblack-900 hover:bg-white hover:text-black text-white border-2 border-monoblack-border transition">OWASP ASVS</button>
+      </div>
+
+      <!-- Knowledge Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="knowledgeGrid">
+        <!-- Cards gerados dinamicamente via JS -->
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 4: ARSENAL DEVSECOPS & NPM CLI                           -->
+    <!-- ============================================================= -->
+    <div id="cliSection" class="hidden space-y-10">
+
+      <!-- HERO BANNER CLI -->
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-terminal text-green-400"></i>
+          <span>DEVSECOPS ARSENAL & CLI OFFICIAL RELEASE</span>
+        </div>
+
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          OBSIDIANSEC NO SEU TERMINAL <br>
+          <span class="text-green-400">& PIPELINES DE CI/CD</span>
+        </h2>
+
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans leading-relaxed">
+          Execute auditorias de borda, caça a segredos vazados no código, detector de WAF, scanner de portas e verificação de phishing diretamente na sua máquina ou no GitHub Actions.
+        </p>
+
+        <!-- BADGES ROW -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <a href="https://www.npmjs.com/package/obsidiansec" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/npm/v/obsidiansec.svg?color=10b981&style=for-the-badge" alt="npm version">
+          </a>
+          <img src="https://img.shields.io/badge/Tests-152%20Passed%20(100%25)-10b981.svg?style=for-the-badge" alt="Tests passed">
+          <img src="https://img.shields.io/badge/Quality%20Gate-CVSS%200.0-black.svg?style=for-the-badge" alt="Quality gate">
+          <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License">
+        </div>
+      </div>
+
+      <!-- 3 ACCESS METHOD CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+        <!-- CARD 1: NPX INSTANT -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-green-500/80 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-green-500 text-black font-black text-xs font-boxy uppercase">01. ZERO SETUP</span>
+              <i class="fa-solid fa-bolt text-green-400"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">EXECUTE VIA NPX</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Sem precisar instalar nada. O Node.js baixa em memória e executa a versão mais recente em 1 segundo.
+            </p>
+          </div>
+          <div class="space-y-2 pt-2">
+            <div class="bg-black border border-monoblack-border p-3 text-xs text-green-400 font-bold overflow-x-auto flex items-center justify-between">
+              <code>npx obsidiansec audit &lt;url&gt;</code>
+              <button onclick="copyNpxCommand('npx obsidiansec audit https://seusite.com')" class="text-white hover:text-green-400 text-xs uppercase transition ml-2"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: GLOBAL INSTALL -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-monoblack-border flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white text-black font-black text-xs font-boxy uppercase">02. INSTALAÇÃO GLOBAL</span>
+              <i class="fa-solid fa-download text-neutral-400"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">DISPONÍVEL NO PATH</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Instale uma única vez na sua máquina para ter o comando <code class="text-white">obsidiansec</code> disponível globalmente.
+            </p>
+          </div>
+          <div class="space-y-2 pt-2">
+            <div class="bg-black border border-monoblack-border p-3 text-xs text-neutral-300 font-bold overflow-x-auto flex items-center justify-between">
+              <code>npm install -g obsidiansec</code>
+              <button onclick="copyNpxCommand('npm install -g obsidiansec')" class="text-white hover:text-green-400 text-xs uppercase transition ml-2"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: NPM REGISTRY -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-red-500/80 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-red-600 text-white font-black text-xs font-boxy uppercase">03. REGISTRO OFICIAL</span>
+              <i class="fa-brands fa-npm text-red-500 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">PÁGINA NO NPMJS.COM</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Consulte a documentação completa, estatísticas de downloads e releases públicos no registro oficial do NPM.
+            </p>
+          </div>
+          <div class="pt-2">
+            <a 
+              href="https://www.npmjs.com/package/obsidiansec" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-boxy font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
+            >
+              <span>ACESSAR NPMJS.COM</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARSENAL INTERATIVO: 8 COMANDOS DA CLI -->
+      <div class="brutal-card corner-mark p-8 sm:p-10 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-monoblack-border pb-4 gap-2">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 bg-white inline-block"></span>
+            <h3 class="text-xl font-boxy font-black text-white uppercase tracking-wider">ARSENAL DE 8 COMANDOS DE SEGURANÇA</h3>
+          </div>
+          <span class="text-xs font-mono text-neutral-400 uppercase">CLIQUE NO COMANDO PARA VER O USO & SIMULAÇÃO</span>
+        </div>
+
+        <!-- COMMAND SELECTOR BUTTONS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono font-bold" id="cliCommandTabs">
+          <button onclick="selectCliCommand('audit')" id="cliTab_audit" class="p-3 bg-white text-black font-black uppercase text-left transition border-2 border-white">
+            <div class="text-[10px] text-neutral-600">01. BORDA & CSP</div>
+            <div>audit &lt;url&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('waf')" id="cliTab_waf" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">02. FIREWALL</div>
+            <div>waf &lt;url&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('ports')" id="cliTab_ports" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">03. NMAP / PORTAS</div>
+            <div>ports &lt;host&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('scandir')" id="cliTab_scandir" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">04. SAST & SEGREDOS</div>
+            <div>scan-dir [dir]</div>
+          </button>
+          <button onclick="selectCliCommand('jwt')" id="cliTab_jwt" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">05. AUDITOR JWT</div>
+            <div>jwt &lt;token&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('subs')" id="cliTab_subs" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">06. SUBDOMÍNIOS</div>
+            <div>subdomains &lt;dom&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('dns')" id="cliTab_dns" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">07. ANTI-PHISHING</div>
+            <div>dns &lt;dominio&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('entropy')" id="cliTab_entropy" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">08. HASHCAT GPU</div>
+            <div>entropy &lt;senha&gt;</div>
+          </button>
+        </div>
+
+        <!-- COMMAND DETAIL VIEWPORT -->
+        <div class="space-y-4 pt-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
+            <div>
+              <span class="text-neutral-400 font-bold uppercase">DESCRIÇÃO:</span>
+              <span id="cliDetailDescription" class="text-white font-bold ml-2">Audita cabeçalhos de borda, cookies, CORS e MITRE attack chain.</span>
+            </div>
+            <button onclick="copyCurrentCliCommand()" class="px-4 py-2 bg-white text-black hover:bg-neutral-200 font-boxy font-black uppercase text-xs transition flex items-center gap-2">
+              <i class="fa-regular fa-copy"></i>
+              <span id="cliCopyBtnText">COPIAR COMANDO</span>
+            </button>
+          </div>
+
+          <!-- TERMINAL CODE BOX -->
+          <div class="mono-code-box p-6 font-mono text-sm leading-relaxed overflow-x-auto border-2 border-white/40">
+            <div class="text-neutral-400 text-xs mb-3 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span>
+              <span class="w-2.5 h-2.5 bg-yellow-500 rounded-full inline-block"></span>
+              <span class="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+              <span class="text-neutral-500 ml-2">terminal — bash / zsh / cmd</span>
+            </div>
+            <pre id="cliTerminalPreview" class="text-green-400 font-mono text-xs sm:text-sm whitespace-pre-wrap"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- CI/CD QUALITY GATE GITHUB ACTIONS SNIPPET -->
+      <div class="brutal-card p-8 sm:p-10 space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+          <div class="flex items-center gap-3">
+            <i class="fa-brands fa-github text-2xl text-white"></i>
+            <div>
+              <h3 class="text-xl font-boxy font-black text-white uppercase">TRAVA AUTOMÁTICA EM CI/CD (GITHUB ACTIONS)</h3>
+              <p class="text-xs font-mono text-neutral-400">Bloqueie Pull Requests com nota de segurança inferior a "A" antes do deploy</p>
+            </div>
+          </div>
+          <button onclick="copyGithubActionsYaml()" class="px-4 py-2 bg-white text-black hover:bg-neutral-200 font-boxy font-black text-xs uppercase tracking-wider transition">
+            COPIAR YAML
+          </button>
+        </div>
+
+        <div class="mono-code-box p-6 font-mono text-xs sm:text-sm overflow-x-auto text-neutral-200">
+<pre id="githubActionsYaml">name: ObsidianSec DevSecOps Quality Gate
+
+on: [push, pull_request]
+
+jobs:
+  security-audit:
+    name: Tactical Edge & Secret Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Secret & SAST Scan
+        run: npx obsidiansec scan-dir ./
+
+      - name: Run Live Edge Quality Gate
+        run: npx obsidiansec audit https://staging.myapp.com --min-grade=A</pre>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: DETALHES DO ARTIGO DA WIKI                                 -->
+  <!-- ================================================================= -->
+  <div id="knowledgeDetailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+    <div class="brutal-card max-w-3xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between border-b-2 border-monoblack-border pb-4">
+        <div class="space-y-2">
+          <span id="modalCategoryBadge" class="text-xs font-mono font-black px-3 py-1 bg-white text-black uppercase">CATEGORIA</span>
+          <h3 id="modalTitle" class="text-2xl font-boxy font-black text-white uppercase leading-snug">TÍTULO DO ARTIGO</h3>
+        </div>
+        <button onclick="closeKnowledgeModal()" class="text-neutral-400 hover:text-white transition text-2xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 text-sm font-sans text-neutral-200">
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">📋 VISÃO GERAL & FUNDAMENTO:</span>
+          <p id="modalSummary" class="text-neutral-300 leading-relaxed text-sm font-sans"></p>
+        </div>
+
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">🚨 AMEAÇA MITIGADA:</span>
+          <p id="modalThreat" class="text-neutral-400 leading-relaxed font-sans"></p>
+        </div>
+
+        <div>
+          <span class="font-boxy font-black text-white text-base block mb-1 uppercase tracking-wider">🛡️ CONTRAMEDIDAS DEFENSIVAS:</span>
+          <ul id="modalMitigations" class="list-disc list-inside space-y-1.5 text-neutral-300 font-sans"></ul>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <span class="font-boxy font-black text-white text-base block uppercase tracking-wider" id="modalCodeTitle">IMPLEMENTAÇÃO DE REFERÊNCIA:</span>
+          <div class="mono-code-box p-5 text-sm font-mono overflow-x-auto max-h-80 leading-relaxed">
+            <pre id="modalCodeSnippet" class="text-white"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t-2 border-monoblack-border flex justify-end">
+        <button onclick="closeKnowledgeModal()" class="px-8 py-3 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-sm uppercase tracking-wider">
+          FECHAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: TERMOS DE USO & CONFORMIDADE LGPD                          -->
+  <!-- ================================================================= -->
+  <div id="termsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+    <div class="brutal-card max-w-2xl w-full p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white text-black flex items-center justify-center font-black">
+            <i class="fa-solid fa-scale-balanced text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-boxy font-black text-white uppercase tracking-wider">TERMOS DE USO & CONFORMIDADE LGPD</h2>
+            <p class="text-xs font-mono text-neutral-400 uppercase">LEI Nº 13.709/2018 & DIRETRIZES DEVSECOPS</p>
+          </div>
+        </div>
+        <button onclick="closeTermsModal()" class="text-neutral-400 hover:text-white transition text-2xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 text-xs text-neutral-300 leading-relaxed font-mono">
+        <p class="text-white font-bold uppercase">
+          AO UTILIZAR A SUÍTE OBSIDIANSEC, VOCÊ CONCORDA DE FORMA EXPRESSA, INFORMADA E INEQUÍVOCA COM AS SEGUINTES DIRETRIZES:
+        </p>
+
+        <div class="space-y-4 pl-4 border-l-2 border-white">
+          <div>
+            <span class="font-bold text-white uppercase">[01. AUTORIZAÇÃO & BASE LEGAL (ART. 7º E 10º DA LGPD)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">O usuário declara ser o proprietário legítimo (Controlador) ou dispor de consentimento expresso e legítimo interesse para auditar a infraestrutura indicada.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[02. MINIMIZAÇÃO DE DADOS & PRIVACIDADE (ART. 6º, III)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">A ferramenta opera sob o princípio de <em>Privacy by Design</em>: coleta estritamente metadados técnicos públicos de rede e cabeçalhos. NÃO coletamos, não armazenamos e não processamos Dados Pessoais Sensíveis (PII) dos alvos auditados.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[03. NATUREZA PASSIVA & SEGURANÇA (ART. 46)]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">A auditoria é estritamente passiva e não destrutiva. O sistema não executa ataques de negação de serviço (DoS) e não realiza injeções de payloads invasivos.</p>
+          </div>
+
+          <div>
+            <span class="font-bold text-white uppercase">[04. ISENÇÃO TOTAL DE RESPONSABILIDADE]:</span>
+            <p class="text-neutral-400 mt-1 font-sans text-xs">Os mantenedores NÃO se responsabilizam pelo uso indevido, não autorizado ou ilícito da ferramenta por terceiros contra domínios alheios.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t-2 border-monoblack-border flex justify-end gap-3 font-boxy font-black text-xs">
+        <button 
+          type="button" 
+          onclick="closeTermsModal()" 
+          class="px-8 py-3 bg-white hover:bg-neutral-200 text-black uppercase tracking-wider"
+        >
+          ACEITAR & CONTINUAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- FOOTER AGRESSIVO                                                  -->
+  <!-- ================================================================= -->
+  <footer class="border-t-2 border-monoblack-border bg-black py-8 text-xs font-mono text-neutral-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 bg-white inline-block"></span>
+        <span class="uppercase tracking-wider">© 2026 OBSIDIANSEC · PLATAFORMA ABERTA DE DEFESA CIBERNÉTICA & LGPD.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button onclick="switchView('wiki')" class="hover:text-white transition uppercase font-bold">[BASE DE CONHECIMENTO]</button>
+        <span class="text-neutral-700">|</span>
+        <button onclick="openTermsModal()" class="hover:text-white transition uppercase font-bold">[LGPD & TERMOS]</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================= -->
+  <!-- JAVASCRIPT LOGIC                                                  -->
+  <!-- ================================================================= -->
+  <script>
+    // =================================================================
+    // FUNÇÃO DEFENSIVA CONTRA DOM XSS (SANITIZAÇÃO DE STRINGS EXTERNAS)
+    // =================================================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    let currentSnippets = [];
+    let currentActiveTab = 0;
+    let rawKnowledgeItems = [];
+    let currentAuditData = null;
+
+    function switchView(viewName) {
+      const views = {
+        scanner: { sec: document.getElementById('scannerSection'), btn: document.getElementById('navScannerBtn') },
+        playground: { sec: document.getElementById('playgroundSection'), btn: document.getElementById('navPlaygroundBtn') },
+        dns: { sec: document.getElementById('dnsSection'), btn: document.getElementById('navDnsBtn') },
+        cli: { sec: document.getElementById('cliSection'), btn: document.getElementById('navCliBtn') },
+        wiki: { sec: document.getElementById('wikiSection'), btn: document.getElementById('navWikiBtn') },
+      };
+
+      for (const [key, item] of Object.entries(views)) {
+        if (!item.sec || !item.btn) continue;
+        if (key === viewName) {
+          item.sec.classList.remove('hidden');
+          item.btn.className = "px-4 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
+        } else {
+          item.sec.classList.add('hidden');
+          item.btn.className = "px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
+        }
+      }
+
+      if (viewName === 'wiki' && rawKnowledgeItems.length === 0) loadKnowledgeBase();
+      if (viewName === 'playground') buildCspPreview();
+      if (viewName === 'cli') selectCliCommand('audit');
+    }
+
+    // =================================================================
+    // ARSENAL INTERATIVO DA CLI & NPM
+    // =================================================================
+    let currentCliKey = 'audit';
+    const cliCommandsData = {
+      audit: {
+        cmd: 'npx obsidiansec audit https://meusite.com --min-grade=A',
+        desc: 'Audita cabeçalhos de borda (CSP, HSTS, X-Frame-Options), cookies HttpOnly/Secure, matriz CORS e gera grafo MITRE ATT&CK.',
+        sim: `$ npx obsidiansec audit https://staging.myapp.com --min-grade=A
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 [1/2] Disparando sondagem tática de borda em https://staging.myapp.com...
+
+======================================================================
+📊 RESULTADO DA AUDITORIA DE SEGURANÇA
+======================================================================
+• Alvo Auditado:           https://staging.myapp.com
+• Servidor / Borda:        cloudflare
+• Score de Blindagem:      95 / 100
+• Nota Final:              GRADE A+
+• Status:                  SEGURO
+• Cadeia de Ataque:        Zero Kill Chain Vulnerabilities
+======================================================================
+
+🛡️  CONTROLES DE BORDA:
+  [✓] Content-Security-Policy (CSP)
+  [✓] X-Frame-Options (Anti-Clickjacking)
+  [✓] Strict-Transport-Security (HSTS)
+  [✓] X-Content-Type-Options (nosniff)
+  [✓] Permissions-Policy
+
+✅ [CI/CD Quality Gate]: Aprovado com sucesso! O deploy atende aos requisitos de segurança.`
+      },
+      waf: {
+        cmd: 'npx obsidiansec waf https://meusite.com',
+        desc: 'Inspeciona e detecta em tempo real a presença de Cloudflare WAF, AWS WAF, ModSecurity, Imperva, Akamai, Azure WAF ou F5.',
+        sim: `$ npx obsidiansec waf https://cloudflare.com
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🛡️  Inspecionando assinaturas de WAF e Firewall de Borda para https://cloudflare.com...
+
+======================================================================
+📊 DETECTOR DE WAF // WEB APPLICATION FIREWALL (WAFW00F ENGINE)
+======================================================================
+• Alvo:                https://cloudflare.com
+• Status do WAF:       ATIVO & DETECTADO
+• Firewall / Shield:   Cloudflare Web Application Firewall
+• Fabricante / Vendor: Cloudflare, Inc.
+• Nível de Confiança:  HIGH
+• Fase de Detecção:    PASSIVE
+• Duração:             523ms
+• Recomendação:        WAF ativo e monitorando requisições de borda.
+======================================================================
+
+🔍 EVIDÊNCIAS E ASSINATURAS IDENTIFICADAS:
+  • Cabeçalho identificador: 'server: cloudflare'
+  • Cabeçalho identificador: 'cf-ray: a3465d01783701ab-GRU'
+  • Cabeçalho identificador: 'cf-cache-status: HIT'`
+      },
+      ports: {
+        cmd: 'npx obsidiansec ports 1.1.1.1',
+        desc: 'Audita 12 portas TCP críticas e emite alerta imediato caso bancos (Redis, MongoDB, MySQL, Postgres) estejam expostos para o mundo.',
+        sim: `$ npx obsidiansec ports 1.1.1.1
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🚪 [Nmap Engine] Auditando 12 portas críticas e caçando bancos de dados em 1.1.1.1...
+
+======================================================================
+📊 RELATÓRIO DE AUDITORIA DE PORTAS CRÍTICAS & SERVIÇOS EXPOSTOS
+======================================================================
+• Host Auditado:       1.1.1.1
+• Portas Analisadas:   12
+• Portas Abertas:      3
+• Exposição Crítica:   0 (LIMPO)
+• Diagnóstico:         SECURE
+• Duração:             1517ms
+======================================================================
+
+📋 RESULTADO POR PORTA AUDITADA:
+  [FILTERED] Porta 21/TCP - FTP (File Transfer Protocol)
+  [FILTERED] Porta 22/TCP - SSH (Secure Shell)
+  [FILTERED] Porta 23/TCP - Telnet (Terminal Remoto Legado)
+  [OPEN] Porta 80/TCP - HTTP (Web Server) (9ms)
+  [OPEN] Porta 443/TCP - HTTPS (Web Seguro) (9ms)
+  [FILTERED] Porta 3306/TCP - MySQL Database
+  [FILTERED] Porta 3389/TCP - RDP Windows
+  [FILTERED] Porta 5432/TCP - PostgreSQL Database
+  [FILTERED] Porta 6379/TCP - Redis Cache
+  [OPEN] Porta 8080/TCP - HTTP-Alt / Dev Server (10ms)
+  [FILTERED] Porta 9200/TCP - Elasticsearch REST API
+  [FILTERED] Porta 27017/TCP - MongoDB NoSQL Database`
+      },
+      scandir: {
+        cmd: 'npx obsidiansec scan-dir ./',
+        desc: 'Caçador de segredos e SAST local: varre o projeto em busca de chaves OpenAI, AWS, Stripe, GitHub, .env e senhas hardcoded.',
+        sim: `$ npx obsidiansec scan-dir ./
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 Varrendo arquivos e caçando segredos em ./...
+
+======================================================================
+📊 RELATÓRIO DO CAÇADOR DE SEGREDOS & SAST LOCAL
+======================================================================
+• Arquivos Analisados:     118
+• Duração:                 214ms
+• Vulnerabilidades:        0 (LIMPO)
+• Críticas:                0
+• Altas:                   0
+======================================================================
+
+✅ [SAST Gate]: Nenhum segredo ou credencial vazada detectada no código!`
+      },
+      jwt: {
+        cmd: 'npx obsidiansec jwt <seu-token-jwt>',
+        desc: 'Auditor & Decodificador de JWT: detecta a brecha crítica alg: none, expiração ausente (tokens infinitos) e vazamento de PII.',
+        sim: `$ npx obsidiansec jwt eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🎟️ AUDITORIA DE SEGURANÇA DE TOKEN JWT
+
+• Algoritmo:           NONE
+• Score de Segurança:  15 / 100
+• Status:              CRITICAL
+• Assinatura Presente: NÃO (alg: none)
+• Expiração:           SEM EXPIRAÇÃO
+
+📜 HEADER DECODIFICADO:
+{
+  "alg": "none",
+  "typ": "JWT"
+}
+
+⚠️  RISCOS DETECTADOS:
+  [CRITICAL] Vulnerabilidade Crítica 'alg: none': Token sem assinatura criptográfica, permitindo forja irrestrita de identidade.
+  [HIGH] Ausência do claim 'exp' (Token Infinito).`
+      },
+      subs: {
+        cmd: 'npx obsidiansec subdomains github.com',
+        desc: 'Descoberta passiva de subdomínios expostos via Certificate Transparency (crt.sh) sem enviar pacotes invasivos.',
+        sim: `$ npx obsidiansec subdomains github.com
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🌐 Buscando subdomínios via Certificate Transparency Logs para github.com...
+
+======================================================================
+📊 SUPERFÍCIE DE ATAQUE PASSIVA (SUBDOMÍNIOS)
+======================================================================
+• Domínio Alvo:        github.com
+• Total Descoberto:    117 subdomínios únicos
+• Fonte:               Certificate Transparency Logs (crt.sh)
+• Duração:             2840ms
+======================================================================
+
+  • api.github.com
+  • api.security.github.com
+  • classroom.github.com
+  • codespaces.github.com
+  • docs.github.com
+  • enterprise.github.com
+  • raw.github.com
+  • status.github.com`
+      },
+      dns: {
+        cmd: 'npx obsidiansec dns meudominio.com',
+        desc: 'Inspeciona políticas anti-phishing de e-mail: SPF (-all), DMARC (p=reject) e assinatura de integridade DNSSEC.',
+        sim: `$ npx obsidiansec dns gov.br
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 Consultando registros DNS e Anti-Phishing para gov.br...
+
+• Domínio:             gov.br
+• Score de Email:      95 / 100
+• Status:              SEGURO
+• SPF:                 ATIVO (-all)
+• DMARC:               ATIVO (p=reject)
+• DNSSEC:              ATIVO`
+      },
+      entropy: {
+        cmd: 'npx obsidiansec entropy "Trator#Azul$9876"',
+        desc: 'Calcula bits de Shannon e tempo estimado de quebra em cluster de placas de vídeo RTX 4090 (modelo Hashcat).',
+        sim: `$ npx obsidiansec entropy "Trator#Azul$9876"
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔑 CALCULADORA DE ENTROPIA SHANNON & HASHCAT
+
+• Tamanho da Senha:    15 caracteres
+• Bits de Entropia:    95 bits
+• Charset Estimado:    85 símbolos
+• Nível de Força:      VERY_STRONG
+• Tempo Estimado GPU:  Milhões de anos (Cluster RTX 4090 / Hashcat)`
+      }
+    };
+
+    function selectCliCommand(key) {
+      currentCliKey = key;
+      const data = cliCommandsData[key];
+      if (!data) return;
+
+      const tabIds = ['audit', 'waf', 'ports', 'scandir', 'jwt', 'subs', 'dns', 'entropy'];
+      tabIds.forEach(id => {
+        const btn = document.getElementById(`cliTab_${id}`);
+        if (!btn) return;
+        if (id === key) {
+          btn.className = "p-3 bg-white text-black font-black uppercase text-left transition border-2 border-white shadow-md";
+        } else {
+          btn.className = "p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border";
+        }
+      });
+
+      document.getElementById('cliDetailDescription').innerText = data.desc;
+      document.getElementById('cliTerminalPreview').innerText = data.sim;
+      document.getElementById('cliCopyBtnText').innerText = "COPIAR COMANDO";
+    }
+
+    function copyCurrentCliCommand() {
+      const data = cliCommandsData[currentCliKey];
+      if (!data) return;
+      navigator.clipboard.writeText(data.cmd);
+      const btn = document.getElementById('cliCopyBtnText');
+      btn.innerText = "COPIADO!";
+      setTimeout(() => { btn.innerText = "COPIAR COMANDO"; }, 2000);
+    }
+
+    function copyNpxCommand(cmd) {
+      navigator.clipboard.writeText(cmd);
+      alert(`Comando copiado:\n${cmd}`);
+    }
+
+    function copyGithubActionsYaml() {
+      const el = document.getElementById('githubActionsYaml');
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText);
+      alert("Workflow do GitHub Actions copiado para a área de transferência!");
+    }
+
+    async function loadKnowledgeBase() {
+      try {
+        const res = await fetch('/api/knowledge');
+        const data = await res.json();
+        rawKnowledgeItems = data.items || [];
+        renderKnowledgeCards(rawKnowledgeItems);
+      } catch (err) {
+        console.error("Falha ao carregar a base de conhecimento", err);
+      }
+    }
+
+    function renderKnowledgeCards(items) {
+      const grid = document.getElementById('knowledgeGrid');
+      grid.innerHTML = items.map(item => `
+        <div class="brutal-card p-6 space-y-4 flex flex-col justify-between transition cursor-pointer" onclick="openKnowledgeModal('${item.id}')">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs font-mono">
+              <span class="px-3 py-1 bg-white text-black font-black uppercase text-[10px]">${item.category}</span>
+              <span class="text-neutral-400 uppercase font-bold">[${item.difficulty}]</span>
+            </div>
+            <h3 class="font-boxy font-black text-white text-xl uppercase leading-snug">${item.title}</h3>
+            <p class="text-sm text-neutral-300 font-sans line-clamp-3 leading-relaxed">${item.summary}</p>
+          </div>
+
+          <div class="pt-4 border-t-2 border-monoblack-border flex items-center justify-between text-xs font-boxy font-black text-white uppercase tracking-wider">
+            <span>LER GUIA & CÓDIGO COMPLETO</span>
+            <i class="fa-solid fa-arrow-right text-sm"></i>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterKnowledge(cat) {
+      if (cat === 'ALL') {
+        renderKnowledgeCards(rawKnowledgeItems);
+      } else {
+        const filtered = rawKnowledgeItems.filter(i => i.category === cat);
+        renderKnowledgeCards(filtered);
+      }
+    }
+
+    function openKnowledgeModal(itemId) {
+      const item = rawKnowledgeItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('modalCategoryBadge').innerText = `${item.category} · ${item.difficulty}`;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalSummary').innerText = item.summary;
+      document.getElementById('modalThreat').innerText = item.threatMitigated;
+      document.getElementById('modalMitigations').innerHTML = item.mitigations.map(m => `<li>${m}</li>`).join('');
+      document.getElementById('modalCodeTitle').innerText = item.codeExample.title;
+      document.getElementById('modalCodeSnippet').innerText = item.codeExample.code;
+
+      document.getElementById('knowledgeDetailModal').classList.remove('hidden');
+    }
+
+    function closeKnowledgeModal() {
+      document.getElementById('knowledgeDetailModal').classList.add('hidden');
+    }
+
+    function openTermsModal() {
+      document.getElementById('termsModal').classList.remove('hidden');
+    }
+
+    function closeTermsModal() {
+      document.getElementById('termsModal').classList.add('hidden');
+      document.getElementById('termsCheckbox').checked = true;
+    }
+
+    let binaryAnimId = null;
+
+    function startBinaryStreamAnimation() {
+      const canvas = document.getElementById('binaryCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const resizeCanvas = () => {
+        const rect = canvas.parentElement ? canvas.parentElement.getBoundingClientRect() : canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { width: rect.width, height: rect.height };
+      };
+
+      let dims = resizeCanvas();
+      const fontSize = 16;
+      let columns = Math.max(1, Math.floor(dims.width / fontSize));
+      let drops = Array.from({ length: columns }, () => Math.floor(Math.random() * -30));
+
+      const binaryChars = ['0', '1'];
+
+      // Fundo escuro inicial
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, dims.width, dims.height);
+
+      function draw() {
+        // Overlay translúcido para rastro de fósforo verde/branco
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.14)';
+        ctx.fillRect(0, 0, dims.width, dims.height);
+
+        ctx.font = `bold ${fontSize}px 'JetBrains Mono', monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+          const char = binaryChars[Math.floor(Math.random() * binaryChars.length)];
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          if (y > 0 && y < dims.height + fontSize) {
+            // Caractere da ponta brilha em branco puro e verde neon
+            if (Math.random() > 0.35) {
+              ctx.fillStyle = '#ffffff';
+              ctx.shadowColor = '#4ade80';
+              ctx.shadowBlur = 8;
+            } else {
+              ctx.fillStyle = '#22c55e';
+              ctx.shadowColor = '#16a34a';
+              ctx.shadowBlur = 4;
+            }
+
+            ctx.fillText(char, x, y);
+            ctx.shadowBlur = 0;
+          }
+
+          if (y > dims.height && Math.random() > 0.96) {
+            drops[i] = 0;
+          } else {
+            drops[i]++;
+          }
+        }
+
+        binaryAnimId = requestAnimationFrame(draw);
+      }
+
+      if (binaryAnimId) cancelAnimationFrame(binaryAnimId);
+      binaryAnimId = requestAnimationFrame(draw);
+    }
+
+    function stopBinaryStreamAnimation() {
+      if (binaryAnimId) {
+        cancelAnimationFrame(binaryAnimId);
+        binaryAnimId = null;
+      }
+    }
+
+    async function handleAuditSubmit(e) {
+      e.preventDefault();
+      let url = document.getElementById('targetUrl').value.trim();
+      const acceptedTerms = document.getElementById('termsCheckbox').checked;
+
+      if (!acceptedTerms) {
+        openTermsModal();
+        return;
+      }
+
+      if (!url) return;
+
+      // Auto-prefixa https:// se o usuário digitar apenas o domínio (ex: gov.br)
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      document.getElementById('errorAlert').classList.add('hidden');
+      document.getElementById('auditResult').classList.add('hidden');
+      document.getElementById('scanLoader').classList.remove('hidden');
+      document.getElementById('submitBtn').disabled = true;
+
+      // Inicia a tela de animação da cascata binária 0 e 1 (100% pura)
+      startBinaryStreamAnimation();
+
+      try {
+        const res = await fetch('/api/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            url, 
+            acceptedTerms 
+          })
+        });
+
+        const rawText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          if (rawText.includes("FUNCTION_INVOCATION_FAILED") || rawText.includes("FUNCTION_INVOCATION_TIMEOUT")) {
+            throw new Error("O servidor de sondagem está inicializando ou o alvo demorou a responder. Por favor, tente novamente em alguns segundos.");
+          }
+          throw new Error(rawText ? rawText.slice(0, 180) : "Falha na comunicação com o servidor.");
+        }
+
+        if (!res.ok) {
+          throw new Error(data.error || "Falha ao realizar a auditoria.");
+        }
+
+        renderAuditResult(data);
+      } catch (err) {
+        document.getElementById('errorMessage').innerText = err.message;
+        document.getElementById('errorAlert').classList.remove('hidden');
+      } finally {
+        stopBinaryStreamAnimation();
+        document.getElementById('scanLoader').classList.add('hidden');
+        document.getElementById('submitBtn').disabled = false;
+      }
+    }
+
+    function renderAuditResult(data) {
+      document.getElementById('resultUrl').innerText = data.url;
+      document.getElementById('serverBadge').innerText = data.serverDetected || "DESCONHECIDO";
+      document.getElementById('scoreNumber').innerHTML = `${data.score}<span class="text-base font-normal text-neutral-400">/100</span>`;
+      document.getElementById('gradeVerdictText').innerText = data.gradeVerdict;
+      
+      const gradeEl = document.getElementById('gradeBadge');
+      gradeEl.innerText = data.grade;
+
+      // Grade com cores semafóricas
+      if (data.grade === 'A+' || data.grade === 'A') {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-green-500 text-green-400 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-green-500/20";
+      } else if (data.grade === 'B') {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-yellow-400 text-yellow-400 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-yellow-500/20";
+      } else {
+        gradeEl.className = "w-24 h-24 bg-black border-4 border-red-500 text-red-500 flex flex-col items-center justify-center font-boxy font-black text-4xl shadow-2xl shadow-red-500/20";
+      }
+
+      // 1. RENDER EDUCATIONAL SCORE BREAKDOWN (VERDE / AMARELO / VERMELHO)
+      const earnedList = document.getElementById('earnedList');
+      const missedList = document.getElementById('missedList');
+
+      const earned = data.scoreBreakdown?.earned || data.scoreBreakdown?.earnedItems || [];
+      const missed = data.scoreBreakdown?.missed || data.scoreBreakdown?.missedItems || [];
+
+      if (earned.length > 0) {
+        earnedList.innerHTML = earned.map(item => `
+          <div class="border-l-4 border-green-500 pl-4 py-2 bg-green-950/20">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm font-boxy uppercase">${escapeHtml(item.control)}</span>
+              <span class="text-green-400 font-black font-mono text-base">+${item.points} PTS</span>
+            </div>
+            <p class="text-xs text-neutral-300 mt-1 font-sans">${escapeHtml(item.explanation)}</p>
+            <div class="text-xs text-green-300 font-bold mt-1.5 uppercase font-mono">💡 LIÇÃO: ${escapeHtml(item.lesson)}</div>
+          </div>
+        `).join('');
+      } else {
+        earnedList.innerHTML = `<p class="text-neutral-500 text-xs">NENHUM CONTROLE DE SEGURANÇA PONTUADO.</p>`;
+      }
+
+      if (missed.length > 0) {
+        missedList.innerHTML = missed.map(item => `
+          <div class="border-l-4 border-red-500 pl-4 py-2 bg-red-950/20">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm font-boxy uppercase">${escapeHtml(item.control)}</span>
+              <span class="text-red-400 font-black font-mono text-base">-${item.lostPoints} PTS</span>
+            </div>
+            <p class="text-xs text-red-200 mt-1 font-sans">⚠️ RISCO: ${escapeHtml(item.risk)}</p>
+            <div class="text-xs text-yellow-400 font-bold mt-1.5 uppercase font-mono">🔧 CORREÇÃO: ${escapeHtml(item.lesson)}</div>
+          </div>
+        `).join('');
+      } else {
+        missedList.innerHTML = `<p class="text-green-400 font-bold text-sm uppercase">🎉 EXCELENTE! TODOS OS CONTROLES AVALIADOS ESTÃO ATIVOS (+100%).</p>`;
+      }
+
+      // 2. RENDER CONTROLS GRID (VERDE / VERMELHO VIBRANTE)
+      const headers = data.securityHeaders;
+      const controls = [
+        { name: "Content-Security-Policy", active: headers?.csp?.present, desc: "Proteção contra injeção de scripts e XSS" },
+        { name: "X-Frame-Options", active: headers?.xFrameOptions?.present, desc: "Defesa anti-Clickjacking e bloqueio de iframes" },
+        { name: "Strict-Transport-Security", active: headers?.hsts?.present, desc: "HTTPS forçado e tráfego criptografado (HSTS)" },
+        { name: "X-Content-Type-Options", active: headers?.xContentTypeOptions?.present, desc: "Prevenção de ataques de MIME Sniffing" },
+        { name: "Permissions-Policy", active: headers?.permissionsPolicy?.present, desc: "Restrição de acesso a câmera, GPS e áudio" },
+        { name: "Referrer-Policy", active: headers?.referrerPolicy?.present, desc: "Isolamento de metadados em navegação externa" },
+      ];
+
+      const grid = document.getElementById('controlsGrid');
+      grid.innerHTML = controls.map(c => `
+        <div class="brutal-card p-5 space-y-3 ${c.active ? 'border-green-500/80' : 'border-red-500/80'}">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-white truncate uppercase">${c.name}</span>
+            <span class="text-[11px] font-black uppercase px-2.5 py-1 ${c.active ? 'bg-green-500 text-black shadow-md shadow-green-500/30' : 'bg-red-500 text-white shadow-md shadow-red-500/30'}">
+              ${c.active ? 'ATIVO' : 'AUSENTE'}
+            </span>
+          </div>
+          <p class="text-xs text-neutral-300 font-sans leading-relaxed">${c.desc}</p>
+        </div>
+      `).join('');
+
+      // 3. RENDER BLOODHOUND ATTACK CHAIN
+      const attackSec = document.getElementById('attackChainSection');
+      const chainData = data.attackChain;
+      if (chainData && chainData.nodes && chainData.nodes.length > 0) {
+        attackSec.classList.remove('hidden');
+        document.getElementById('attackChainSummary').innerText = chainData.riskSummary || '';
+        
+        const impactBadge = document.getElementById('attackImpactBadge');
+        impactBadge.innerText = `IMPACTO MÁXIMO: ${chainData.maxImpactLevel || 'MÉDIO'}`;
+        if (chainData.maxImpactLevel === 'CRITICAL') {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-red-950 border border-red-500 text-red-400 uppercase";
+        } else if (chainData.maxImpactLevel === 'HIGH') {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-yellow-950 border border-yellow-500 text-yellow-400 uppercase";
+        } else {
+          impactBadge.className = "text-xs font-mono font-bold px-3 py-1 bg-neutral-900 border border-neutral-600 text-neutral-300 uppercase";
+        }
+
+        const flowContainer = document.getElementById('attackChainFlow');
+        flowContainer.innerHTML = chainData.nodes.map((node, idx) => `
+          <div class="bg-monoblack-950 p-4 border-2 border-monoblack-border space-y-2 relative">
+            <div class="flex items-center justify-between text-[11px] font-mono">
+              <span class="px-2 py-0.5 bg-red-500/20 text-red-400 font-bold uppercase border border-red-500/40">PASSO ${idx + 1}: ${node.stage}</span>
+              <span class="text-neutral-500 text-[10px]">${escapeHtml((node.mitreTechnique || '').split(' ')[0])}</span>
+            </div>
+            <div class="font-boxy font-black text-white text-xs uppercase">${escapeHtml(node.title)}</div>
+            <p class="text-neutral-300 text-xs font-sans line-clamp-3">${escapeHtml(node.description)}</p>
+          </div>
+        `).join('');
+      } else {
+        attackSec.classList.add('hidden');
+      }
+
+      // 4. RENDER BURP SUITE PASSIVE INSPECTION (COOKIES & CORS)
+      const burp = data.burpInspection;
+      const cookieList = document.getElementById('cookieAuditList');
+      const cookieBadge = document.getElementById('cookieCountBadge');
+      const corsDetails = document.getElementById('corsAuditDetails');
+      const corsBadge = document.getElementById('corsStatusBadge');
+
+      if (burp && burp.cookies && burp.cookies.length > 0) {
+        cookieBadge.innerText = `${burp.cookies.length} AUDITADOS`;
+        cookieList.innerHTML = burp.cookies.map(c => `
+          <div class="border-l-2 ${c.severity === 'PASSED' ? 'border-green-500 bg-green-950/20' : 'border-yellow-500 bg-yellow-950/20'} pl-3 py-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-white font-bold">${escapeHtml(c.name)}</span>
+              <span class="${c.severity === 'PASSED' ? 'text-green-400' : 'text-yellow-400'} font-bold">[${c.severity}]</span>
+            </div>
+            <div class="text-[11px] text-neutral-400 mt-0.5">
+              HttpOnly: <strong class="${c.isHttpOnly ? 'text-green-400' : 'text-red-400'}">${c.isHttpOnly ? 'SIM' : 'NÃO'}</strong> |
+              Secure: <strong class="${c.isSecure ? 'text-green-400' : 'text-red-400'}">${c.isSecure ? 'SIM' : 'NÃO'}</strong> |
+              SameSite: <strong class="text-white">${c.sameSite}</strong>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        cookieBadge.innerText = "0 EXPOSTOS";
+        cookieList.innerHTML = `<p class="text-neutral-400 text-xs">Nenhum cookie Set-Cookie emitido na resposta inicial (Excelente higiene de borda).</p>`;
+      }
+
+      if (burp && burp.cors) {
+        const cors = burp.cors;
+        corsBadge.innerText = cors.severity === 'PASSED' ? 'SEGURO' : cors.severity;
+        corsBadge.className = `font-mono ${cors.severity === 'PASSED' ? 'text-green-400' : 'text-red-400'}`;
+        corsDetails.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-neutral-400">Allow-Origin:</span>
+              <span class="text-white font-bold">${escapeHtml(cors.allowOrigin || 'Não Definido (Same-Origin Estrito)')}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-neutral-400">Allow-Credentials:</span>
+              <span class="${cors.allowCredentials ? 'text-yellow-400' : 'text-neutral-300'} font-bold">${cors.allowCredentials ? 'Ativo (true)' : 'Inativo / False'}</span>
+            </div>
+            ${cors.issues.length > 0 ? `
+              <div class="mt-2 text-red-300 text-[11px] space-y-1">
+                ${cors.issues.map(i => `<div>⚠️ ${escapeHtml(i)}</div>`).join('')}
+              </div>
+            ` : '<div class="text-green-400 text-xs mt-2">✓ Nenhuma brecha de CORS detectada.</div>'}
+          </div>
+        `;
+      }
+
+      // 5. AI DIAGNOSIS
+      const aiDiv = document.getElementById('aiDiagnosisContent');
+      const providerName = data.aiAnalysis?.providerUsed || data.aiDiagnosis?.provider || 'GOOGLE GEMINI 3.7 FLASH';
+      document.getElementById('aiProviderBadge').innerText = providerName.toUpperCase();
+
+      const aiText = data.aiAnalysis?.customAnalysis || data.aiDiagnosis?.analysis || '';
+      if (aiText) {
+        aiDiv.innerHTML = `<div class="whitespace-pre-line text-neutral-200 leading-relaxed font-sans text-base">${escapeHtml(aiText)}</div>`;
+      } else {
+        const missedControls = missed.map(m => m.control);
+        aiDiv.innerHTML = `
+          <p class="font-bold text-white text-base">${data.gradeVerdict}</p>
+          ${missedControls.length > 0 ? `
+            <div class="mt-4 space-y-2">
+              <div class="text-xs font-boxy font-black uppercase tracking-wider text-yellow-400">AÇÕES PRIORITÁRIAS PARA ELEVAR A NOTA:</div>
+              <ul class="list-disc list-inside text-sm text-neutral-300 space-y-1 font-sans">
+                ${missedControls.map(c => `<li>Aplicar patch para <strong class="text-white">${c}</strong></li>`).join('')}
+              </ul>
+            </div>
+          ` : '<p class="text-sm text-green-400 font-bold">🎉 NENHUMA VULNERABILIDADE CRÍTICA PENDENTE. EXCELENTE CONFIGURAÇÃO DE BORDA!</p>'}
+        `;
+      }
+
+      currentSnippets = data.remediationSnippets || [];
+      renderTabs();
+
+      // Atualiza Badge do GitHub e dados para exportação
+      currentAuditData = data;
+      const safeGrade = encodeURIComponent(data.grade || 'A+');
+      const safeScore = encodeURIComponent(String(data.score || 100));
+      const badgeImg = document.getElementById('liveBadgePreview');
+      if (badgeImg) badgeImg.src = `/api/badge?grade=${safeGrade}&score=${safeScore}`;
+      
+      const badgeInput = document.getElementById('badgeMarkdownInput');
+      if (badgeInput) {
+        badgeInput.value = `[![ObsidianSec Security Grade](https://obsidiansec.dev/api/badge?grade=${safeGrade}&score=${safeScore})](https://obsidiansec.dev)`;
+      }
+
+      document.getElementById('auditResult').classList.remove('hidden');
+    }
+
+    function copyBadgeMarkdown() {
+      const input = document.getElementById('badgeMarkdownInput');
+      if (!input) return;
+      navigator.clipboard.writeText(input.value);
+      alert("Badge Markdown copiada com sucesso para a área de transferência!");
+    }
+
+    function exportReportMarkdown() {
+      if (!currentAuditData) {
+        alert("Realize uma auditoria primeiro para exportar o relatório.");
+        return;
+      }
+
+      const d = currentAuditData;
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      let md = `# RELATÓRIO EXECUTIVO DE AUDITORIA DE SEGURANÇA & BORDA // OBSIDIANSEC 2026\n\n`;
+      md += `**Alvo:** \`${d.url}\`\n`;
+      md += `**Data da Auditoria:** \`${dateStr}\`\n`;
+      md += `**Nota Final:** **GRADE ${d.grade} (${d.score}/100)**\n`;
+      md += `**Servidor / CDN Identificado:** \`${d.serverDetected}\`\n\n`;
+      md += `---\n\n`;
+      md += `## 1. Sumário Executivo para a Liderança (C-Level / CISO)\n\n`;
+      md += `${d.gradeVerdict}\n\n`;
+      if (d.attackChain?.riskSummary) {
+        md += `> **Cadeia de Ataque:** ${d.attackChain.riskSummary}\n\n`;
+      }
+      md += `## 2. Controles de Segurança de Borda Avaliados\n\n`;
+      const earned = d.scoreBreakdown?.earned || [];
+      const missed = d.scoreBreakdown?.missed || [];
+      if (earned.length > 0) {
+        md += `### ✅ Controles Ativos (+${d.score} Pts)\n`;
+        earned.forEach(item => {
+          md += `- **${item.control}** (+${item.points} pts): ${item.explanation}\n`;
+        });
+        md += `\n`;
+      }
+      if (missed.length > 0) {
+        md += `### ⚠️ Brechas Identificadas & Recomendações\n`;
+        missed.forEach(item => {
+          md += `- **${item.control}** (-${item.lostPoints} pts): ${item.risk}\n  - *Ação Requerida:* ${item.lesson}\n`;
+        });
+        md += `\n`;
+      }
+      if (currentSnippets.length > 0) {
+        md += `## 3. Patches Defensivos Prontos para Merge\n\n`;
+        currentSnippets.forEach(s => {
+          md += `### Configuração para ${s.serverType}\n\`\`\`\n${s.snippet}\n\`\`\`\n\n`;
+        });
+      }
+      md += `---\n*Gerado automaticamente pelo ObsidianSec - Open-Source DevSecOps Defense System.*`;
+
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `obsidiansec-relatorio-${d.url.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // =================================================================
+    // PLAYGROUND DE ENTROPIA SHANNON & GERADOR CSP
+    // =================================================================
+    function updateEntropyCalculator() {
+      const val = document.getElementById('entropyInput').value || '';
+      if (!val) {
+        document.getElementById('entropyBitsVal').innerText = "0 BITS";
+        document.getElementById('entropyStrengthVal').innerText = "VAZIA";
+        document.getElementById('entropyStrengthVal').className = "text-sm font-black text-red-400 uppercase";
+        document.getElementById('entropyCrackTimeVal').innerText = "Instantâneo (0s)";
+        return;
+      }
+
+      let pool = 0;
+      if (/[a-z]/.test(val)) pool += 26;
+      if (/[A-Z]/.test(val)) pool += 26;
+      if (/[0-9]/.test(val)) pool += 10;
+      if (/[^a-zA-Z0-9]/.test(val)) pool += 33;
+
+      const bits = Math.round(val.length * Math.log2(pool || 1));
+      document.getElementById('entropyBitsVal').innerText = `${bits} BITS`;
+
+      let strength = "MUITO FRACA";
+      let colorClass = "text-red-500";
+      let crackTime = "Instantâneo (< 1 segundo)";
+
+      if (bits >= 90) {
+        strength = "NÍVEL MILITAR (FORTE)";
+        colorClass = "text-green-400";
+        crackTime = "Centenas de Milênios em Cluster GPU";
+      } else if (bits >= 65) {
+        strength = "FORTE / SEGURO";
+        colorClass = "text-green-400";
+        crackTime = "Vários Séculos em Cluster GPU";
+      } else if (bits >= 45) {
+        strength = "MODERADA";
+        colorClass = "text-yellow-400";
+        crackTime = "Alguns Dias / Meses em GPU Cluster";
+      }
+
+      const strEl = document.getElementById('entropyStrengthVal');
+      strEl.innerText = strength;
+      strEl.className = `text-sm font-black ${colorClass} uppercase`;
+      document.getElementById('entropyCrackTimeVal').innerText = crackTime;
+    }
+
+    function buildCspPreview() {
+      const fonts = document.getElementById('cspFonts')?.checked;
+      const analytics = document.getElementById('cspAnalytics')?.checked;
+      const stripe = document.getElementById('cspStripe')?.checked;
+      const cf = document.getElementById('cspCloudflare')?.checked;
+      const imgData = document.getElementById('cspImagesData')?.checked;
+      const ws = document.getElementById('cspWebSocket')?.checked;
+
+      let defaultSrc = "'self'";
+      let scriptSrc = ["'self'"];
+      let styleSrc = ["'self'", "'unsafe-inline'"];
+      let fontSrc = ["'self'"];
+      let imgSrc = ["'self'"];
+      let connectSrc = ["'self'"];
+      let frameSrc = ["'none'"];
+
+      if (fonts) {
+        styleSrc.push("https://fonts.googleapis.com");
+        fontSrc.push("https://fonts.gstatic.com");
+      }
+      if (analytics) {
+        scriptSrc.push("https://www.googletagmanager.com", "https://www.google-analytics.com");
+        connectSrc.push("https://www.google-analytics.com");
+      }
+      if (stripe) {
+        scriptSrc.push("https://js.stripe.com");
+        frameSrc = ["https://js.stripe.com"];
+      }
+      if (cf) {
+        scriptSrc.push("https://static.cloudflareinsights.com");
+        connectSrc.push("https://cloudflareinsights.com");
+      }
+      if (imgData) {
+        imgSrc.push("data:", "https:");
+      }
+      if (ws) {
+        connectSrc.push("wss:");
+      }
+
+      const policy = [
+        `default-src ${defaultSrc}`,
+        `script-src ${scriptSrc.join(' ')}`,
+        `style-src ${styleSrc.join(' ')}`,
+        `font-src ${fontSrc.join(' ')}`,
+        `img-src ${imgSrc.join(' ')}`,
+        `connect-src ${connectSrc.join(' ')}`,
+        `frame-src ${frameSrc.join(' ')}`,
+        `object-src 'none'`,
+        `base-uri 'self'`,
+        `form-action 'self'`,
+        `frame-ancestors 'none'`,
+        `upgrade-insecure-requests`
+      ].join('; ');
+
+      const box = document.getElementById('cspOutputBox');
+      if (box) box.value = `Content-Security-Policy: ${policy};`;
+    }
+
+    function copyGeneratedCsp() {
+      const box = document.getElementById('cspOutputBox');
+      if (!box) return;
+      navigator.clipboard.writeText(box.value);
+      alert("Diretiva CSP copiada para a área de transferência!");
+    }
+
+    // =================================================================
+    // AUDITORIA DE DNS & EMAIL ANTI-PHISHING
+    // =================================================================
+    async function handleDnsAuditSubmit(e) {
+      e.preventDefault();
+      const domain = document.getElementById('dnsTargetDomain').value.trim();
+      if (!domain) return;
+
+      const loader = document.getElementById('dnsLoader');
+      const resultBox = document.getElementById('dnsResultBox');
+      const submitBtn = document.getElementById('dnsSubmitBtn');
+
+      loader.classList.remove('hidden');
+      resultBox.classList.add('hidden');
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/dns?domain=${encodeURIComponent(domain)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Falha ao auditar DNS.");
+
+        document.getElementById('dnsResultDomain').innerText = data.domain.toUpperCase();
+        document.getElementById('dnsScoreVal').innerText = `${data.emailScore}/100`;
+
+        const badge = document.getElementById('dnsStatusBadge');
+        badge.innerText = data.status;
+        if (data.status === 'SECURE') {
+          badge.className = "px-4 py-2 bg-green-500 text-black font-black text-xs font-boxy uppercase shadow-md shadow-green-500/20";
+        } else if (data.status === 'WARNING') {
+          badge.className = "px-4 py-2 bg-yellow-400 text-black font-black text-xs font-boxy uppercase shadow-md shadow-yellow-400/20";
+        } else {
+          badge.className = "px-4 py-2 bg-red-500 text-white font-black text-xs font-boxy uppercase shadow-md shadow-red-500/20";
+        }
+
+        const grid = document.getElementById('dnsCardsGrid');
+        grid.innerHTML = `
+          <!-- SPF CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.spf.isCompliant ? 'border-green-500/80' : 'border-red-500/80'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">SPF (SENDER POLICY)</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.spf.present ? 'bg-green-500 text-black' : 'bg-red-500 text-white'} uppercase">${data.spf.present ? 'ATIVO (' + data.spf.qualifier + ')' : 'AUSENTE'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.spf.present ? escapeHtml(data.spf.rawRecord) : 'Nenhum registro SPF configurado. Vulnerável a spoofing.'}</p>
+          </div>
+
+          <!-- DMARC CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.dmarc.isEnforcing ? 'border-green-500/80' : 'border-yellow-500/80'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">DMARC POLICY</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.dmarc.isEnforcing ? 'bg-green-500 text-black' : 'bg-yellow-400 text-black'} uppercase">${data.dmarc.present ? 'p=' + data.dmarc.policy : 'AUSENTE'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.dmarc.present ? escapeHtml(data.dmarc.rawRecord) : 'Nenhum registro DMARC configurado em _dmarc.'}</p>
+          </div>
+
+          <!-- DNSSEC CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.dnssecActive ? 'border-green-500/80' : 'border-neutral-800'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">DNSSEC (INTEGRIDADE)</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.dnssecActive ? 'bg-green-500 text-black' : 'bg-neutral-800 text-neutral-400'} uppercase">${data.dnssecActive ? 'ATIVO' : 'DESATIVADO'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.dnssecActive ? 'Zonas DNS assinadas criptograficamente.' : 'Sem assinatura de zona DS detectada.'}</p>
+          </div>
+        `;
+
+        resultBox.classList.remove('hidden');
+      } catch (err) {
+        alert(`Erro na auditoria DNS: ${err.message}`);
+      } finally {
+        loader.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
+    }
+
+    function renderTabs() {
+      const tabsContainer = document.getElementById('patchTabs');
+      tabsContainer.innerHTML = currentSnippets.map((s, idx) => `
+        <button 
+          onclick="selectTab(${idx})" 
+          class="px-4 py-2 border-2 transition font-mono uppercase font-bold text-xs ${currentActiveTab === idx ? 'bg-white text-black border-white' : 'text-neutral-400 hover:text-white border-monoblack-border bg-monoblack-900'}"
+        >
+          ${s.serverType.split(' ')[0]}
+        </button>
+      `).join('');
+
+      if (currentSnippets[currentActiveTab]) {
+        document.getElementById('currentSnippetLabel').innerText = currentSnippets[currentActiveTab].serverType.toUpperCase();
+        document.getElementById('codeSnippetBox').innerText = currentSnippets[currentActiveTab].snippet;
+      }
+    }
+
+    function selectTab(idx) {
+      currentActiveTab = idx;
+      renderTabs();
+    }
+
+    function copySnippet() {
+      if (!currentSnippets[currentActiveTab]) return;
+      navigator.clipboard.writeText(currentSnippets[currentActiveTab].snippet);
+      
+      const copyText = document.getElementById('copyText');
+      copyText.innerText = "COPIADO!";
+      setTimeout(() => {
+        copyText.innerText = "COPIAR PATCH";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

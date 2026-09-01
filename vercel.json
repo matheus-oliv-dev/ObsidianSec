@@ -37,6 +37,15 @@
   "functions": {
     "api/audit.ts": {
       "maxDuration": 15
+    },
+    "api/dns.ts": {
+      "maxDuration": 15
+    },
+    "api/badge.ts": {
+      "maxDuration": 10
+    },
+    "api/knowledge.ts": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
@@ -45,12 +54,16 @@
       "destination": "/api/audit.ts"
     },
     {
-      "source": "/api/knowledge",
-      "destination": "/api/knowledge.ts"
+      "source": "/api/dns",
+      "destination": "/api/dns.ts"
     },
     {
-      "source": "/(.*)",
-      "destination": "/public/$1"
+      "source": "/api/badge",
+      "destination": "/api/badge.ts"
+    },
+    {
+      "source": "/api/knowledge",
+      "destination": "/api/knowledge.ts"
     }
   ]
 }
