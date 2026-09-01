@@ -6,6 +6,15 @@
   "bin": {
     "obsidiansec": "./bin/cli.mjs"
   },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matheus-oliv-dev/ObsidianSec.git"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
