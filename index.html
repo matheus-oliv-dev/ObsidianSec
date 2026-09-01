@@ -153,89 +153,101 @@
     }
   </style>
 </head>
-<body class="brutal-grid min-h-screen flex flex-col selection:bg-white selection:text-black relative">
-
+<body class="brutal-grid min-h-screen flex flex-col selection:bg-white selection:text-black relati  <!-- ================================================================= -->
+  <!-- HEADER SLEEK MONOCROMÁTICO // DESIGN LINEAR & CIBERNÉTICO          -->
   <!-- ================================================================= -->
-  <!-- HEADER AGRESSIVO MONOCROMÁTICO                                    -->
-  <!-- ================================================================= -->
-  <header class="border-b-2 border-monoblack-border bg-black/95 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+  <header class="border-b border-monoblack-border bg-black/95 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
       
-      <!-- Brand Logo Boxy -->
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-white text-black flex items-center justify-center font-black text-2xl border-2 border-white shadow-lg">
+      <!-- Brand Logo -->
+      <a href="#" onclick="switchView('scanner'); return false;" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 bg-white text-black flex items-center justify-center font-black text-xl border border-white shadow-md group-hover:scale-105 transition">
           <i class="fa-solid fa-shield"></i>
         </div>
-        <div>
-          <div class="flex items-center gap-3">
-            <span class="font-boxy font-black tracking-widest text-2xl sm:text-3xl text-white uppercase leading-none">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-boxy font-black tracking-wider text-xl sm:text-2xl text-white uppercase leading-none">
               OBSIDIAN<span class="text-neutral-400">SEC</span>
             </span>
-            <span class="text-xs font-mono font-bold tracking-widest text-black bg-white px-2.5 py-1 uppercase">
-              DEFENSE_SYS
+            <span class="text-[10px] font-mono font-bold tracking-wider text-black bg-white px-1.5 py-0.5 uppercase hidden sm:inline-block">
+              v1.2.2
             </span>
           </div>
-          <p class="text-xs text-neutral-400 font-mono tracking-wider uppercase mt-0.5">DEVSECOPS SCANNER & KNOWLEDGE BASE</p>
+          <span class="text-[10px] text-neutral-400 font-mono tracking-wider uppercase hidden sm:block">DEVSECOPS PLATFORM</span>
         </div>
-      </div>
+      </a>
 
-      <!-- Navigation Tabs & Config -->
-      <div class="flex items-center gap-3 text-sm flex-wrap">
-        <div class="flex items-center gap-1 bg-monoblack-900 border-2 border-monoblack-border p-1">
-          <button 
-            onclick="switchView('scanner')" 
-            id="navScannerBtn"
-            class="px-4 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm"
-          >
-            <i class="fa-solid fa-radar mr-1.5"></i> SCANNER
-          </button>
-          <button 
-            onclick="switchView('playground')" 
-            id="navPlaygroundBtn"
-            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
-          >
-            <i class="fa-solid fa-key mr-1.5"></i> CRIPTO & CSP
-          </button>
-          <button 
-            onclick="switchView('dns')" 
-            id="navDnsBtn"
-            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
-          >
-            <i class="fa-solid fa-envelope-shield mr-1.5"></i> DNS & EMAIL
-          </button>
-          <button 
-            onclick="switchView('cli')" 
-            id="navCliBtn"
-            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5"
-          >
-            <i class="fa-solid fa-terminal mr-1"></i> CLI & NPM
-            <span class="px-1.5 py-0.5 text-[9px] bg-green-500 text-black font-black uppercase">v1.2.2</span>
-          </button>
-          <button 
-            onclick="switchView('wiki')" 
-            id="navWikiBtn"
-            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
-          >
-            <i class="fa-solid fa-book-skull mr-1.5"></i> ENCICLOPÉDIA
-          </button>
-        </div>
+      <!-- Navigation Segmented Tabs -->
+      <nav class="flex items-center gap-1 bg-monoblack-900 border border-monoblack-border p-1 overflow-x-auto max-w-full">
+        <button 
+          onclick="switchView('scanner')" 
+          id="navScannerBtn"
+          class="px-3.5 py-1.5 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm whitespace-nowrap"
+        >
+          <i class="fa-solid fa-radar mr-1"></i> SCANNER
+        </button>
+        <button 
+          onclick="switchView('playground')" 
+          id="navPlaygroundBtn"
+          class="px-3.5 py-1.5 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition whitespace-nowrap"
+        >
+          <i class="fa-solid fa-key mr-1"></i> CRIPTO & CSP
+        </button>
+        <button 
+          onclick="switchView('dns')" 
+          id="navDnsBtn"
+          class="px-3.5 py-1.5 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition whitespace-nowrap"
+        >
+          <i class="fa-solid fa-envelope-shield mr-1"></i> DNS & EMAIL
+        </button>
+        <button 
+          onclick="switchView('cli')" 
+          id="navCliBtn"
+          class="px-3.5 py-1.5 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition whitespace-nowrap flex items-center gap-1"
+        >
+          <i class="fa-solid fa-terminal mr-1"></i> CLI & NPM
+          <span class="w-1.5 h-1.5 bg-green-400 rounded-full inline-block"></span>
+        </button>
+        <button 
+          onclick="switchView('wiki')" 
+          id="navWikiBtn"
+          class="px-3.5 py-1.5 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition whitespace-nowrap"
+        >
+          <i class="fa-solid fa-book-skull mr-1"></i> ENCICLOPÉDIA
+        </button>
+      </nav>
 
-        <div class="flex items-center gap-3">
-          <a 
-            href="https://www.npmjs.com/package/obsidiansec" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="hidden sm:flex hover:bg-white hover:text-black text-white font-bold transition items-center gap-2 border-2 border-green-500/80 px-3 py-2 text-xs uppercase bg-monoblack-900"
-          >
-            <i class="fa-brands fa-npm text-red-500 text-sm"></i>
-            <span>NPM PACKAGE</span>
-          </a>
+      <!-- External Links & LGPD -->
+      <div class="flex items-center gap-2">
+        <a 
+          href="https://www.npmjs.com/package/obsidiansec" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          title="Ver no NPM Registry"
+          class="hidden lg:flex hover:bg-neutral-800 text-white font-mono font-bold transition items-center gap-1.5 border border-monoblack-border px-3 py-1.5 text-xs uppercase bg-monoblack-900"
+        >
+          <i class="fa-brands fa-npm text-red-500 text-base"></i>
+          <span>NPM</span>
+        </a>
 
-          <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
-            <i class="fa-solid fa-scale-balanced"></i>
-            <span>LGPD</span>
-          </button>
-        </div>
+        <a 
+          href="https://github.com/matheus-oliv-dev/ObsidianSec" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          title="Ver no GitHub"
+          class="hidden sm:flex hover:bg-neutral-800 text-white font-mono font-bold transition items-center gap-1.5 border border-monoblack-border px-3 py-1.5 text-xs uppercase bg-monoblack-900"
+        >
+          <i class="fa-brands fa-github text-white text-sm"></i>
+          <span>GITHUB</span>
+        </a>
+
+        <button 
+          onclick="openTermsModal()" 
+          class="flex hover:bg-white hover:text-black text-neutral-400 hover:text-white font-bold transition items-center gap-1.5 border border-monoblack-border px-3 py-1.5 text-xs uppercase bg-monoblack-900"
+        >
+          <i class="fa-solid fa-scale-balanced text-xs"></i>
+          <span>LGPD</span>
+        </button>
       </div>
 
     </div>
@@ -244,107 +256,94 @@
   <!-- ================================================================= -->
   <!-- MAIN VIEWPORT                                                     -->
   <!-- ================================================================= -->
-  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-12 flex flex-col gap-10 z-10">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-10 flex flex-col gap-10 z-10">
 
     <!-- ============================================================= -->
     <!-- VIEW 1: URL SECURITY SCANNER                                  -->
     <!-- ============================================================= -->
-    <div id="scannerSection" class="space-y-10">
+    <div id="scannerSection" class="space-y-8">
       
-      <!-- HERO BANNER AGRESSIVO -->
-      <div class="text-center space-y-4 max-w-4xl mx-auto">
-        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
-          <span class="w-2.5 h-2.5 bg-white inline-block"></span>
-          <span>SONDA TÁTICA DE INFRAESTRUTURA & LGPD COMPLIANCE</span>
-        </div>
+      <!-- HERO BANNER CLEAN -->
+      <div class="text-center space-y-4 max-w-3xl mx-auto pt-4">
+        
+        <!-- CLICKABLE ANNOUNCEMENT PILL -->
+        <button 
+          type="button" 
+          onclick="switchView('cli')" 
+          class="inline-flex items-center gap-2.5 px-4 py-1 bg-monoblack-900 hover:bg-neutral-900 border border-monoblack-border text-neutral-300 hover:text-white text-xs font-mono font-medium transition cursor-pointer group"
+        >
+          <span class="w-2 h-2 bg-green-400 rounded-full inline-block animate-pulse"></span>
+          <span>NOVO: <strong>CLI v1.2.2</strong> NO NPM · <code class="text-green-400">npx obsidiansec audit</code></span>
+          <i class="fa-solid fa-arrow-right text-[10px] text-neutral-400 group-hover:translate-x-0.5 transition"></i>
+        </button>
 
-        <h1 class="text-4xl sm:text-7xl font-boxy font-black tracking-tight text-white uppercase leading-none">
+        <h1 class="text-4xl sm:text-6xl font-boxy font-black tracking-tight text-white uppercase leading-none">
           AUDITORIA DE SEGURANÇA <br>
           <span class="text-neutral-400">
             & BLINDAGEM DE BORDA
           </span>
         </h1>
 
-        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans font-medium leading-relaxed">
-          Inspecione cabeçalhos de rede, descubra o diagnóstico técnico e gere patches defensivos em preto e branco prontos para merge na sua infraestrutura.
+        <p class="text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto font-sans font-normal leading-relaxed">
+          Sondagem de cabeçalhos de rede, matriz CORS, cookies de sessão e patches defensivos prontos para merge na sua infraestrutura.
         </p>
-
-        <!-- NPX QUICK EXECUTION CALLOUT -->
-        <div class="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
-          <div class="flex items-center gap-2 bg-monoblack-900 border-2 border-monoblack-border px-4 py-2 text-neutral-300">
-            <i class="fa-solid fa-terminal text-green-400"></i>
-            <span class="text-neutral-400">CLI:</span>
-            <code class="text-green-400 font-bold">npx obsidiansec audit https://seusite.com</code>
-            <button 
-              type="button" 
-              onclick="copyNpxCommand('npx obsidiansec audit https://seusite.com')" 
-              class="ml-2 px-2 py-0.5 bg-white text-black hover:bg-neutral-200 font-boxy font-black uppercase text-[10px] transition"
-            >
-              COPIAR
-            </button>
-          </div>
-
-          <button 
-            type="button" 
-            onclick="switchView('cli')" 
-            class="px-4 py-2 border-2 border-white hover:bg-white hover:text-black font-boxy font-bold uppercase transition text-xs tracking-wider"
-          >
-            VER ARSENAL CLI (8 COMANDOS) ➔
-          </button>
-        </div>
       </div>
 
       <!-- SCANNER SEARCH CONSOLE -->
-      <div class="brutal-card corner-mark p-8 sm:p-10 space-y-6">
-        <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4 text-xs font-mono">
-          <div class="flex items-center gap-3 font-bold">
-            <span class="w-3 h-3 bg-white inline-block"></span>
-            <span class="text-white text-sm uppercase tracking-wider">TERMINAL DE SONDAGEM TÁTICA</span>
+      <div class="brutal-card corner-mark p-6 sm:p-8 space-y-5 border border-monoblack-border">
+        <div class="flex items-center justify-between border-b border-monoblack-border pb-3 text-xs font-mono">
+          <div class="flex items-center gap-2 font-bold">
+            <span class="w-2.5 h-2.5 bg-white inline-block"></span>
+            <span class="text-white text-xs uppercase tracking-wider">TERMINAL DE SONDAGEM TÁTICA</span>
           </div>
-          <div class="flex items-center gap-2 text-xs font-mono text-neutral-400">
+          <div class="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
             <span class="w-2 h-2 bg-green-400 inline-block"></span>
             <span class="uppercase font-bold tracking-wider">SISTEMA ONLINE</span>
           </div>
         </div>
 
-        <form id="auditForm" onsubmit="handleAuditSubmit(event)" class="space-y-6">
-          <div class="flex flex-col sm:flex-row gap-4">
+        <form id="auditForm" onsubmit="handleAuditSubmit(event)" class="space-y-4">
+          <div class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-1">
-              <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-neutral-400 text-lg">
-                <i class="fa-solid fa-terminal"></i>
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-500 text-base font-mono">
+                &gt;_
               </div>
               <input 
                 type="text" 
                 id="targetUrl" 
-                placeholder="ex: gov.br ou https://alvo-seguro.com.br" 
+                placeholder="EX: GOV.BR OU HTTPS://ALVO-SEGURO.COM.BR" 
                 required
-                class="w-full pl-14 pr-5 py-4 bg-monoblack-1000 border-2 border-monoblack-border focus:border-white text-white placeholder-neutral-600 text-base font-mono uppercase tracking-wider transition outline-none"
+                class="w-full pl-12 pr-4 py-3.5 bg-monoblack-1000 border border-monoblack-border focus:border-white text-white placeholder-neutral-600 text-sm font-mono uppercase tracking-wider transition outline-none"
               >
             </div>
             <button 
               type="submit" 
               id="submitBtn"
-              class="px-10 py-4 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-base uppercase tracking-wider transition flex items-center justify-center gap-3 shadow-xl active:scale-98"
+              class="px-8 py-3.5 bg-white hover:bg-neutral-200 text-black font-boxy font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg active:scale-98 whitespace-nowrap"
             >
-              <i class="fa-solid fa-radar text-lg"></i>
+              <i class="fa-solid fa-radar text-base"></i>
               <span>DISPARAR SONDA</span>
             </button>
           </div>
 
           <!-- LGPD TERMS CHECKBOX -->
-          <div class="flex items-start gap-3 pt-3 text-xs text-neutral-300 border-t-2 border-monoblack-border font-mono">
-            <input 
-              type="checkbox" 
-              id="termsCheckbox" 
-              required
-              class="mt-1 w-5 h-5 rounded-none border-2 border-white bg-black text-white focus:ring-0 cursor-pointer accent-white"
-            >
-            <label for="termsCheckbox" class="cursor-pointer select-none leading-relaxed text-xs">
-              DECLARO SOB A <strong class="text-white font-bold underline">LGPD (LEI Nº 13.709/2018)</strong> SER O PROPRIETÁRIO OU POSSUIR AUTORIZAÇÃO PRÉVIA PARA ESTA SONDAGEM PASSIVA. CONCORDO COM OS 
-              <button type="button" onclick="openTermsModal()" class="text-white underline font-black">[TERMOS DE ISENÇÃO LEGAL & PRIVACIDADE]</button>.
+          <div class="flex items-center justify-between pt-2 text-xs text-neutral-400 font-mono">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                id="termsCheckbox" 
+                required
+                class="w-4 h-4 rounded-none border border-neutral-600 bg-black text-white focus:ring-0 cursor-pointer accent-white"
+              >
+              <span class="text-[11px]">DECLARO AUTORIZAÇÃO PRÉVIA SOB A <strong class="text-white underline">LGPD (LEI 13.709/18)</strong></span>
             </label>
+
+            <button type="button" onclick="openTermsModal()" class="text-neutral-500 hover:text-white underline text-[11px] transition">
+              [TERMOS LEGAIS]
+            </button>
           </div>
         </form>
+      </div>   </form>
       </div>
 
       <!-- CYBER BINARY STREAM LOADER (TELA PURA COM 0 E 1) -->
