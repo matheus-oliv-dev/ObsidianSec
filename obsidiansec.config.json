@@ -1,0 +1,24 @@
+{
+  "$schema": "https://obsidiansec.dev/schema.json",
+  "version": "1.2.2",
+  "scope": {
+    "strictMode": false,
+    "allowlist": [
+      "localhost",
+      "127.0.0.1",
+      "staging.yourdomain.com",
+      "*.yourdomain.com"
+    ],
+    "blocklist": [
+      "*.gov.br",
+      "*.mil.br",
+      "*.jus.br"
+    ]
+  },
+  "ai": {
+    "enabled": false,
+    "provider": "offline",
+    "maxRequestsPerHour": 10,
+    "cacheTtlHours": 72
+  }
+}

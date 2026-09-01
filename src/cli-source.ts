@@ -8,6 +8,9 @@ import {
   calculatePasswordEntropy,
   detectWaf,
   scanHostCriticalPorts,
+  validateTargetScope,
+  loadObsidianConfig,
+  generateDefaultConfigFile,
 } from "./lib/security/index.ts";
 
 const args = process.argv.slice(2);
@@ -41,6 +44,22 @@ async function runAudit() {
   }
 
   const isJson = args.includes("--json");
+  const config = loadObsidianConfig();
+
+  // Validação de Perímetro e Escopo Autorizado
+  const scope = validateTargetScope(targetUrl, config);
+  if (!scope.allowed) {
+    if (isJson) {
+      console.log(JSON.stringify({ error: scope.reason, errorCode: scope.errorCode }, null, 2));
+    } else {
+      printBanner();
+      console.error(`${ANSI.red}🚫 [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+      console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}`);
+      console.log(`Para autorizar este alvo, adicione-o ao 'scope.allowlist' em ${ANSI.bold}obsidiansec.config.json${ANSI.reset}.\n`);
+    }
+    process.exit(1);
+  }
+
   const minGradeArg = args.find((a) => a.startsWith("--min-grade="));
   const minGrade = minGradeArg ? minGradeArg.split("=")[1].toUpperCase() : "B";
 
@@ -115,6 +134,15 @@ async function runDns() {
   if (!domain) {
     console.error(`${ANSI.red}❌ Erro: Domínio não especificado.${ANSI.reset}`);
     console.log(`Uso: ${ANSI.bold}npx obsidiansec dns <dominio>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(domain, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}🚫 [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}\n`);
     process.exit(1);
   }
 
@@ -300,6 +328,15 @@ async function runWaf() {
     process.exit(1);
   }
 
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(targetUrl, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}🚫 [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}\n`);
+    process.exit(1);
+  }
+
   const isJson = args.includes("--json");
   if (!isJson) printBanner();
   if (!isJson) console.log(`🛡️  Inspecionando assinaturas de WAF e Firewall de Borda para ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
@@ -342,6 +379,15 @@ async function runPorts() {
     process.exit(1);
   }
 
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(host, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}🚫 [SCOPE GUARD]: Auditoria de portas bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}\n`);
+    process.exit(1);
+  }
+
   const isJson = args.includes("--json");
   if (!isJson) printBanner();
   if (!isJson) console.log(`🚪 [Nmap Engine] Auditando 12 portas críticas e caçando bancos de dados em ${ANSI.bold}${host}${ANSI.reset}...\n`);
@@ -380,6 +426,18 @@ async function runPorts() {
   process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
 }
 
+function runInitConfig() {
+  printBanner();
+  try {
+    const configPath = generateDefaultConfigFile();
+    console.log(`${ANSI.green}✅ Arquivo de configuração gerado com sucesso!${ANSI.reset}`);
+    console.log(`📁 Local: ${ANSI.bold}${configPath}${ANSI.reset}`);
+    console.log(`\nVocê pode configurar seu ${ANSI.cyan}scope.allowlist${ANSI.reset} e preferências de IA no arquivo.\n`);
+  } catch (err) {
+    console.error(`${ANSI.red}❌ Falha ao gerar arquivo de configuração:${ANSI.reset} ${err.message}`);
+  }
+}
+
 function printHelp() {
   printBanner();
   console.log(`Arsenal de Comandos Disponíveis:
@@ -402,6 +460,8 @@ function printHelp() {
   ${ANSI.bold}obsidiansec dns <dominio>${ANSI.reset}          Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
 
   ${ANSI.bold}obsidiansec entropy <senha>${ANSI.reset}        Calcula bits de Shannon e tempo de quebra em GPU cluster
+
+  ${ANSI.bold}obsidiansec init-config${ANSI.reset}            Gera o template de obsidiansec.config.json (Scope & AI Budget)
 
   ${ANSI.bold}obsidiansec help${ANSI.reset}                   Exibe este menu de ajuda
 `);
@@ -438,10 +498,15 @@ switch (command) {
   case "entropy":
     runEntropy();
     break;
+  case "init-config":
+  case "init":
+  case "config":
+    runInitConfig();
+    break;
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.2.0");
+    console.log("ObsidianSec CLI v1.2.2");
     break;
   default:
     printHelp();

@@ -20,3 +20,8 @@ yarn-error.log*
 .vscode/
 .idea/
 Thumbs.db
+
+# ObsidianSec Runtime Caches & Temp Files
+.obsidiansec/
+.obsidiansec_test_cache/
+

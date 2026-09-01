@@ -1593,6 +1593,160 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
   };
 }
 
+// src/lib/config/obsidian-config.ts
+import fs2 from "node:fs";
+import path2 from "node:path";
+var DEFAULT_OBSIDIAN_CONFIG = {
+  version: "1.2.2",
+  scope: {
+    allowlist: [],
+    blocklist: ["*.gov.br", "*.mil.br", "*.jus.br"],
+    strictMode: false
+  },
+  ai: {
+    enabled: false,
+    provider: "offline",
+    maxRequestsPerHour: 10,
+    cacheTtlHours: 72
+  }
+};
+function loadObsidianConfig(customPath) {
+  const configPath = customPath || path2.resolve(process.cwd(), "obsidiansec.config.json");
+  try {
+    if (fs2.existsSync(configPath)) {
+      const raw = fs2.readFileSync(configPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      return {
+        version: parsed.version || DEFAULT_OBSIDIAN_CONFIG.version,
+        scope: {
+          ...DEFAULT_OBSIDIAN_CONFIG.scope,
+          ...parsed.scope || {}
+        },
+        ai: {
+          ...DEFAULT_OBSIDIAN_CONFIG.ai,
+          ...parsed.ai || {}
+        }
+      };
+    }
+  } catch (err) {
+    console.warn(`[CONFIG] Aviso: N\xE3o foi poss\xEDvel ler ${configPath}. Usando configura\xE7\xE3o padr\xE3o segura.`);
+  }
+  return { ...DEFAULT_OBSIDIAN_CONFIG };
+}
+function generateDefaultConfigFile(targetDir = process.cwd()) {
+  const targetPath = path2.resolve(targetDir, "obsidiansec.config.json");
+  const template = {
+    "$schema": "https://obsidiansec.dev/schema.json",
+    "version": "1.2.2",
+    "scope": {
+      "strictMode": false,
+      "allowlist": [
+        "localhost",
+        "127.0.0.1",
+        "staging.yourdomain.com",
+        "*.yourdomain.com"
+      ],
+      "blocklist": [
+        "*.gov.br",
+        "*.mil.br",
+        "*.jus.br"
+      ]
+    },
+    "ai": {
+      "enabled": false,
+      "provider": "offline",
+      "maxRequestsPerHour": 10,
+      "cacheTtlHours": 72
+    }
+  };
+  fs2.writeFileSync(targetPath, JSON.stringify(template, null, 2), "utf-8");
+  return targetPath;
+}
+
+// src/lib/security/scope-guard.ts
+function normalizeTargetToHost(target) {
+  if (!target || typeof target !== "string") return "";
+  let clean = target.trim().toLowerCase();
+  if (clean.startsWith("http://")) clean = clean.slice(7);
+  if (clean.startsWith("https://")) clean = clean.slice(8);
+  clean = clean.split("/")[0].split("?")[0].split("#")[0];
+  clean = clean.split(":")[0];
+  return clean;
+}
+function matchesHostPattern(host, pattern) {
+  if (!host || !pattern) return false;
+  const h = host.toLowerCase().trim();
+  const p = pattern.toLowerCase().trim();
+  if (h === p) return true;
+  if (p.startsWith("*.")) {
+    const baseDomain = p.slice(2);
+    return h === baseDomain || h.endsWith("." + baseDomain);
+  }
+  if (p.includes("*")) {
+    const regex = new RegExp("^" + p.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$");
+    return regex.test(h);
+  }
+  return false;
+}
+function validateTargetScope(target, config = DEFAULT_OBSIDIAN_CONFIG) {
+  const host = normalizeTargetToHost(target);
+  if (!host) {
+    return {
+      allowed: false,
+      target,
+      normalizedHost: "",
+      errorCode: "INVALID_TARGET",
+      reason: "Alvo inv\xE1lido ou n\xE3o foi poss\xEDvel extrair o hostname."
+    };
+  }
+  const blocklist = config.scope.blocklist || [];
+  for (const blockPattern of blocklist) {
+    if (matchesHostPattern(host, blockPattern)) {
+      return {
+        allowed: false,
+        target,
+        normalizedHost: host,
+        matchedRule: blockPattern,
+        errorCode: "SCOPE_BLOCKED",
+        reason: `Alvo '${host}' bloqueado pela regra de exclus\xE3o: '${blockPattern}'.`
+      };
+    }
+  }
+  const allowlist = config.scope.allowlist || [];
+  const strictMode = config.scope.strictMode;
+  if (strictMode || allowlist.length > 0) {
+    let matchedAllowRule;
+    for (const allowPattern of allowlist) {
+      if (matchesHostPattern(host, allowPattern)) {
+        matchedAllowRule = allowPattern;
+        break;
+      }
+    }
+    if (!matchedAllowRule) {
+      return {
+        allowed: false,
+        target,
+        normalizedHost: host,
+        errorCode: "SCOPE_NOT_IN_ALLOWLIST",
+        reason: `Alvo '${host}' n\xE3o consta na lista de escopos autorizados (allowlist) em obsidiansec.config.json.`
+      };
+    }
+    return {
+      allowed: true,
+      target,
+      normalizedHost: host,
+      matchedRule: matchedAllowRule,
+      reason: `Alvo autorizado pela regra de escopo: '${matchedAllowRule}'.`
+    };
+  }
+  return {
+    allowed: true,
+    target,
+    normalizedHost: host,
+    reason: "Alvo dentro do escopo geral (permissivo por padr\xE3o)."
+  };
+}
+
 // src/cli-source.ts
 var args = process.argv.slice(2);
 var command = args[0] || "help";
@@ -1621,6 +1775,20 @@ async function runAudit() {
     process.exit(1);
   }
   const isJson = args.includes("--json");
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(targetUrl, config);
+  if (!scope.allowed) {
+    if (isJson) {
+      console.log(JSON.stringify({ error: scope.reason, errorCode: scope.errorCode }, null, 2));
+    } else {
+      printBanner();
+      console.error(`${ANSI.red}\u{1F6AB} [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+      console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}`);
+      console.log(`Para autorizar este alvo, adicione-o ao 'scope.allowlist' em ${ANSI.bold}obsidiansec.config.json${ANSI.reset}.
+`);
+    }
+    process.exit(1);
+  }
   const minGradeArg = args.find((a) => a.startsWith("--min-grade="));
   const minGrade = minGradeArg ? minGradeArg.split("=")[1].toUpperCase() : "B";
   if (!isJson) printBanner();
@@ -1689,6 +1857,15 @@ async function runDns() {
   if (!domain) {
     console.error(`${ANSI.red}\u274C Erro: Dom\xEDnio n\xE3o especificado.${ANSI.reset}`);
     console.log(`Uso: ${ANSI.bold}npx obsidiansec dns <dominio>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(domain, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}\u{1F6AB} [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}
+`);
     process.exit(1);
   }
   printBanner();
@@ -1864,6 +2041,15 @@ async function runWaf() {
     console.log(`Uso: ${ANSI.bold}npx obsidiansec waf <url>${ANSI.reset}`);
     process.exit(1);
   }
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(targetUrl, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}\u{1F6AB} [SCOPE GUARD]: Auditoria bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}
+`);
+    process.exit(1);
+  }
   const isJson = args.includes("--json");
   if (!isJson) printBanner();
   if (!isJson) console.log(`\u{1F6E1}\uFE0F  Inspecionando assinaturas de WAF e Firewall de Borda para ${ANSI.bold}${targetUrl}${ANSI.reset}...
@@ -1902,6 +2088,15 @@ async function runPorts() {
     console.log(`Uso: ${ANSI.bold}npx obsidiansec ports <host>${ANSI.reset}`);
     process.exit(1);
   }
+  const config = loadObsidianConfig();
+  const scope = validateTargetScope(host, config);
+  if (!scope.allowed) {
+    printBanner();
+    console.error(`${ANSI.red}\u{1F6AB} [SCOPE GUARD]: Auditoria de portas bloqueada!${ANSI.reset}`);
+    console.error(`${ANSI.yellow}Motivo: ${scope.reason}${ANSI.reset}
+`);
+    process.exit(1);
+  }
   const isJson = args.includes("--json");
   if (!isJson) printBanner();
   if (!isJson) console.log(`\u{1F6AA} [Nmap Engine] Auditando 12 portas cr\xEDticas e ca\xE7ando bancos de dados em ${ANSI.bold}${host}${ANSI.reset}...
@@ -1937,6 +2132,19 @@ async function runPorts() {
 `);
   process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
 }
+function runInitConfig() {
+  printBanner();
+  try {
+    const configPath = generateDefaultConfigFile();
+    console.log(`${ANSI.green}\u2705 Arquivo de configura\xE7\xE3o gerado com sucesso!${ANSI.reset}`);
+    console.log(`\u{1F4C1} Local: ${ANSI.bold}${configPath}${ANSI.reset}`);
+    console.log(`
+Voc\xEA pode configurar seu ${ANSI.cyan}scope.allowlist${ANSI.reset} e prefer\xEAncias de IA no arquivo.
+`);
+  } catch (err) {
+    console.error(`${ANSI.red}\u274C Falha ao gerar arquivo de configura\xE7\xE3o:${ANSI.reset} ${err.message}`);
+  }
+}
 function printHelp() {
   printBanner();
   console.log(`Arsenal de Comandos Dispon\xEDveis:
@@ -1959,6 +2167,8 @@ function printHelp() {
   ${ANSI.bold}obsidiansec dns <dominio>${ANSI.reset}          Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
 
   ${ANSI.bold}obsidiansec entropy <senha>${ANSI.reset}        Calcula bits de Shannon e tempo de quebra em GPU cluster
+
+  ${ANSI.bold}obsidiansec init-config${ANSI.reset}            Gera o template de obsidiansec.config.json (Scope & AI Budget)
 
   ${ANSI.bold}obsidiansec help${ANSI.reset}                   Exibe este menu de ajuda
 `);
@@ -1994,10 +2204,15 @@ switch (command) {
   case "entropy":
     runEntropy();
     break;
+  case "init-config":
+  case "init":
+  case "config":
+    runInitConfig();
+    break;
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.2.0");
+    console.log("ObsidianSec CLI v1.2.2");
     break;
   default:
     printHelp();

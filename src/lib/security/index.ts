@@ -19,4 +19,6 @@ export * from "./jwt-token-analyzer";
 export * from "./subdomain-recon-analyzer";
 export * from "./waf-detector-analyzer";
 export * from "./tcp-port-scanner";
-
+export * from "./scope-guard";
+export * from "../config/obsidian-config";
+export * from "../../agents/ai/token-budget-guard";
