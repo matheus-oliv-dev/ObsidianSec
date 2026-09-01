@@ -21,7 +21,7 @@ export interface ObsidianConfig {
 }
 
 export const DEFAULT_OBSIDIAN_CONFIG: ObsidianConfig = {
-  version: "1.3.0",
+  version: "1.3.1",
   scope: {
     allowlist: [],
     blocklist: ["*.gov.br", "*.mil.br", "*.jus.br"],

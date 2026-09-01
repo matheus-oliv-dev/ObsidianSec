@@ -1983,7 +1983,7 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
 import fs2 from "node:fs";
 import path2 from "node:path";
 var DEFAULT_OBSIDIAN_CONFIG = {
-  version: "1.3.0",
+  version: "1.3.1",
   scope: {
     allowlist: [],
     blocklist: ["*.gov.br", "*.mil.br", "*.jus.br"],
@@ -3247,7 +3247,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.3.0");
+    console.log("ObsidianSec CLI v1.3.1");
     break;
   default:
     printHelp();
