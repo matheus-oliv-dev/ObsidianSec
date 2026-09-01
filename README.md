@@ -1,14 +1,15 @@
-# 🛡️ ObsidianSec // Autonomous DevSecOps & Edge Security CLI
+# 🛡️ ObsidianSec // Autonomous DevSecOps & Edge Security Arsenal
 
 <div align="center">
 
 [![npm version](https://img.shields.io/npm/v/obsidiansec.svg?color=10b981&style=for-the-badge)](https://www.npmjs.com/package/obsidiansec)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Tests: 152 Passed](https://img.shields.io/badge/Tests-152%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
-[![CVSS: 0.0](https://img.shields.io/badge/Quality%20Gate-CVSS%200.0%20(Secure)-black.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
+[![Tests: 166 Passed](https://img.shields.io/badge/Tests-166%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
+[![Security Tools: 15 Engines](https://img.shields.io/badge/Arsenal-15%20Engines%20in%201%20CLI-blueviolet.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
+[![Quality Gate](https://img.shields.io/badge/CI%2FCD-Quality%20Gate%20Ready-black.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
 
-**The Autonomous Edge Defense, DevSecOps Quality Gate & Anti-Phishing CLI.**  
-*Zero setup. Instant audit. Automated patches for 10+ server and web frameworks.*
+**The All-In-One DevSecOps, Edge Defense, SAST & Reconnaissance CLI.**  
+*Consolidating 15 specialized security tools into a single, zero-dependency `npm install`.*
 
 </div>
 
@@ -16,105 +17,123 @@
 
 ## ⚡ Quick Start (No Install Needed)
 
-Run an immediate tactical edge audit on any web application directly from your terminal:
+Run any of the 13 tactical commands instantly using `npx`:
 
 ```bash
-# 🔍 1. Run live security header, CORS & attack chain audit
+# 🔍 1. Complete Edge Audit (Headers, Cookies, CORS & MITRE Attack Chain)
 npx obsidiansec audit https://your-website.com
 
-# 🛑 2. Use as a CI/CD Quality Gate (Fails build if security grade < A)
-npx obsidiansec audit https://staging.your-website.com --min-grade=A
+# 🔒 2. SSL/TLS Certificate & Protocol Security (SSL Labs Engine)
+npx obsidiansec ssl https://your-website.com
 
-# 🛡️ 3. Detect Web Application Firewall (Cloudflare, AWS WAF, ModSecurity, Imperva)
+# 🧬 3. Technology Stack Fingerprinting (Wappalyzer Engine: React, Next.js, Nginx, CDNs)
+npx obsidiansec tech https://your-website.com
+
+# 📡 4. HTTP Method Enumeration (Detects dangerous TRACE/XST, PUT, DELETE)
+npx obsidiansec methods https://your-website.com
+
+# 🔀 5. Open Redirect Detector (OWASP CWE-601 Parameter Fuzzing)
+npx obsidiansec redirects https://your-website.com
+
+# 🛡️ 6. Web Application Firewall Detector (22+ WAFs: Cloudflare, AWS WAF, Fastly, Fortinet)
 npx obsidiansec waf https://your-website.com
 
-# 🚪 4. Audit 12 critical TCP ports & database exposure (Redis, MongoDB, MySQL, Postgres, RDP)
+# 🚪 7. TCP Port Scanner (37 Critical Ports: Redis, Mongo, MSSQL, Oracle, K8s, SMB, VNC)
 npx obsidiansec ports your-server-ip-or-domain
 
-# 🔐 5. Scan local project directory for leaked secrets (.env, AWS, OpenAI, Stripe, SSH keys)
+# 🔐 8. Secret Hunter & SAST Local (45+ Patterns: AWS, Stripe, Supabase, Slack, Discord, PGP)
 npx obsidiansec scan-dir ./
 
-# 🎟️ 6. Audit and decode JWT token (detects alg: none, expiration & secret strength)
+# 🎟️ 9. JWT Token Security Auditor (Detects alg: none, expiration & decodes claims)
 npx obsidiansec jwt <your-jwt-token>
 
-# 🌐 7. Passive Subdomain Reconnaissance via Certificate Transparency (crt.sh)
+# 🌐 10. Passive Subdomain Reconnaissance (Certificate Transparency Logs)
 npx obsidiansec subdomains your-domain.com
 
-# 📧 8. Inspect DNS, Email Anti-Phishing & Spoofing (SPF, DMARC, DNSSEC)
+# 📧 11. DNS & Email Anti-Phishing Suite (SPF, DMARC, DNSSEC)
 npx obsidiansec dns your-domain.com
 
-# 🔑 9. Calculate Shannon password entropy and GPU crack time (Hashcat model)
+# 🔑 12. Shannon Password Entropy & GPU Cluster Crack Time (Hashcat Model)
 npx obsidiansec entropy "YourPasswordHere"
 
-# 📊 10. Output structured JSON for automation & Slack/Discord webhooks
-npx obsidiansec audit https://your-website.com --json
+# ⚙️ 13. Generate Scope & AI Budget Config Template
+npx obsidiansec init-config
 ```
 
 ---
 
-## 🏛️ Core Features
+## 📋 Command Arsenal Matrix
 
-### 1. 🛡️ Tactical Edge Probe & Security Headers Analyzer
-Audits critical HTTP isolation headers with educational point breakdowns:
-- **Content-Security-Policy (CSP)**: Deep AST inspection, `'unsafe-inline'`, nonce validation and XSS prevention.
-- **X-Frame-Options & COOP**: Zero-clickjacking defense and process-level origin isolation.
-- **Strict-Transport-Security (HSTS)**: Enforcement of TLS 1.3 encryption with preload requirements.
-- **X-Content-Type-Options & Permissions-Policy**: Strict MIME sniffing and device sensor lockdown.
+| Command | Category | Engine / Reference | Key Capabilities |
+|---|---|---|---|
+| `audit <url>` | Edge Security | Mozilla Observatory / Burp | CSP, HSTS, X-Frame-Options, Cookie flags, CORS, MITRE ATT&CK Graph |
+| `ssl <url>` | Cryptography | SSL Labs | TLS 1.3/1.2 validation, SAN inspection, weak cipher/hash detection, expiry days |
+| `tech <url>` | Reconnaissance | Wappalyzer / BuiltWith | Identifies React, Next.js, Vue, Angular, WordPress, Django, Nginx, Cloudflare |
+| `methods <url>` | Protocol Audit | OWASP Testing Guide | Enumerates verbs; detects TRACE (XST vector), unauthenticated PUT/DELETE |
+| `redirects <url>` | Web Vulnerability | OWASP CWE-601 | Probes 20+ redirect parameters against malicious external destinations |
+| `waf <url>` | Edge Defense | WAFW00F Engine | Identifies 22+ WAF vendors (Cloudflare, AWS, Fastly, Fortinet, Imperva, Akamai) |
+| `ports <host>` | Network SAST | Nmap / Shodan Model | Scans 37 critical ports (Databases, Remote Access, K8s, Legacy protocols) |
+| `scan-dir [path]` | Code SAST | TruffleHog / Gitleaks Model | 45+ regex patterns for API keys, private keys, database strings, `.env` files |
+| `jwt <token>` | Auth Audit | jwt_tool Model | Validates signature presence, `alg: none` bypass, expiration & claim decoding |
+| `subdomains <dom>` | OSINT Recon | Subfinder / crt.sh | Passive subdomain enumeration via public Certificate Transparency logs |
+| `dns <dom>` | Anti-Phishing | RFC 7208 / 7489 | Audits SPF hardfail mechanisms, DMARC reject policies, and DNSSEC |
+| `entropy <pass>` | Cryptanalysis | Shannon Entropy / Hashcat | Bits of entropy, character set diversity & GPU brute-force crack time |
+| `init-config` | Configuration | ObsidianSec Core | Generates `obsidiansec.config.json` with authorized scope and AI budget limits |
 
-### 2. ⚡ Passive Session & CORS Inspector (Burp Suite Engine)
-- **Cookie Security**: Audits `HttpOnly`, `Secure`, `SameSite=Strict/Lax` and W3C `__Host-` / `__Secure-` prefixes.
-- **CORS Matrix**: Detects dangerous wildcards (`Access-Control-Allow-Origin: *` with credentials), origin reflection vulnerabilities, and missing `Vary: Origin` headers.
+---
 
-### 3. 🕸️ BloodHound Attack Chain Graph
-Translates missing headers into an **actionable MITRE ATT&CK exploitation graph**, showing developers how an attacker chains a missing CSP into session hijacking (`T1539`) and account takeover (`T1078`).
+## 🏛️ Architecture & Core Defenses
 
-### 4. 📧 DNS & Email Security Inspector (Anti-Phishing & Anti-Spoofing)
-- **SPF (`RFC 7208`)**: Validates hardfail mechanisms (`-all` vs dangerous `+all`) and DNS lookup limits (< 10).
-- **DMARC (`RFC 7489`)**: Enforces reject policies (`p=reject`) against Business Email Compromise (BEC).
-- **DNSSEC**: Verifies cryptographic DNS zone signing.
+### 1. 🛡️ Authorized Scope Guard
+Prevents accidental audits against forbidden domains (e.g. government, military, unowned infrastructure) with allowlist/blocklist glob patterns:
+```json
+{
+  "scope": {
+    "strictMode": false,
+    "allowlist": ["localhost", "127.0.0.1", "*.yourcompany.com"],
+    "blocklist": ["*.gov.br", "*.mil.br", "*.jus.br"]
+  }
+}
+```
 
-### 5. 🔑 Crypto & Shannon Entropy Engine (Hashcat Model)
-- Password Shannon entropy calculation with brute-force crack time estimates on RTX 4090 GPU clusters.
-- JWT secret brute-force auditor (minimum 256-bit entropy check).
+### 2. 🧠 Token Budget Guard & Zero-Token Default
+- **100% Free & Local by Default**: Operates without requiring external AI APIs or cloud tokens.
+- **SHA-256 Deduplication Cache**: Caches audit findings locally for 72 hours (`0 tokens, 0 network cost` on repeated runs).
+- **Circuit Breaker**: Enforces a strict maximum requests-per-hour limit when LLM features are enabled.
 
-### 6. 🔧 Instant Virtual Patching (Ready for Merge)
-Provides hardened, ready-to-paste reverse configuration snippets for:
-- **Nginx** (`security.conf`)
-- **Apache** (`.htaccess`)
-- **Cloudflare Edge** (Transform Rules)
-- **Vercel** (`vercel.json`)
-- **Node.js Express / Helmet**
-- **Python FastAPI & Django**
-- **Go Fiber**
-- **PHP Laravel**
-- **Java Spring Boot**
-- **C# ASP.NET Core**
+### 3. 🕸️ BloodHound MITRE ATT&CK Mapping
+Translates missing headers into an **actionable exploitation graph**, demonstrating how an attacker chains missing CSP or CORS into session hijacking (`T1539`) and account takeover (`T1078`).
 
 ---
 
 ## 🤖 CI/CD Quality Gate Example (GitHub Actions)
 
-Block vulnerable pull requests before deploying to production:
+Fail pull requests automatically if security standards or perimeter requirements are violated:
 
 ```yaml
-name: ObsidianSec Quality Gate
+name: ObsidianSec CI/CD Quality Gate
 
 on: [push, pull_request]
 
 jobs:
-  security-audit:
+  security-gate:
     runs-on: ubuntu-latest
     steps:
-      - name: Audit Preview Deployment
-        run: |
-          npx obsidiansec audit https://preview.myapp.com --min-grade=A
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Secret Hunter (SAST)
+        run: npx obsidiansec scan-dir ./
+
+      - name: Edge Security Audit (Quality Gate Grade >= A)
+        run: npx obsidiansec audit https://staging.yourdomain.com --min-grade=A
 ```
 
 ---
 
-## 🏆 Dynamic GitHub README Badges
+## 🏆 Dynamic GitHub README Badge
 
-Add a live security rating badge to your GitHub repository `README.md`:
+Add a live security rating badge to your GitHub repository:
 
 ```markdown
 [![ObsidianSec Security Grade](https://obsidiansec.dev/api/badge?grade=A%2B&score=100)](https://obsidiansec.dev)
@@ -122,26 +141,21 @@ Add a live security rating badge to your GitHub repository `README.md`:
 
 ---
 
-## 🧪 Automated Testing & DevSecOps
+## 🧪 Automated Testing
 
-ObsidianSec is tested with **23 Vitest suites and 142 automated tests**:
-- **DAST Fuzzer & BOLA/IDOR Pentest**
-- **OWASP API Top 10 & LLM Top 10**
-- **SSRF 169.254.169.254 Cloud Metadata Shield**
-- **Chaos Engineering & DoS Stress Resilience**
-- **W3C Trusted Types & DOM XSS Hardening**
+ObsidianSec is thoroughly tested with **34 Vitest suites and 166 automated tests (100% GREEN)**:
 
 ```bash
-# Run test suite
+# Run complete test suite
 npm test
 
-# Run multi-agent DevSecOps squad
-npm run security:audit
+# Build production bundle
+npm run build
 ```
 
 ---
 
 ## 📜 License & Compliance
 
-MIT License © 2026 ObsidianSec Team.  
-Compliant with **LGPD (Lei nº 13.709/2018)**, **NIST SP 800-207**, and **OWASP ASVS 4.0**.
+MIT License © 2026 Matheus Oliveira & ObsidianSec Contributors.  
+Designed in compliance with **OWASP Top 10**, **NIST SP 800-207 (Zero Trust)**, and **CWE Standards**.
