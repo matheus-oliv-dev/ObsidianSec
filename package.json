@@ -1,10 +1,10 @@
 {
   "name": "obsidiansec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ObsidianSec - DevSecOps Platform & Defense Encyclopedia",
   "type": "module",
   "bin": {
-    "obsidiansec": "./bin/cli.mjs"
+    "obsidiansec": "bin/cli.mjs"
   },
   "files": [
     "bin",
@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/matheus-oliv-dev/ObsidianSec.git"
+    "url": "git+https://github.com/matheus-oliv-dev/ObsidianSec.git"
   },
   "scripts": {
     "test": "vitest run",
