@@ -803,66 +803,347 @@ function calculatePasswordEntropy(password) {
 import fs from "node:fs";
 import path from "node:path";
 var SECRET_PATTERNS = [
+  // ═══════════════════════════════════════════════════════════════
+  // CLOUD PROVIDERS (AWS, GCP, Azure)
+  // ═══════════════════════════════════════════════════════════════
   {
     id: "aws-access-key",
     category: "API_KEY",
-    description: "Chave de Acesso AWS (Access Key ID)",
+    description: "AWS Access Key ID",
     regex: /\b(AKIA[0-9A-Z]{16})\b/,
     severity: "CRITICAL"
   },
   {
-    id: "openai-api-key",
+    id: "aws-secret-key",
     category: "API_KEY",
-    description: "Chave de API da OpenAI (sk-...)",
-    regex: /\b(sk-[a-zA-Z0-9_-]{32,})\b/,
-    severity: "CRITICAL"
-  },
-  {
-    id: "stripe-secret-key",
-    category: "API_KEY",
-    description: "Chave Secreta do Stripe (sk_live / rk_live)",
-    regex: /\b((?:sk|rk)_(?:live|test)_[0-9a-zA-Z]{24,})\b/,
-    severity: "CRITICAL"
-  },
-  {
-    id: "github-pat",
-    category: "API_KEY",
-    description: "Token de Acesso Pessoal do GitHub (PAT)",
-    regex: /\b(gh[pousr]_[0-9a-zA-Z]{36}|github_pat_[0-9a-zA-Z_]{22,})\b/,
+    description: "AWS Secret Access Key",
+    regex: /(?:aws_secret_access_key|AWS_SECRET_ACCESS_KEY|secret_access_key)\s*[=:]\s*['"]?([A-Za-z0-9/+=]{40})['"]?/,
     severity: "CRITICAL"
   },
   {
     id: "google-api-key",
     category: "API_KEY",
-    description: "Chave de API do Google Cloud (AIza...)",
+    description: "Google Cloud / Firebase API Key (AIza...)",
     regex: /\b(AIza[0-9A-Za-z\-_]{35})\b/,
     severity: "HIGH"
   },
   {
-    id: "ssh-private-key",
-    category: "PRIVATE_KEY",
-    description: "Chave Privada SSH / RSA / OpenSSL",
-    regex: /-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/,
+    id: "gcp-service-account",
+    category: "API_KEY",
+    description: "GCP Service Account Private Key ID",
+    regex: /"private_key_id"\s*:\s*"([a-f0-9]{40})"/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "azure-storage-key",
+    category: "API_KEY",
+    description: "Azure Storage Account Key (Base64 88 chars)",
+    regex: /(?:AccountKey|AZURE_STORAGE_KEY|azure_storage_key)\s*[=:]\s*['"]?([A-Za-z0-9+/]{86}==)['"]?/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "azure-client-secret",
+    category: "API_KEY",
+    description: "Azure AD Client Secret",
+    regex: /(?:AZURE_CLIENT_SECRET|client_secret)\s*[=:]\s*['"]([a-zA-Z0-9~._\-]{34,})['"]/,
+    severity: "CRITICAL"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // AI / ML PROVIDERS
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "openai-api-key",
+    category: "API_KEY",
+    description: "OpenAI API Key (sk-...)",
+    regex: /\b(sk-[a-zA-Z0-9_-]{32,})\b/,
+    severity: "CRITICAL"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // PAYMENTS & COMMERCE
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "stripe-secret-key",
+    category: "API_KEY",
+    description: "Stripe Secret / Restricted Key (sk_live / rk_live)",
+    regex: /\b((?:sk|rk)_(?:live|test)_[0-9a-zA-Z]{24,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "shopify-api-key",
+    category: "API_KEY",
+    description: "Shopify Admin API Token (shpat_)",
+    regex: /\b(shpat_[a-fA-F0-9]{32})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // GIT PLATFORMS (GitHub, GitLab, Bitbucket)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "github-pat",
+    category: "API_KEY",
+    description: "GitHub Personal Access Token (PAT)",
+    regex: /\b(gh[pousr]_[0-9a-zA-Z]{36}|github_pat_[0-9a-zA-Z_]{22,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "gitlab-pat",
+    category: "API_KEY",
+    description: "GitLab Personal Access Token (glpat-)",
+    regex: /\b(glpat-[0-9A-Za-z\-_]{20,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "bitbucket-app-password",
+    category: "API_KEY",
+    description: "Bitbucket App Password (ATBB)",
+    regex: /\b(ATBB[A-Za-z0-9]{32,})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // MESSAGING & CHAT (Slack, Discord, Telegram, Twitter)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "slack-bot-token",
+    category: "API_KEY",
+    description: "Slack Bot / User / App Token (xoxb-, xoxp-, xoxa-)",
+    regex: /\b(xox[bporsca]-[0-9a-zA-Z-]{10,})\b/,
     severity: "CRITICAL"
   },
   {
     id: "slack-webhook",
     category: "API_KEY",
-    description: "URL de Webhook do Slack",
+    description: "Slack Webhook URL",
     regex: /https:\/\/hooks\.slack\.com\/services\/T[0-9A-Z]{8}\/B[0-9A-Z]{8}\/[0-9a-zA-Z]{24}/,
     severity: "HIGH"
   },
   {
+    id: "discord-bot-token",
+    category: "API_KEY",
+    description: "Discord Bot Token",
+    regex: /\b([MN][A-Za-z\d]{23,}\.[\w-]{6}\.[\w-]{27,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "discord-webhook",
+    category: "API_KEY",
+    description: "Discord Webhook URL",
+    regex: /https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+/,
+    severity: "HIGH"
+  },
+  {
+    id: "telegram-bot-token",
+    category: "API_KEY",
+    description: "Telegram Bot Token",
+    regex: /\b(\d{8,10}:[A-Za-z0-9_-]{35})\b/,
+    severity: "HIGH"
+  },
+  {
+    id: "twitter-bearer",
+    category: "API_KEY",
+    description: "Twitter / X API Bearer Token",
+    regex: /\b(AAAAAAAAAAAAAAAAAAA[A-Za-z0-9%]{20,})\b/,
+    severity: "HIGH"
+  },
+  {
+    id: "facebook-access-token",
+    category: "API_KEY",
+    description: "Facebook / Meta Access Token",
+    regex: /\b(EAA[A-Za-z0-9]{100,})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // EMAIL & COMMUNICATION (Twilio, SendGrid, Mailgun)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "twilio-api-key",
+    category: "API_KEY",
+    description: "Twilio Account SID",
+    regex: /\b(AC[0-9a-fA-F]{32})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "sendgrid-api-key",
+    category: "API_KEY",
+    description: "SendGrid API Key (SG.)",
+    regex: /\b(SG\.[0-9A-Za-z\-_]{22,}\.[0-9A-Za-z\-_]{22,})\b/,
+    severity: "HIGH"
+  },
+  {
+    id: "mailgun-api-key",
+    category: "API_KEY",
+    description: "Mailgun API Key (key-)",
+    regex: /\b(key-[0-9a-zA-Z]{32})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // HOSTING & DEVOPS (Heroku, DigitalOcean, Vercel, Netlify, Docker)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "heroku-api-key",
+    category: "API_KEY",
+    description: "Heroku API Key (UUID)",
+    regex: /(?:HEROKU_API_KEY|heroku_api_key)\s*[=:]\s*['"]?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})['"]?/,
+    severity: "HIGH"
+  },
+  {
+    id: "digitalocean-pat",
+    category: "API_KEY",
+    description: "DigitalOcean Personal Access Token",
+    regex: /\b(dop_v1_[a-f0-9]{64})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "vercel-token",
+    category: "API_KEY",
+    description: "Vercel Deployment Token",
+    regex: /(?:VERCEL_TOKEN|vercel_token)\s*[=:]\s*['"]?([A-Za-z0-9]{24,})['"]?/,
+    severity: "HIGH"
+  },
+  {
+    id: "netlify-token",
+    category: "API_KEY",
+    description: "Netlify Access Token",
+    regex: /(?:NETLIFY_AUTH_TOKEN|netlify_token)\s*[=:]\s*['"]?([a-zA-Z0-9_-]{40,})['"]?/,
+    severity: "HIGH"
+  },
+  {
+    id: "docker-hub-token",
+    category: "API_KEY",
+    description: "Docker Hub Access Token (dckr_pat_)",
+    regex: /\b(dckr_pat_[A-Za-z0-9_-]{24,})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // PACKAGE REGISTRIES (NPM, PyPI, NuGet)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "npm-auth-token",
+    category: "API_KEY",
+    description: "NPM Auth Token",
+    regex: /\/\/registry\.npmjs\.org\/:_authToken=([^\s'"]+)/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "pypi-api-token",
+    category: "API_KEY",
+    description: "PyPI API Token (pypi-)",
+    regex: /\b(pypi-[A-Za-z0-9_]{16,})\b/,
+    severity: "HIGH"
+  },
+  {
+    id: "nuget-api-key",
+    category: "API_KEY",
+    description: "NuGet API Key (oy2)",
+    regex: /\b(oy2[a-z0-9]{43})\b/,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // DATABASES & INFRASTRUCTURE (Supabase, PlanetScale, Cloudflare, Vault)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "supabase-key",
+    category: "API_KEY",
+    description: "Supabase Service Role Key (JWT)",
+    regex: /(?:SUPABASE_SERVICE_ROLE_KEY|supabase_key)\s*[=:]\s*['"]?(eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{50,}\.[A-Za-z0-9_-]{20,})['"]?/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "cloudflare-api-token",
+    category: "API_KEY",
+    description: "Cloudflare API Token",
+    regex: /(?:CF_API_TOKEN|CLOUDFLARE_API_TOKEN|cloudflare_api_token)\s*[=:]\s*['"]?([A-Za-z0-9_-]{40})['"]?/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "datadog-api-key",
+    category: "API_KEY",
+    description: "Datadog API Key",
+    regex: /(?:DD_API_KEY|DATADOG_API_KEY|datadog_api_key)\s*[=:]\s*['"]?([a-f0-9]{32})['"]?/,
+    severity: "HIGH"
+  },
+  {
+    id: "hashicorp-vault-token",
+    category: "API_KEY",
+    description: "HashiCorp Vault Token (hvs.)",
+    regex: /\b(hvs\.[A-Za-z0-9_-]{24,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "linear-api-key",
+    category: "API_KEY",
+    description: "Linear API Key (lin_api_)",
+    regex: /\b(lin_api_[A-Za-z0-9]{40})\b/,
+    severity: "HIGH"
+  },
+  {
+    id: "planetscale-password",
+    category: "API_KEY",
+    description: "PlanetScale Database Password (pscale_pw_)",
+    regex: /\b(pscale_pw_[A-Za-z0-9_-]{32,})\b/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "sentry-dsn",
+    category: "API_KEY",
+    description: "Sentry DSN (contains auth key)",
+    regex: /https:\/\/[a-f0-9]{32}@[a-z0-9.]+\.ingest\.sentry\.io\/\d+/,
+    severity: "MEDIUM"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // PRIVATE KEYS & CERTIFICATES
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: "ssh-private-key",
+    category: "PRIVATE_KEY",
+    description: "SSH / RSA / OpenSSL Private Key",
+    regex: /-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "pkcs8-private-key",
+    category: "PRIVATE_KEY",
+    description: "PKCS#8 Encrypted Private Key",
+    regex: /-----BEGIN ENCRYPTED PRIVATE KEY-----/,
+    severity: "CRITICAL"
+  },
+  {
+    id: "pgp-private-key",
+    category: "PRIVATE_KEY",
+    description: "PGP Private Key Block",
+    regex: /-----BEGIN PGP PRIVATE KEY BLOCK-----/,
+    severity: "CRITICAL"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // CREDENTIALS & CONNECTIONS
+  // ═══════════════════════════════════════════════════════════════
+  {
     id: "db-connection-string",
     category: "CREDENTIAL",
-    description: "String de Conex\xE3o com Banco de Dados contendo senha",
+    description: "Database Connection String with Password",
     regex: /(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):\/\/[a-zA-Z0-9_-]+:[^@\s]+@[a-zA-Z0-9.-]+/,
     severity: "HIGH"
   },
   {
+    id: "password-assignment",
+    category: "CREDENTIAL",
+    description: "Hardcoded Password in Variable Assignment",
+    regex: /(?:password|passwd|pwd|secret)\s*[=:]\s*['"][^'"]{4,}['"]/i,
+    severity: "HIGH"
+  },
+  {
+    id: "jwt-hardcoded",
+    category: "CREDENTIAL",
+    description: "Hardcoded JWT Secret in Code",
+    regex: /(?:jwt[_-]?secret|JWT_SECRET)\s*[=:]\s*['"][^'"]{8,}['"]/i,
+    severity: "HIGH"
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // DANGEROUS CODE PATTERNS
+  // ═══════════════════════════════════════════════════════════════
+  {
     id: "dangerous-eval",
     category: "DANGEROUS_CODE",
-    description: "Execu\xE7\xE3o Din\xE2mica Insegura de C\xF3digo (eval)",
+    description: "Dynamic Code Execution (eval)",
     regex: /\beval\s*\([^\)]+\)/,
     severity: "MEDIUM"
   }
@@ -872,10 +1153,20 @@ var SENSITIVE_FILENAMES = [
   ".env.local",
   ".env.production",
   ".env.staging",
+  ".env.development",
   "id_rsa",
   "id_ed25519",
+  "id_ecdsa",
   "credentials.json",
-  "serviceAccountKey.json"
+  "serviceAccountKey.json",
+  ".npmrc",
+  ".pypirc",
+  ".htpasswd",
+  "wp-config.php",
+  "application.yml",
+  "secrets.yml",
+  "vault.json",
+  "docker-compose.override.yml"
 ];
 var IGNORED_DIRS = /* @__PURE__ */ new Set([
   "node_modules",
@@ -886,7 +1177,8 @@ var IGNORED_DIRS = /* @__PURE__ */ new Set([
   "coverage",
   ".turbo",
   ".cache",
-  ".vercel"
+  ".vercel",
+  ".obsidiansec"
 ]);
 var IGNORED_EXTENSIONS = /* @__PURE__ */ new Set([
   ".png",
@@ -939,10 +1231,10 @@ function scanDirectoryForSecrets(targetDir, maxFiles = 1e3) {
           findings.push({
             ruleId: "sensitive-file-exposed",
             category: "SENSITIVE_FILE",
-            description: `Arquivo de credenciais ou ambiente exposto: ${entry.name}`,
+            description: `Sensitive credentials or environment file exposed: ${entry.name}`,
             filePath: relPath,
             lineNumber: 1,
-            snippet: `Arquivo detectado no disco: ${entry.name}`,
+            snippet: `Sensitive file detected on disk: ${entry.name}`,
             severity: entry.name.includes(".env") ? "HIGH" : "CRITICAL"
           });
         }
@@ -1301,6 +1593,147 @@ var WAF_SIGNATURES = [
     ],
     cookieMatches: [/BIGipServer/i, /TS[a-zA-Z0-9]{6,}/i],
     bodyMatches: [/The requested URL was rejected\. Please consult with your administrator/i]
+  },
+  {
+    id: "fastly",
+    name: "Fastly CDN & Edge Cloud WAF",
+    vendor: "Fastly, Inc.",
+    headerMatches: [
+      { name: "x-fastly-request-id" },
+      { name: "server", valuePattern: /Fastly/i },
+      { name: "x-served-by", valuePattern: /cache-/i }
+    ],
+    bodyMatches: [/Fastly error: unknown domain/i]
+  },
+  {
+    id: "barracuda",
+    name: "Barracuda Web Application Firewall",
+    vendor: "Barracuda Networks",
+    headerMatches: [
+      { name: "server", valuePattern: /Barracuda/i }
+    ],
+    cookieMatches: [/barra_counter_session/i],
+    bodyMatches: [/Barracuda Web Application Firewall/i]
+  },
+  {
+    id: "fortinet-fortiweb",
+    name: "Fortinet FortiWeb WAF",
+    vendor: "Fortinet",
+    headerMatches: [
+      { name: "server", valuePattern: /FortiWeb/i }
+    ],
+    cookieMatches: [/FORTIWAFSID/i, /cookiesession1/i],
+    bodyMatches: [/FortiWeb Web Application Firewall/i, /fgd_icon/i]
+  },
+  {
+    id: "citrix-netscaler",
+    name: "Citrix NetScaler AppFirewall",
+    vendor: "Citrix / Cloud Software Group",
+    headerMatches: [
+      { name: "via", valuePattern: /NS-CACHE/i },
+      { name: "x-nsprotect" },
+      { name: "server", valuePattern: /NetScaler/i }
+    ],
+    cookieMatches: [/ns_af/i, /citrix_ns_id/i, /NSC_/i],
+    bodyMatches: [/NS Transaction/i]
+  },
+  {
+    id: "radware",
+    name: "Radware AppWall / DefensePro",
+    vendor: "Radware",
+    headerMatches: [
+      { name: "x-sl-compstate" },
+      { name: "server", valuePattern: /Radware/i }
+    ],
+    bodyMatches: [/Radware Unauthorized Activity/i, /Your transaction ID/i]
+  },
+  {
+    id: "denyall",
+    name: "DenyAll Web Application Firewall",
+    vendor: "Rohde & Schwarz",
+    headerMatches: [
+      { name: "server", valuePattern: /DenyAll/i }
+    ],
+    cookieMatches: [/sessioncookie/i],
+    bodyMatches: [/Condition Intercepted/i]
+  },
+  {
+    id: "stackpath",
+    name: "StackPath Edge WAF",
+    vendor: "StackPath",
+    headerMatches: [
+      { name: "x-sp-waf" },
+      { name: "server", valuePattern: /StackPath/i },
+      { name: "x-sp-url" }
+    ],
+    bodyMatches: [/StackPath Firewall/i, /You performed an action that triggered this service/i]
+  },
+  {
+    id: "wallarm",
+    name: "Wallarm Cloud WAF / WAAP",
+    vendor: "Wallarm Inc.",
+    headerMatches: [
+      { name: "server", valuePattern: /wallarm/i },
+      { name: "x-wallarm-waf-check" }
+    ],
+    bodyMatches: [/Wallarm blocked/i]
+  },
+  {
+    id: "wordfence",
+    name: "Wordfence WordPress Firewall",
+    vendor: "Defiant Inc.",
+    bodyMatches: [/Generated by Wordfence/i, /Your access to this site has been limited by the site owner/i, /wfwaf-/i]
+  },
+  {
+    id: "sonicwall",
+    name: "SonicWall Web Application Firewall",
+    vendor: "SonicWall",
+    headerMatches: [
+      { name: "server", valuePattern: /SonicWALL/i }
+    ],
+    bodyMatches: [/This request is blocked by the SonicWall/i, /Web Site Blocked/i, /nsa_banner/i]
+  },
+  {
+    id: "paloalto-prisma",
+    name: "Palo Alto Prisma Cloud WAAS",
+    vendor: "Palo Alto Networks",
+    headerMatches: [
+      { name: "server", valuePattern: /PanW/i },
+      { name: "x-pan-vss" }
+    ],
+    bodyMatches: [/Access has been blocked by Prisma/i]
+  },
+  {
+    id: "vercel-edge",
+    name: "Vercel Edge Firewall",
+    vendor: "Vercel",
+    headerMatches: [
+      { name: "server", valuePattern: /Vercel/i },
+      { name: "x-vercel-id" },
+      { name: "x-vercel-cache" }
+    ]
+  },
+  {
+    id: "reblaze",
+    name: "Reblaze Cloud WAF",
+    vendor: "Reblaze Technologies",
+    headerMatches: [
+      { name: "server", valuePattern: /Reblaze/i },
+      { name: "rbzid" }
+    ],
+    cookieMatches: [/rbzid/i, /rbzsessionid/i],
+    bodyMatches: [/Access Denied \(Reblaze\)/i]
+  },
+  {
+    id: "alibaba-waf",
+    name: "Alibaba Cloud WAF (Tengine)",
+    vendor: "Alibaba Cloud",
+    headerMatches: [
+      { name: "server", valuePattern: /Tengine/i },
+      { name: "eagleid" }
+    ],
+    cookieMatches: [/aliyungf_tc/i],
+    bodyMatches: [/errors\.aliyun\.com/i, /Aliyun Web Application Firewall/i]
   }
 ];
 async function detectWaf(targetUrl) {
@@ -1431,102 +1864,55 @@ async function detectWaf(targetUrl) {
 // src/lib/security/tcp-port-scanner.ts
 import net from "node:net";
 var CRITICAL_PORTS = [
-  {
-    port: 21,
-    service: "FTP (File Transfer Protocol)",
-    category: "REMOTE_ACCESS",
-    riskLevel: "HIGH",
-    exposureRisk: "Credenciais e arquivos transmitidos em texto claro sem criptografia.",
-    mitigation: "Desativar FTP e utilizar SFTP (porta 22) ou FTPS com TLS."
-  },
-  {
-    port: 22,
-    service: "SSH (Secure Shell)",
-    category: "REMOTE_ACCESS",
-    riskLevel: "MEDIUM",
-    exposureRisk: "Alvo cont\xEDnuo de botnets de for\xE7a bruta e varreduras automatizadas.",
-    mitigation: "Desabilitar autentica\xE7\xE3o por senha e restringir a IPs confi\xE1veis ou VPN."
-  },
-  {
-    port: 23,
-    service: "Telnet (Terminal Remoto Legado)",
-    category: "LEGACY_INSECURE",
-    riskLevel: "CRITICAL",
-    exposureRisk: "Protocolo inseguro sem criptografia. Vetor de botnets IoT (Mirai).",
-    mitigation: "Desativar imediatamente o servi\xE7o Telnet e migrar para SSH."
-  },
-  {
-    port: 80,
-    service: "HTTP (Web Server)",
-    category: "WEB",
-    riskLevel: "INFO",
-    exposureRisk: "Porta web padr\xE3o (deve redirecionar para HTTPS).",
-    mitigation: "Configurar redirecionamento 301 permanente para HTTPS com HSTS."
-  },
-  {
-    port: 443,
-    service: "HTTPS (Web Seguro)",
-    category: "WEB",
-    riskLevel: "INFO",
-    exposureRisk: "Porta web segura padr\xE3o.",
-    mitigation: "Manter certificados TLS atualizados e habilitar HTTP/2 e TLS 1.3."
-  },
-  {
-    port: 3306,
-    service: "MySQL / MariaDB Database",
-    category: "DATABASE",
-    riskLevel: "HIGH",
-    exposureRisk: "Banco de dados exposto a ataques de for\xE7a bruta contra usu\xE1rio root.",
-    mitigation: "Vincular a 127.0.0.1 ou rede privada interna (VPC Security Group)."
-  },
-  {
-    port: 3389,
-    service: "RDP (Windows Remote Desktop)",
-    category: "REMOTE_ACCESS",
-    riskLevel: "CRITICAL",
-    exposureRisk: "Vetor #1 de acesso inicial para grupos de ransomware corporativo.",
-    mitigation: "Bloquear na borda da nuvem e utilizar VPN com MFA ou Azure Bastion."
-  },
-  {
-    port: 5432,
-    service: "PostgreSQL Database",
-    category: "DATABASE",
-    riskLevel: "HIGH",
-    exposureRisk: "Banco de dados relacional exposto \xE0 internet p\xFAblica.",
-    mitigation: "Configurar pg_hba.conf para rejeitar conex\xF5es externas e isolar em subnet privada."
-  },
-  {
-    port: 6379,
-    service: "Redis Cache & Database",
-    category: "DATABASE",
-    riskLevel: "CRITICAL",
-    exposureRisk: "RCE e exfiltra\xE7\xE3o total de dados via grava\xE7\xE3o de chaves SSH ou dump de mem\xF3ria.",
-    mitigation: "Nunca expor na internet! Habilitar autentica\xE7\xE3o forte e isolar em rede local."
-  },
-  {
-    port: 8080,
-    service: "HTTP-Alt / Proxy / Dev Server",
-    category: "WEB",
-    riskLevel: "MEDIUM",
-    exposureRisk: "Porta frequentemente usada para pain\xE9is de administra\xE7\xE3o (Tomcat, Jenkins) ou dev.",
-    mitigation: "Proteger com autentica\xE7\xE3o forte e n\xE3o expor ambientes de desenvolvimento."
-  },
-  {
-    port: 9200,
-    service: "Elasticsearch REST API",
-    category: "DATABASE",
-    riskLevel: "CRITICAL",
-    exposureRisk: "Acesso unauthenticated a logs, dados de clientes e clusters de busca.",
-    mitigation: "Ativar X-Pack Security com TLS e restringir o acesso apenas a backends autorizados."
-  },
-  {
-    port: 27017,
-    service: "MongoDB NoSQL Database",
-    category: "DATABASE",
-    riskLevel: "CRITICAL",
-    exposureRisk: "Alvo priorit\xE1rio de ataques automatizados de ransomware de banco de dados.",
-    mitigation: "Ativar autentica\xE7\xE3o SCRAM-SHA-256 e fechar portas no Security Group da nuvem."
-  }
+  // ═══════════════════════════════════════════════════════════════
+  // REMOTE ACCESS
+  // ═══════════════════════════════════════════════════════════════
+  { port: 21, service: "FTP (File Transfer Protocol)", category: "REMOTE_ACCESS", riskLevel: "HIGH", exposureRisk: "Credenciais e arquivos transmitidos em texto claro sem criptografia.", mitigation: "Desativar FTP e utilizar SFTP (porta 22) ou FTPS com TLS." },
+  { port: 22, service: "SSH (Secure Shell)", category: "REMOTE_ACCESS", riskLevel: "MEDIUM", exposureRisk: "Alvo cont\xEDnuo de botnets de for\xE7a bruta e varreduras automatizadas.", mitigation: "Desabilitar autentica\xE7\xE3o por senha e restringir a IPs confi\xE1veis ou VPN." },
+  { port: 135, service: "MS-RPC / DCOM (Windows)", category: "REMOTE_ACCESS", riskLevel: "HIGH", exposureRisk: "Vetor de ataques WMI e DCOM para movimenta\xE7\xE3o lateral em redes Windows.", mitigation: "Bloquear na borda de rede e restringir a dom\xEDnios AD internos." },
+  { port: 139, service: "NetBIOS Session Service", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Enumera\xE7\xE3o de compartilhamentos, usu\xE1rios e vulnerabilidades EternalBlue (MS17-010).", mitigation: "Desativar NetBIOS over TCP/IP e bloquear portas 137-139 na borda." },
+  { port: 389, service: "LDAP (Lightweight Directory Access)", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Enumera\xE7\xE3o de usu\xE1rios do Active Directory e ataques de credential stuffing.", mitigation: "Utilizar LDAPS (636) com TLS e restringir a rede interna." },
+  { port: 445, service: "SMB/CIFS (Server Message Block)", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Vetor de ransomware WannaCry/NotPetya e movimenta\xE7\xE3o lateral.", mitigation: "Bloquear SMB na borda da internet e aplicar patches de seguran\xE7a." },
+  { port: 636, service: "LDAPS (LDAP over TLS)", category: "REMOTE_ACCESS", riskLevel: "MEDIUM", exposureRisk: "Diret\xF3rio corporativo exposto, mesmo com TLS, permite enumera\xE7\xE3o.", mitigation: "Restringir a VPN ou rede corporativa interna." },
+  { port: 2049, service: "NFS (Network File System)", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Montagem remota de volumes sem autentica\xE7\xE3o pode expor todo o filesystem.", mitigation: "Restringir exports do NFS a IPs espec\xEDficos com Kerberos." },
+  { port: 3389, service: "RDP (Windows Remote Desktop)", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Vetor #1 de acesso inicial para grupos de ransomware corporativo.", mitigation: "Bloquear na borda da nuvem e utilizar VPN com MFA ou Azure Bastion." },
+  { port: 5900, service: "VNC Remote Desktop", category: "REMOTE_ACCESS", riskLevel: "CRITICAL", exposureRisk: "Controle remoto total da m\xE1quina, frequentemente sem criptografia.", mitigation: "Desativar VNC ou tunear via SSH/VPN com senha forte." },
+  // ═══════════════════════════════════════════════════════════════
+  // LEGACY INSECURE
+  // ═══════════════════════════════════════════════════════════════
+  { port: 23, service: "Telnet (Terminal Remoto Legado)", category: "LEGACY_INSECURE", riskLevel: "CRITICAL", exposureRisk: "Protocolo inseguro sem criptografia. Vetor de botnets IoT (Mirai).", mitigation: "Desativar imediatamente o servi\xE7o Telnet e migrar para SSH." },
+  { port: 25, service: "SMTP (Simple Mail Transfer Protocol)", category: "LEGACY_INSECURE", riskLevel: "HIGH", exposureRisk: "Open relay pode ser explorado para envio de spam e phishing em massa.", mitigation: "Restringir a redes internas ou utilizar servi\xE7o de email gerenciado (SES, SendGrid)." },
+  { port: 110, service: "POP3 (Post Office Protocol)", category: "LEGACY_INSECURE", riskLevel: "HIGH", exposureRisk: "Protocolo legado que transmite credenciais em texto claro.", mitigation: "Migrar para POP3S (porta 995) ou IMAPS (porta 993)." },
+  { port: 111, service: "RPCBind / SunRPC", category: "LEGACY_INSECURE", riskLevel: "CRITICAL", exposureRisk: "Enumera\xE7\xE3o de servi\xE7os NFS/NIS e execu\xE7\xE3o remota via RPC exploits.", mitigation: "Desativar RPCBind na borda e bloquear no firewall." },
+  { port: 143, service: "IMAP (Internet Message Access)", category: "LEGACY_INSECURE", riskLevel: "HIGH", exposureRisk: "Credenciais de email transmitidas sem criptografia.", mitigation: "Migrar para IMAPS (porta 993) com TLS obrigat\xF3rio." },
+  // ═══════════════════════════════════════════════════════════════
+  // WEB
+  // ═══════════════════════════════════════════════════════════════
+  { port: 53, service: "DNS (Domain Name System)", category: "WEB", riskLevel: "MEDIUM", exposureRisk: "Servidor DNS exposto pode sofrer ataques de amplifica\xE7\xE3o DDoS e cache poisoning.", mitigation: "Restringir consultas recursivas e habilitar DNSSEC." },
+  { port: 80, service: "HTTP (Web Server)", category: "WEB", riskLevel: "INFO", exposureRisk: "Porta web padr\xE3o (deve redirecionar para HTTPS).", mitigation: "Configurar redirecionamento 301 permanente para HTTPS com HSTS." },
+  { port: 443, service: "HTTPS (Web Seguro)", category: "WEB", riskLevel: "INFO", exposureRisk: "Porta web segura padr\xE3o.", mitigation: "Manter certificados TLS atualizados e habilitar HTTP/2 e TLS 1.3." },
+  { port: 993, service: "IMAPS (IMAP Secure)", category: "WEB", riskLevel: "INFO", exposureRisk: "Servi\xE7o de email seguro (porta padr\xE3o).", mitigation: "Manter certificados TLS atualizados." },
+  { port: 995, service: "POP3S (POP3 Secure)", category: "WEB", riskLevel: "INFO", exposureRisk: "Servi\xE7o de email seguro (porta padr\xE3o).", mitigation: "Manter certificados TLS atualizados." },
+  { port: 4443, service: "HTTPS Alternativo", category: "WEB", riskLevel: "MEDIUM", exposureRisk: "Porta alternativa usada por pain\xE9is de administra\xE7\xE3o web.", mitigation: "Proteger com autentica\xE7\xE3o forte e certificado TLS v\xE1lido." },
+  { port: 5e3, service: "Docker Registry / Flask Dev", category: "WEB", riskLevel: "HIGH", exposureRisk: "Docker Registry sem auth permite push/pull de imagens maliciosas.", mitigation: "Habilitar autentica\xE7\xE3o TLS m\xFAtua e restringir acesso." },
+  { port: 5601, service: "Kibana Dashboard", category: "WEB", riskLevel: "HIGH", exposureRisk: "Dashboard Kibana exposto revela dados indexados no Elasticsearch.", mitigation: "Proteger com X-Pack Security ou proxy reverso com autentica\xE7\xE3o." },
+  { port: 6443, service: "Kubernetes API Server", category: "WEB", riskLevel: "CRITICAL", exposureRisk: "Acesso ao Kubernetes API permite controle total do cluster e containers.", mitigation: "Restringir com RBAC, network policies e API server privado." },
+  { port: 8080, service: "HTTP-Alt / Proxy / Dev Server", category: "WEB", riskLevel: "MEDIUM", exposureRisk: "Porta frequentemente usada para pain\xE9is de administra\xE7\xE3o (Tomcat, Jenkins) ou dev.", mitigation: "Proteger com autentica\xE7\xE3o forte e n\xE3o expor ambientes de desenvolvimento." },
+  { port: 8443, service: "HTTPS-Alt / Admin Panel", category: "WEB", riskLevel: "MEDIUM", exposureRisk: "Porta alternativa HTTPS usada por pain\xE9is de gerenciamento.", mitigation: "Proteger com autentica\xE7\xE3o MFA e certificado TLS v\xE1lido." },
+  { port: 9090, service: "Prometheus / Cockpit Admin", category: "WEB", riskLevel: "HIGH", exposureRisk: "Prometheus exposto revela m\xE9tricas internas e topologia de infraestrutura.", mitigation: "Restringir a rede interna e habilitar autentica\xE7\xE3o." },
+  { port: 15672, service: "RabbitMQ Management Console", category: "WEB", riskLevel: "HIGH", exposureRisk: "Console de gerenciamento de filas exposto com credenciais padr\xE3o (guest/guest).", mitigation: "Alterar credenciais padr\xE3o e restringir a rede interna." },
+  // ═══════════════════════════════════════════════════════════════
+  // DATABASES
+  // ═══════════════════════════════════════════════════════════════
+  { port: 1433, service: "Microsoft SQL Server", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "Banco de dados corporativo exposto a ataques de for\xE7a bruta e SQLi remoto.", mitigation: "Isolar em subnet privada e habilitar Always Encrypted." },
+  { port: 1521, service: "Oracle Database TNS Listener", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "Banco de dados Oracle exposto permite TNS poisoning e enumera\xE7\xE3o de SIDs.", mitigation: "Habilitar Oracle Net Encryption e restringir a rede interna." },
+  { port: 2181, service: "Apache ZooKeeper", category: "DATABASE", riskLevel: "HIGH", exposureRisk: "Acesso ao cluster ZooKeeper permite manipula\xE7\xE3o de configura\xE7\xF5es distribu\xEDdas.", mitigation: "Habilitar autentica\xE7\xE3o SASL e isolar em rede privada." },
+  { port: 3306, service: "MySQL / MariaDB Database", category: "DATABASE", riskLevel: "HIGH", exposureRisk: "Banco de dados exposto a ataques de for\xE7a bruta contra usu\xE1rio root.", mitigation: "Vincular a 127.0.0.1 ou rede privada interna (VPC Security Group)." },
+  { port: 5432, service: "PostgreSQL Database", category: "DATABASE", riskLevel: "HIGH", exposureRisk: "Banco de dados relacional exposto \xE0 internet p\xFAblica.", mitigation: "Configurar pg_hba.conf para rejeitar conex\xF5es externas e isolar em subnet privada." },
+  { port: 6379, service: "Redis Cache & Database", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "RCE e exfiltra\xE7\xE3o total de dados via grava\xE7\xE3o de chaves SSH ou dump de mem\xF3ria.", mitigation: "Nunca expor na internet! Habilitar autentica\xE7\xE3o forte e isolar em rede local." },
+  { port: 9200, service: "Elasticsearch REST API", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "Acesso unauthenticated a logs, dados de clientes e clusters de busca.", mitigation: "Ativar X-Pack Security com TLS e restringir o acesso apenas a backends autorizados." },
+  { port: 11211, service: "Memcached", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "Amplifica\xE7\xE3o DDoS massiva e exfiltra\xE7\xE3o de dados de cache em mem\xF3ria.", mitigation: "Nunca expor na internet! Vincular a 127.0.0.1 e usar SASL auth." },
+  { port: 27017, service: "MongoDB NoSQL Database", category: "DATABASE", riskLevel: "CRITICAL", exposureRisk: "Alvo priorit\xE1rio de ataques automatizados de ransomware de banco de dados.", mitigation: "Ativar autentica\xE7\xE3o SCRAM-SHA-256 e fechar portas no Security Group da nuvem." }
 ];
 function checkTcpPort(host, portDef, timeoutMs = 1500) {
   const start = Date.now();
@@ -1744,6 +2130,460 @@ function validateTargetScope(target, config = DEFAULT_OBSIDIAN_CONFIG) {
     target,
     normalizedHost: host,
     reason: "Alvo dentro do escopo geral (permissivo por padr\xE3o)."
+  };
+}
+
+// src/lib/security/ssl-tls-analyzer.ts
+import tls from "node:tls";
+import net2 from "node:net";
+import { URL as URL2 } from "node:url";
+async function analyzeSslTls(targetUrl) {
+  const startTime = Date.now();
+  let url = targetUrl.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+  const parsed = new URL2(url);
+  const hostname = parsed.hostname;
+  const port = parseInt(parsed.port) || 443;
+  const issues = [];
+  return new Promise((resolve) => {
+    let resolved = false;
+    const finalize = (report) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timeout);
+      resolve(report);
+    };
+    const timeout = setTimeout(() => {
+      if (socket) socket.destroy();
+      finalize({
+        targetUrl: url,
+        valid: false,
+        issuer: "N/A",
+        subject: "N/A",
+        subjectAltNames: [],
+        validFrom: "N/A",
+        validTo: "N/A",
+        daysUntilExpiry: -1,
+        isExpired: true,
+        isExpiringSoon: true,
+        serialNumber: "N/A",
+        fingerprint256: "N/A",
+        protocol: "N/A",
+        signatureAlgorithm: "N/A",
+        isSelfSigned: false,
+        grade: "F",
+        issues: [{ severity: "CRITICAL", message: "Connection timed out \u2014 unable to establish TLS handshake." }],
+        durationMs: Date.now() - startTime
+      });
+    }, 5e3);
+    const isIp = net2.isIP(hostname) !== 0;
+    const connectOptions = {
+      host: hostname,
+      port,
+      rejectUnauthorized: false,
+      ...isIp ? {} : { servername: hostname }
+    };
+    let socket;
+    try {
+      socket = tls.connect(connectOptions, () => {
+        const cert = socket.getPeerCertificate(true);
+        const protocol = socket.getProtocol() || "unknown";
+        const authorized = socket.authorized;
+        const validFrom = cert.valid_from || "N/A";
+        const validTo = cert.valid_to || "N/A";
+        const validToDate = new Date(validTo);
+        const now = /* @__PURE__ */ new Date();
+        const daysUntilExpiry = Math.floor((validToDate.getTime() - now.getTime()) / (1e3 * 60 * 60 * 24));
+        const isExpired = daysUntilExpiry < 0;
+        const isExpiringSoon = daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+        const issuerCN = cert.issuer?.CN || cert.issuer?.O || "Unknown";
+        const subjectCN = cert.subject?.CN || "Unknown";
+        const isSelfSigned = issuerCN === subjectCN && (!cert.issuer?.O || cert.issuer?.O === cert.subject?.O);
+        const san = cert.subjectaltname ? cert.subjectaltname.split(", ").map((s) => s.replace("DNS:", "")) : [];
+        const sigAlg = cert.sigalg || "unknown";
+        const serial = cert.serialNumber || "N/A";
+        const fp256 = cert.fingerprint256 || "N/A";
+        if (isExpired) issues.push({ severity: "CRITICAL", message: `Certificate expired ${Math.abs(daysUntilExpiry)} days ago.` });
+        else if (isExpiringSoon) issues.push({ severity: "HIGH", message: `Certificate expires in ${daysUntilExpiry} days \u2014 renewal required.` });
+        if (isSelfSigned) issues.push({ severity: "HIGH", message: "Self-signed certificate detected \u2014 not trusted by browsers." });
+        if (!authorized && !isSelfSigned && !isExpired) issues.push({ severity: "MEDIUM", message: "Certificate chain validation failed." });
+        if (protocol === "TLSv1" || protocol === "TLSv1.1") {
+          issues.push({ severity: "CRITICAL", message: `Deprecated protocol ${protocol} in use \u2014 vulnerable to POODLE/BEAST.` });
+        }
+        if (sigAlg && (sigAlg.includes("sha1") || sigAlg.includes("md5"))) {
+          issues.push({ severity: "HIGH", message: `Weak signature algorithm: ${sigAlg}. Migrate to SHA-256+.` });
+        }
+        if (san.length === 0) issues.push({ severity: "LOW", message: "No Subject Alternative Names (SAN) found." });
+        let grade = "A+";
+        if (isExpired) grade = "F";
+        else if (isSelfSigned) grade = "F";
+        else if (protocol === "TLSv1" || protocol === "TLSv1.1") grade = "C";
+        else if (isExpiringSoon) grade = "C";
+        else if (daysUntilExpiry < 90) grade = "A";
+        else if (issues.some((i) => i.severity === "HIGH")) grade = "B";
+        socket.destroy();
+        finalize({
+          targetUrl: url,
+          valid: !isExpired && authorized,
+          issuer: issuerCN,
+          subject: subjectCN,
+          subjectAltNames: san,
+          validFrom,
+          validTo,
+          daysUntilExpiry,
+          isExpired,
+          isExpiringSoon,
+          serialNumber: serial,
+          fingerprint256: fp256,
+          protocol,
+          signatureAlgorithm: sigAlg,
+          isSelfSigned,
+          grade,
+          issues,
+          durationMs: Date.now() - startTime
+        });
+      });
+      socket.on("error", (err) => {
+        finalize({
+          targetUrl: url,
+          valid: false,
+          issuer: "N/A",
+          subject: "N/A",
+          subjectAltNames: [],
+          validFrom: "N/A",
+          validTo: "N/A",
+          daysUntilExpiry: -1,
+          isExpired: true,
+          isExpiringSoon: true,
+          serialNumber: "N/A",
+          fingerprint256: "N/A",
+          protocol: "N/A",
+          signatureAlgorithm: "N/A",
+          isSelfSigned: false,
+          grade: "F",
+          issues: [{ severity: "CRITICAL", message: `TLS connection failed: ${err.message}` }],
+          durationMs: Date.now() - startTime
+        });
+      });
+    } catch (err) {
+      finalize({
+        targetUrl: url,
+        valid: false,
+        issuer: "N/A",
+        subject: "N/A",
+        subjectAltNames: [],
+        validFrom: "N/A",
+        validTo: "N/A",
+        daysUntilExpiry: -1,
+        isExpired: true,
+        isExpiringSoon: true,
+        serialNumber: "N/A",
+        fingerprint256: "N/A",
+        protocol: "N/A",
+        signatureAlgorithm: "N/A",
+        isSelfSigned: false,
+        grade: "F",
+        issues: [{ severity: "CRITICAL", message: `TLS initialization failed: ${err.message}` }],
+        durationMs: Date.now() - startTime
+      });
+    }
+  });
+}
+
+// src/lib/security/tech-fingerprint-analyzer.ts
+var FINGERPRINT_RULES = [
+  // Servers
+  { name: "Nginx", category: "SERVER", headerCheck: { name: "server", pattern: /nginx/i }, confidence: "HIGH" },
+  { name: "Apache", category: "SERVER", headerCheck: { name: "server", pattern: /Apache/i }, confidence: "HIGH" },
+  { name: "Microsoft IIS", category: "SERVER", headerCheck: { name: "server", pattern: /Microsoft-IIS/i }, confidence: "HIGH" },
+  { name: "Caddy", category: "SERVER", headerCheck: { name: "server", pattern: /Caddy/i }, confidence: "HIGH" },
+  { name: "LiteSpeed", category: "SERVER", headerCheck: { name: "server", pattern: /LiteSpeed/i }, confidence: "HIGH" },
+  { name: "Express.js", category: "SERVER", headerCheck: { name: "x-powered-by", pattern: /Express/i }, confidence: "HIGH" },
+  // CDNs
+  { name: "Cloudflare CDN", category: "CDN", headerCheck: { name: "cf-ray" }, confidence: "HIGH" },
+  { name: "Fastly CDN", category: "CDN", headerCheck: { name: "x-fastly-request-id" }, confidence: "HIGH" },
+  { name: "Akamai CDN", category: "CDN", headerCheck: { name: "x-akamai-transformed" }, confidence: "HIGH" },
+  { name: "AWS CloudFront", category: "CDN", headerCheck: { name: "x-amz-cf-id" }, confidence: "HIGH" },
+  { name: "Vercel Edge Network", category: "CDN", headerCheck: { name: "x-vercel-id" }, confidence: "HIGH" },
+  { name: "Netlify", category: "CDN", headerCheck: { name: "x-nf-request-id" }, confidence: "HIGH" },
+  // Frameworks (HTML body)
+  { name: "Next.js", category: "FRAMEWORK", bodyPattern: /__NEXT_DATA__|_next\/static/i, confidence: "HIGH" },
+  { name: "React", category: "JS_LIBRARY", bodyPattern: /data-reactroot|__react|react-root|reactDOM/i, confidence: "HIGH" },
+  { name: "Vue.js", category: "JS_LIBRARY", bodyPattern: /__VUE__|v-app|vue-app|vue\.min\.js|vue\.js/i, confidence: "HIGH" },
+  { name: "Nuxt.js", category: "FRAMEWORK", bodyPattern: /__NUXT__|_nuxt\//i, confidence: "HIGH" },
+  { name: "Angular", category: "FRAMEWORK", bodyPattern: /ng-app|ng-version|angular\.min\.js|angular\.js/i, confidence: "HIGH" },
+  { name: "Svelte", category: "FRAMEWORK", bodyPattern: /svelte-|__svelte/i, confidence: "MEDIUM" },
+  { name: "Gatsby", category: "FRAMEWORK", bodyPattern: /gatsby-/i, confidence: "MEDIUM" },
+  { name: "Remix", category: "FRAMEWORK", bodyPattern: /__remix|remix-run/i, confidence: "MEDIUM" },
+  // CMS
+  { name: "WordPress", category: "CMS", bodyPattern: /wp-content|wp-includes|wp-json/i, confidence: "HIGH" },
+  { name: "Drupal", category: "CMS", bodyPattern: /Drupal\.settings|drupal\.js|sites\/default/i, confidence: "HIGH" },
+  { name: "Joomla", category: "CMS", bodyPattern: /\/media\/system\/js\/|com_content|Joomla!/i, confidence: "HIGH" },
+  { name: "Ghost CMS", category: "CMS", bodyPattern: /ghost-url|ghost\.js/i, confidence: "HIGH" },
+  { name: "Shopify", category: "CMS", bodyPattern: /cdn\.shopify\.com|Shopify\.theme/i, confidence: "HIGH" },
+  { name: "Squarespace", category: "CMS", bodyPattern: /squarespace\.com|sqsp/i, confidence: "HIGH" },
+  { name: "Wix", category: "CMS", bodyPattern: /wix\.com|_wixCIDX/i, confidence: "HIGH" },
+  // Backend Languages
+  { name: "PHP", category: "LANGUAGE", headerCheck: { name: "x-powered-by", pattern: /PHP/i }, confidence: "HIGH" },
+  { name: "ASP.NET", category: "LANGUAGE", headerCheck: { name: "x-powered-by", pattern: /ASP\.NET/i }, confidence: "HIGH" },
+  { name: "Django", category: "FRAMEWORK", bodyPattern: /csrfmiddlewaretoken/i, confidence: "MEDIUM" },
+  { name: "Ruby on Rails", category: "FRAMEWORK", headerCheck: { name: "x-request-id" }, bodyPattern: /csrf-token.*authenticity_token/i, confidence: "LOW" },
+  { name: "Laravel", category: "FRAMEWORK", cookiePattern: /laravel_session|XSRF-TOKEN/i, confidence: "MEDIUM" },
+  // JS Libraries
+  { name: "jQuery", category: "JS_LIBRARY", bodyPattern: /jquery\.min\.js|jquery\.js|jquery-\d/i, confidence: "HIGH" },
+  { name: "Lodash", category: "JS_LIBRARY", bodyPattern: /lodash\.min\.js|lodash\.js/i, confidence: "MEDIUM" },
+  { name: "Moment.js", category: "JS_LIBRARY", bodyPattern: /moment\.min\.js|moment\.js/i, confidence: "MEDIUM" },
+  // CSS Frameworks
+  { name: "Tailwind CSS", category: "CSS_FRAMEWORK", bodyPattern: /tailwindcss|tailwind\.min\.css/i, confidence: "HIGH" },
+  { name: "Bootstrap", category: "CSS_FRAMEWORK", bodyPattern: /bootstrap\.min\.css|bootstrap\.min\.js|bootstrap\.css/i, confidence: "HIGH" },
+  { name: "Bulma", category: "CSS_FRAMEWORK", bodyPattern: /bulma\.min\.css|bulma\.css/i, confidence: "HIGH" },
+  // Analytics
+  { name: "Google Analytics", category: "ANALYTICS", bodyPattern: /google-analytics\.com|googletagmanager\.com|gtag\(/i, confidence: "HIGH" },
+  { name: "Google Tag Manager", category: "ANALYTICS", bodyPattern: /googletagmanager\.com\/gtm\.js/i, confidence: "HIGH" },
+  { name: "Matomo / Piwik", category: "ANALYTICS", bodyPattern: /matomo\.js|piwik\.js/i, confidence: "HIGH" },
+  { name: "Plausible Analytics", category: "ANALYTICS", bodyPattern: /plausible\.io/i, confidence: "HIGH" },
+  { name: "Hotjar", category: "ANALYTICS", bodyPattern: /hotjar\.com|_hjSettings/i, confidence: "HIGH" },
+  { name: "Microsoft Clarity", category: "ANALYTICS", bodyPattern: /clarity\.ms/i, confidence: "HIGH" },
+  // Security
+  { name: "reCAPTCHA", category: "SECURITY", bodyPattern: /google\.com\/recaptcha|grecaptcha/i, confidence: "HIGH" },
+  { name: "hCaptcha", category: "SECURITY", bodyPattern: /hcaptcha\.com|h-captcha/i, confidence: "HIGH" },
+  { name: "Cloudflare Turnstile", category: "SECURITY", bodyPattern: /challenges\.cloudflare\.com\/turnstile/i, confidence: "HIGH" }
+];
+async function fingerprintTechStack(targetUrl) {
+  const startTime = Date.now();
+  let url = targetUrl.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+  const detections = [];
+  const detectedNames = /* @__PURE__ */ new Set();
+  let serverHeader = "Unknown";
+  let poweredBy = "N/A";
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4e3);
+    const res = await fetch(url, {
+      method: "GET",
+      signal: controller.signal,
+      redirect: "follow",
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ObsidianSec/1.2.2" }
+    });
+    clearTimeout(timeout);
+    const headers = res.headers;
+    const body = await res.text();
+    serverHeader = headers.get("server") || "Unknown";
+    poweredBy = headers.get("x-powered-by") || "N/A";
+    const rawSetCookies = [];
+    if (typeof headers.getSetCookie === "function") {
+      rawSetCookies.push(...headers.getSetCookie());
+    } else {
+      const sc = headers.get("set-cookie");
+      if (sc) rawSetCookies.push(sc);
+    }
+    const cookieStr = rawSetCookies.join("; ");
+    for (const rule of FINGERPRINT_RULES) {
+      if (detectedNames.has(rule.name)) continue;
+      let matched = false;
+      let evidence = "";
+      if (rule.headerCheck) {
+        const val = headers.get(rule.headerCheck.name);
+        if (val !== null) {
+          if (!rule.headerCheck.pattern || rule.headerCheck.pattern.test(val)) {
+            matched = true;
+            evidence = `Header: ${rule.headerCheck.name}: ${val.slice(0, 60)}`;
+          }
+        }
+      }
+      if (!matched && rule.bodyPattern) {
+        const bodyMatch = body.match(rule.bodyPattern);
+        if (bodyMatch) {
+          matched = true;
+          evidence = `HTML pattern: ${bodyMatch[0].slice(0, 50)}`;
+        }
+      }
+      if (!matched && rule.cookiePattern && rule.cookiePattern.test(cookieStr)) {
+        matched = true;
+        evidence = `Cookie pattern: ${rule.cookiePattern.source}`;
+      }
+      if (matched) {
+        detectedNames.add(rule.name);
+        detections.push({
+          name: rule.name,
+          category: rule.category,
+          confidence: rule.confidence,
+          evidence
+        });
+      }
+    }
+  } catch (err) {
+    detections.push({
+      name: "Connection Error",
+      category: "SERVER",
+      confidence: "LOW",
+      evidence: `Failed to connect: ${err.message}`
+    });
+  }
+  return {
+    targetUrl: url,
+    detections,
+    totalDetected: detections.length,
+    serverHeader,
+    poweredBy,
+    durationMs: Date.now() - startTime
+  };
+}
+
+// src/lib/security/http-method-analyzer.ts
+var METHOD_DEFINITIONS = [
+  { method: "GET", risky: false, riskLevel: "INFO", description: "Standard read method (expected to be enabled)." },
+  { method: "POST", risky: false, riskLevel: "INFO", description: "Standard write method (expected to be enabled)." },
+  { method: "HEAD", risky: false, riskLevel: "INFO", description: "Metadata-only request (expected to be enabled)." },
+  { method: "OPTIONS", risky: false, riskLevel: "INFO", description: "CORS preflight / method discovery (may reveal allowed methods)." },
+  { method: "PUT", risky: true, riskLevel: "HIGH", description: "File upload without auth \u2014 may allow arbitrary file writes on server." },
+  { method: "DELETE", risky: true, riskLevel: "HIGH", description: "Resource deletion without auth \u2014 may allow removing server files." },
+  { method: "PATCH", risky: false, riskLevel: "LOW", description: "Partial resource update (typically behind auth, low risk)." },
+  { method: "TRACE", risky: true, riskLevel: "CRITICAL", description: "Cross-Site Tracing (XST) attack vector \u2014 reflects cookies and auth headers." }
+];
+async function testMethod(url, method, timeout) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    const res = await fetch(url, {
+      method,
+      signal: controller.signal,
+      redirect: "manual",
+      headers: { "User-Agent": "ObsidianSec-Method-Probe/1.2.2" }
+    });
+    clearTimeout(timer);
+    return { statusCode: res.status, error: false };
+  } catch {
+    return { statusCode: 0, error: true };
+  }
+}
+async function analyzeHttpMethods(targetUrl) {
+  const startTime = Date.now();
+  let url = targetUrl.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+  const results = [];
+  const allowedMethods = [];
+  const riskyMethods = [];
+  const tests = METHOD_DEFINITIONS.map(async (def) => {
+    const { statusCode, error } = await testMethod(url, def.method, 3e3);
+    const isMethodNotAllowed = statusCode === 405 || statusCode === 501 || error;
+    const allowed = !isMethodNotAllowed;
+    if (allowed) allowedMethods.push(def.method);
+    if (allowed && def.risky) riskyMethods.push(def.method);
+    results.push({
+      method: def.method,
+      statusCode,
+      allowed,
+      risky: def.risky && allowed,
+      riskLevel: def.risky && allowed ? def.riskLevel : "INFO",
+      description: def.description
+    });
+  });
+  await Promise.all(tests);
+  const riskOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 };
+  results.sort((a, b) => riskOrder[a.riskLevel] - riskOrder[b.riskLevel]);
+  let overallStatus = "SECURE";
+  if (riskyMethods.includes("TRACE")) overallStatus = "CRITICAL";
+  else if (riskyMethods.length > 0) overallStatus = "WARNING";
+  return {
+    targetUrl: url,
+    allowedMethods,
+    riskyMethods,
+    results,
+    overallStatus,
+    durationMs: Date.now() - startTime
+  };
+}
+
+// src/lib/security/open-redirect-analyzer.ts
+var REDIRECT_PARAMS = [
+  "url",
+  "redirect",
+  "redirect_url",
+  "redirect_uri",
+  "next",
+  "return",
+  "return_to",
+  "returnTo",
+  "dest",
+  "destination",
+  "redir",
+  "continue",
+  "forward",
+  "go",
+  "target",
+  "out",
+  "view",
+  "login_url",
+  "callback",
+  "return_url",
+  "checkout_url"
+];
+var EVIL_DOMAIN = "https://evil.obsidiansec-test.com";
+async function testRedirectParam(baseUrl, param) {
+  const payload = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(EVIL_DOMAIN)}`;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3e3);
+    const res = await fetch(payload, {
+      method: "GET",
+      signal: controller.signal,
+      redirect: "manual",
+      headers: { "User-Agent": "ObsidianSec-Redirect-Probe/1.2.2" }
+    });
+    clearTimeout(timeout);
+    const statusCode = res.status;
+    const location = res.headers.get("location") || "";
+    const isRedirect = statusCode >= 300 && statusCode < 400;
+    let isOpenRedirect = false;
+    if (isRedirect && location) {
+      try {
+        const targetHost = new URL(location).hostname;
+        const baseHost = new URL(baseUrl).hostname;
+        isOpenRedirect = targetHost !== baseHost && location.includes("evil.obsidiansec-test.com");
+      } catch {
+        isOpenRedirect = location.includes("evil.obsidiansec-test.com");
+      }
+    }
+    return {
+      parameter: param,
+      payload,
+      statusCode,
+      redirected: isRedirect,
+      redirectedTo: location.slice(0, 200),
+      isOpenRedirect,
+      riskLevel: isOpenRedirect ? "CRITICAL" : "INFO"
+    };
+  } catch {
+    return {
+      parameter: param,
+      payload,
+      statusCode: 0,
+      redirected: false,
+      redirectedTo: "",
+      isOpenRedirect: false,
+      riskLevel: "INFO"
+    };
+  }
+}
+async function detectOpenRedirects(targetUrl) {
+  const startTime = Date.now();
+  let url = targetUrl.trim();
+  if (!url.startsWith("http://") && !url.startsWith("https://")) url = `https://${url}`;
+  const tests = REDIRECT_PARAMS.map((param) => testRedirectParam(url, param));
+  const results = await Promise.all(tests);
+  const vulnerableCount = results.filter((r) => r.isOpenRedirect).length;
+  let overallStatus = "SECURE";
+  if (vulnerableCount > 0) overallStatus = "VULNERABLE";
+  else if (results.some((r) => r.redirected)) overallStatus = "WARNING";
+  return {
+    targetUrl: url,
+    totalTested: results.length,
+    vulnerableCount,
+    results: results.filter((r) => r.isOpenRedirect || r.redirected),
+    overallStatus,
+    durationMs: Date.now() - startTime
   };
 }
 
@@ -2132,6 +2972,173 @@ async function runPorts() {
 `);
   process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
 }
+async function runSsl() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}\u274C Erro: URL alvo n\xE3o especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec ssl <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`\u{1F512} Inspecionando certificado SSL/TLS e criptografia para ${ANSI.bold}${targetUrl}${ANSI.reset}...
+`);
+  const report = await analyzeSslTls(targetUrl);
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.valid ? 0 : 1);
+  }
+  const gradeColor = report.grade === "A+" || report.grade === "A" ? ANSI.green : report.grade === "B" ? ANSI.yellow : ANSI.red;
+  console.log(`======================================================================`);
+  console.log(`\u{1F4CA} RELAT\xD3RIO DE AUDITORIA SSL/TLS (SSL LABS ENGINE)`);
+  console.log(`======================================================================`);
+  console.log(`\u2022 Alvo Auditado:       ${report.targetUrl}`);
+  console.log(`\u2022 Emissor (CA):        ${report.issuer}`);
+  console.log(`\u2022 Sujeito (CN):        ${report.subject}`);
+  console.log(`\u2022 Protocolo:           ${report.protocol}`);
+  console.log(`\u2022 Algoritmo de Ass.:   ${report.signatureAlgorithm}`);
+  console.log(`\u2022 Nota TLS:            ${gradeColor}${ANSI.bold}GRADE ${report.grade}${ANSI.reset}`);
+  console.log(`\u2022 Status:              ${report.valid ? ANSI.green + "V\xC1LIDO & CONFI\xC1VEL" : ANSI.red + "INV\xC1LIDO / RISCO"}${ANSI.reset}`);
+  console.log(`\u2022 Expira\xE7\xE3o:           ${report.validTo} (${report.daysUntilExpiry} dias restantes)`);
+  console.log(`\u2022 Auto-assinado:       ${report.isSelfSigned ? ANSI.red + "SIM (RISCO)" : ANSI.green + "N\xC3O"}${ANSI.reset}`);
+  console.log(`\u2022 Dura\xE7\xE3o:             ${report.durationMs}ms`);
+  console.log(`======================================================================
+`);
+  if (report.subjectAltNames.length > 0) {
+    console.log(`\u{1F310} NOMES ALTERNATIVOS DO SUJEITO (SAN):`);
+    report.subjectAltNames.slice(0, 10).forEach((san) => console.log(`  ${ANSI.cyan}\u2022${ANSI.reset} ${san}`));
+    if (report.subjectAltNames.length > 10) console.log(`  ... e mais ${report.subjectAltNames.length - 10} dom\xEDnios.`);
+    console.log("");
+  }
+  if (report.issues.length > 0) {
+    console.log(`\u26A0\uFE0F  VULNERABILIDADES & ALERTAS DE CERTIFICADO:`);
+    report.issues.forEach((iss) => {
+      const color = iss.severity === "CRITICAL" ? ANSI.red : iss.severity === "HIGH" ? ANSI.yellow : ANSI.gray;
+      console.log(`  ${color}[${iss.severity}] ${iss.message}${ANSI.reset}`);
+    });
+    console.log(`
+======================================================================
+`);
+  }
+  process.exit(report.valid ? 0 : 1);
+}
+async function runTech() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}\u274C Erro: URL alvo n\xE3o especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec tech <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`\u{1F9EC} Identificando stack de tecnologias (Wappalyzer Engine) em ${ANSI.bold}${targetUrl}${ANSI.reset}...
+`);
+  const report = await fingerprintTechStack(targetUrl);
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(0);
+  }
+  console.log(`======================================================================`);
+  console.log(`\u{1F4CA} SUPERF\xCDCIE DE TECNOLOGIAS & FINGERPRINTING DE STACK`);
+  console.log(`======================================================================`);
+  console.log(`\u2022 Alvo Auditado:       ${report.targetUrl}`);
+  console.log(`\u2022 Servidor Web:        ${report.serverHeader}`);
+  console.log(`\u2022 X-Powered-By:        ${report.poweredBy}`);
+  console.log(`\u2022 Total Identificado:  ${ANSI.bold}${report.totalDetected} tecnologias${ANSI.reset}`);
+  console.log(`\u2022 Dura\xE7\xE3o:             ${report.durationMs}ms`);
+  console.log(`======================================================================
+`);
+  if (report.detections.length > 0) {
+    console.log(`\u{1F6E0}\uFE0F  TECNOLOGIAS DETECTADAS:`);
+    report.detections.forEach((t) => {
+      console.log(`  ${ANSI.cyan}\u2022${ANSI.reset} ${ANSI.bold}${t.name}${ANSI.reset} [${t.category}] (Confian\xE7a: ${t.confidence})`);
+      console.log(`      \u{1F50D} Evid\xEAncia: ${ANSI.gray}${t.evidence}${ANSI.reset}`);
+    });
+  } else {
+    console.log(`  Nenhuma tecnologia identific\xE1vel explicitamente (Ofusca\xE7\xE3o ativa).`);
+  }
+  console.log(`
+======================================================================
+`);
+}
+async function runMethods() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}\u274C Erro: URL alvo n\xE3o especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec methods <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`\u{1F4E1} Enumerando m\xE9todos HTTP e testando verbos perigosos em ${ANSI.bold}${targetUrl}${ANSI.reset}...
+`);
+  const report = await analyzeHttpMethods(targetUrl);
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.overallStatus === "CRITICAL" ? 1 : 0);
+  }
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+  console.log(`======================================================================`);
+  console.log(`\u{1F4CA} RELAT\xD3RIO DE ENUMERA\xC7\xC3O DE M\xC9TODOS HTTP`);
+  console.log(`======================================================================`);
+  console.log(`\u2022 Alvo:                ${report.targetUrl}`);
+  console.log(`\u2022 M\xE9todos Permitidos:  ${ANSI.bold}${report.allowedMethods.join(", ")}${ANSI.reset}`);
+  console.log(`\u2022 M\xE9todos Perigosos:   ${report.riskyMethods.length > 0 ? ANSI.red + report.riskyMethods.join(", ") : ANSI.green + "NENHUM EXPOSTO"}${ANSI.reset}`);
+  console.log(`\u2022 Diagn\xF3stico Geral:   ${statusColor}${ANSI.bold}${report.overallStatus}${ANSI.reset}`);
+  console.log(`\u2022 Dura\xE7\xE3o:             ${report.durationMs}ms`);
+  console.log(`======================================================================
+`);
+  console.log(`\u{1F4CB} RESULTADO POR M\xC9TODO:`);
+  report.results.forEach((m) => {
+    const badge = m.risky ? ANSI.red + "[PERIGO]" : m.allowed ? ANSI.green + "[PERMITIDO]" : ANSI.gray + "[BLOQUEADO]";
+    console.log(`  ${badge}${ANSI.reset} ${ANSI.bold}${m.method}${ANSI.reset} (HTTP ${m.statusCode}) \u2014 ${m.description}`);
+  });
+  console.log(`
+======================================================================
+`);
+  process.exit(report.overallStatus === "CRITICAL" ? 1 : 0);
+}
+async function runRedirects() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}\u274C Erro: URL alvo n\xE3o especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec redirects <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`\u{1F500} Ca\xE7ando Open Redirects (OWASP CWE-601) em ${ANSI.bold}${targetUrl}${ANSI.reset}...
+`);
+  const report = await detectOpenRedirects(targetUrl);
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.vulnerableCount > 0 ? 1 : 0);
+  }
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+  console.log(`======================================================================`);
+  console.log(`\u{1F4CA} DETECTOR DE OPEN REDIRECT (OWASP CWE-601)`);
+  console.log(`======================================================================`);
+  console.log(`\u2022 Alvo:                ${report.targetUrl}`);
+  console.log(`\u2022 Par\xE2metros Testados: ${report.totalTested}`);
+  console.log(`\u2022 Vulnerabilidades:    ${report.vulnerableCount > 0 ? ANSI.red + report.vulnerableCount + " VULNER\xC1VEL" : ANSI.green + "0 (SEGURO)"}${ANSI.reset}`);
+  console.log(`\u2022 Diagn\xF3stico:         ${statusColor}${ANSI.bold}${report.overallStatus}${ANSI.reset}`);
+  console.log(`\u2022 Dura\xE7\xE3o:             ${report.durationMs}ms`);
+  console.log(`======================================================================
+`);
+  if (report.results.length > 0) {
+    console.log(`\u{1F50D} REDIRECIONAMENTOS IDENTIFICADOS:`);
+    report.results.forEach((r) => {
+      const color = r.isOpenRedirect ? ANSI.red : ANSI.yellow;
+      console.log(`  ${color}\u2022 Par\xE2metro: '${r.parameter}'${ANSI.reset} -> ${r.redirectedTo}`);
+    });
+  } else {
+    console.log(`  Nenhum redirecionamento aberto detectado nos par\xE2metros comuns.`);
+  }
+  console.log(`
+======================================================================
+`);
+  process.exit(report.vulnerableCount > 0 ? 1 : 0);
+}
 function runInitConfig() {
   printBanner();
   try {
@@ -2154,11 +3161,19 @@ function printHelp() {
       --min-grade=<A|B|C>         Define a nota m\xEDnima para o Quality Gate de CI/CD (padr\xE3o: B)
       --json                      Retorna o relat\xF3rio completo em formato JSON
 
-  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (Cloudflare, AWS WAF, ModSecurity, Imperva)
+  ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expira\xE7\xE3o e nota de seguran\xE7a
+  
+  ${ANSI.bold}obsidiansec tech <url>${ANSI.reset}             Identifica\xE7\xE3o de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
 
-  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de portas TCP cr\xEDticas (Redis, MongoDB, MySQL, Postgres, RDP, Telnet)
+  ${ANSI.bold}obsidiansec methods <url>${ANSI.reset}          Enumera m\xE9todos HTTP e ca\xE7a verbos perigosos (TRACE/XST, PUT, DELETE)
 
-  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Ca\xE7ador de segredos & SAST local (AWS, OpenAI, Stripe, .env, chaves privadas)
+  ${ANSI.bold}obsidiansec redirects <url>${ANSI.reset}        Detecta falhas de Open Redirect nos par\xE2metros de URL (OWASP CWE-601)
+
+  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
+
+  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de 37 portas TCP cr\xEDticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
+
+  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Ca\xE7ador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
   
   ${ANSI.bold}obsidiansec jwt <token>${ANSI.reset}            Auditor de tokens JWT (detecta alg: none, expira\xE7\xE3o e decodifica claims)
 
@@ -2176,6 +3191,26 @@ function printHelp() {
 switch (command) {
   case "audit":
     runAudit();
+    break;
+  case "ssl":
+  case "tls":
+  case "cert":
+    runSsl();
+    break;
+  case "tech":
+  case "stack":
+  case "wappalyzer":
+    runTech();
+    break;
+  case "methods":
+  case "http-methods":
+  case "verbs":
+    runMethods();
+    break;
+  case "redirects":
+  case "open-redirect":
+  case "redirect":
+    runRedirects();
     break;
   case "waf":
   case "firewall":

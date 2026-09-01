@@ -11,6 +11,10 @@ import {
   validateTargetScope,
   loadObsidianConfig,
   generateDefaultConfigFile,
+  analyzeSslTls,
+  fingerprintTechStack,
+  analyzeHttpMethods,
+  detectOpenRedirects,
 } from "./lib/security/index.ts";
 
 const args = process.argv.slice(2);
@@ -426,6 +430,189 @@ async function runPorts() {
   process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
 }
 
+async function runSsl() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec ssl <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🔒 Inspecionando certificado SSL/TLS e criptografia para ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await analyzeSslTls(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.valid ? 0 : 1);
+  }
+
+  const gradeColor = report.grade === "A+" || report.grade === "A" ? ANSI.green : report.grade === "B" ? ANSI.yellow : ANSI.red;
+
+  console.log(`======================================================================`);
+  console.log(`📊 RELATÓRIO DE AUDITORIA SSL/TLS (SSL LABS ENGINE)`);
+  console.log(`======================================================================`);
+  console.log(`• Alvo Auditado:       ${report.targetUrl}`);
+  console.log(`• Emissor (CA):        ${report.issuer}`);
+  console.log(`• Sujeito (CN):        ${report.subject}`);
+  console.log(`• Protocolo:           ${report.protocol}`);
+  console.log(`• Algoritmo de Ass.:   ${report.signatureAlgorithm}`);
+  console.log(`• Nota TLS:            ${gradeColor}${ANSI.bold}GRADE ${report.grade}${ANSI.reset}`);
+  console.log(`• Status:              ${report.valid ? ANSI.green + "VÁLIDO & CONFIÁVEL" : ANSI.red + "INVÁLIDO / RISCO"}${ANSI.reset}`);
+  console.log(`• Expiração:           ${report.validTo} (${report.daysUntilExpiry} dias restantes)`);
+  console.log(`• Auto-assinado:       ${report.isSelfSigned ? ANSI.red + "SIM (RISCO)" : ANSI.green + "NÃO"}${ANSI.reset}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  if (report.subjectAltNames.length > 0) {
+    console.log(`🌐 NOMES ALTERNATIVOS DO SUJEITO (SAN):`);
+    report.subjectAltNames.slice(0, 10).forEach((san) => console.log(`  ${ANSI.cyan}•${ANSI.reset} ${san}`));
+    if (report.subjectAltNames.length > 10) console.log(`  ... e mais ${report.subjectAltNames.length - 10} domínios.`);
+    console.log("");
+  }
+
+  if (report.issues.length > 0) {
+    console.log(`⚠️  VULNERABILIDADES & ALERTAS DE CERTIFICADO:`);
+    report.issues.forEach((iss) => {
+      const color = iss.severity === "CRITICAL" ? ANSI.red : iss.severity === "HIGH" ? ANSI.yellow : ANSI.gray;
+      console.log(`  ${color}[${iss.severity}] ${iss.message}${ANSI.reset}`);
+    });
+    console.log(`\n======================================================================\n`);
+  }
+
+  process.exit(report.valid ? 0 : 1);
+}
+
+async function runTech() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec tech <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🧬 Identificando stack de tecnologias (Wappalyzer Engine) em ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await fingerprintTechStack(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(0);
+  }
+
+  console.log(`======================================================================`);
+  console.log(`📊 SUPERFÍCIE DE TECNOLOGIAS & FINGERPRINTING DE STACK`);
+  console.log(`======================================================================`);
+  console.log(`• Alvo Auditado:       ${report.targetUrl}`);
+  console.log(`• Servidor Web:        ${report.serverHeader}`);
+  console.log(`• X-Powered-By:        ${report.poweredBy}`);
+  console.log(`• Total Identificado:  ${ANSI.bold}${report.totalDetected} tecnologias${ANSI.reset}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  if (report.detections.length > 0) {
+    console.log(`🛠️  TECNOLOGIAS DETECTADAS:`);
+    report.detections.forEach((t) => {
+      console.log(`  ${ANSI.cyan}•${ANSI.reset} ${ANSI.bold}${t.name}${ANSI.reset} [${t.category}] (Confiança: ${t.confidence})`);
+      console.log(`      🔍 Evidência: ${ANSI.gray}${t.evidence}${ANSI.reset}`);
+    });
+  } else {
+    console.log(`  Nenhuma tecnologia identificável explicitamente (Ofuscação ativa).`);
+  }
+
+  console.log(`\n======================================================================\n`);
+}
+
+async function runMethods() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec methods <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`📡 Enumerando métodos HTTP e testando verbos perigosos em ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await analyzeHttpMethods(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.overallStatus === "CRITICAL" ? 1 : 0);
+  }
+
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+
+  console.log(`======================================================================`);
+  console.log(`📊 RELATÓRIO DE ENUMERAÇÃO DE MÉTODOS HTTP`);
+  console.log(`======================================================================`);
+  console.log(`• Alvo:                ${report.targetUrl}`);
+  console.log(`• Métodos Permitidos:  ${ANSI.bold}${report.allowedMethods.join(", ")}${ANSI.reset}`);
+  console.log(`• Métodos Perigosos:   ${report.riskyMethods.length > 0 ? ANSI.red + report.riskyMethods.join(", ") : ANSI.green + "NENHUM EXPOSTO"}${ANSI.reset}`);
+  console.log(`• Diagnóstico Geral:   ${statusColor}${ANSI.bold}${report.overallStatus}${ANSI.reset}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  console.log(`📋 RESULTADO POR MÉTODO:`);
+  report.results.forEach((m) => {
+    const badge = m.risky ? ANSI.red + "[PERIGO]" : m.allowed ? ANSI.green + "[PERMITIDO]" : ANSI.gray + "[BLOQUEADO]";
+    console.log(`  ${badge}${ANSI.reset} ${ANSI.bold}${m.method}${ANSI.reset} (HTTP ${m.statusCode}) — ${m.description}`);
+  });
+
+  console.log(`\n======================================================================\n`);
+  process.exit(report.overallStatus === "CRITICAL" ? 1 : 0);
+}
+
+async function runRedirects() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec redirects <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🔀 Caçando Open Redirects (OWASP CWE-601) em ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await detectOpenRedirects(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.vulnerableCount > 0 ? 1 : 0);
+  }
+
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+
+  console.log(`======================================================================`);
+  console.log(`📊 DETECTOR DE OPEN REDIRECT (OWASP CWE-601)`);
+  console.log(`======================================================================`);
+  console.log(`• Alvo:                ${report.targetUrl}`);
+  console.log(`• Parâmetros Testados: ${report.totalTested}`);
+  console.log(`• Vulnerabilidades:    ${report.vulnerableCount > 0 ? ANSI.red + report.vulnerableCount + " VULNERÁVEL" : ANSI.green + "0 (SEGURO)"}${ANSI.reset}`);
+  console.log(`• Diagnóstico:         ${statusColor}${ANSI.bold}${report.overallStatus}${ANSI.reset}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  if (report.results.length > 0) {
+    console.log(`🔍 REDIRECIONAMENTOS IDENTIFICADOS:`);
+    report.results.forEach((r) => {
+      const color = r.isOpenRedirect ? ANSI.red : ANSI.yellow;
+      console.log(`  ${color}• Parâmetro: '${r.parameter}'${ANSI.reset} -> ${r.redirectedTo}`);
+    });
+  } else {
+    console.log(`  Nenhum redirecionamento aberto detectado nos parâmetros comuns.`);
+  }
+
+  console.log(`\n======================================================================\n`);
+  process.exit(report.vulnerableCount > 0 ? 1 : 0);
+}
+
 function runInitConfig() {
   printBanner();
   try {
@@ -447,11 +634,19 @@ function printHelp() {
       --min-grade=<A|B|C>         Define a nota mínima para o Quality Gate de CI/CD (padrão: B)
       --json                      Retorna o relatório completo em formato JSON
 
-  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (Cloudflare, AWS WAF, ModSecurity, Imperva)
+  ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expiração e nota de segurança
+  
+  ${ANSI.bold}obsidiansec tech <url>${ANSI.reset}             Identificação de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
 
-  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de portas TCP críticas (Redis, MongoDB, MySQL, Postgres, RDP, Telnet)
+  ${ANSI.bold}obsidiansec methods <url>${ANSI.reset}          Enumera métodos HTTP e caça verbos perigosos (TRACE/XST, PUT, DELETE)
 
-  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Caçador de segredos & SAST local (AWS, OpenAI, Stripe, .env, chaves privadas)
+  ${ANSI.bold}obsidiansec redirects <url>${ANSI.reset}        Detecta falhas de Open Redirect nos parâmetros de URL (OWASP CWE-601)
+
+  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
+
+  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de 37 portas TCP críticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
+
+  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Caçador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
   
   ${ANSI.bold}obsidiansec jwt <token>${ANSI.reset}            Auditor de tokens JWT (detecta alg: none, expiração e decodifica claims)
 
@@ -470,6 +665,26 @@ function printHelp() {
 switch (command) {
   case "audit":
     runAudit();
+    break;
+  case "ssl":
+  case "tls":
+  case "cert":
+    runSsl();
+    break;
+  case "tech":
+  case "stack":
+  case "wappalyzer":
+    runTech();
+    break;
+  case "methods":
+  case "http-methods":
+  case "verbs":
+    runMethods();
+    break;
+  case "redirects":
+  case "open-redirect":
+  case "redirect":
+    runRedirects();
     break;
   case "waf":
   case "firewall":
