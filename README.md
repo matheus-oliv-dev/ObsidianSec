@@ -25,10 +25,22 @@ npx obsidiansec audit https://your-website.com
 # 🛑 2. Use as a CI/CD Quality Gate (Fails build if security grade < A)
 npx obsidiansec audit https://staging.your-website.com --min-grade=A
 
-# 📧 3. Inspect DNS, Email Anti-Phishing & Spoofing (SPF, DMARC, DNSSEC)
+# 🔐 3. Scan local project directory for leaked secrets (.env, AWS, OpenAI, Stripe, SSH keys)
+npx obsidiansec scan-dir ./
+
+# 🎟️ 4. Audit and decode JWT token (detects alg: none, expiration & secret strength)
+npx obsidiansec jwt <your-jwt-token>
+
+# 🌐 5. Passive Subdomain Reconnaissance via Certificate Transparency (crt.sh)
+npx obsidiansec subdomains your-domain.com
+
+# 📧 6. Inspect DNS, Email Anti-Phishing & Spoofing (SPF, DMARC, DNSSEC)
 npx obsidiansec dns your-domain.com
 
-# 📊 4. Output structured JSON for automation & Slack/Discord webhooks
+# 🔑 7. Calculate Shannon password entropy and GPU crack time (Hashcat model)
+npx obsidiansec entropy "YourPasswordHere"
+
+# 📊 8. Output structured JSON for automation & Slack/Discord webhooks
 npx obsidiansec audit https://your-website.com --json
 ```
 
