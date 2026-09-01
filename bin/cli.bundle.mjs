@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-#!/usr/bin/env node
 
 // src/agents/polyglot/detector.ts
 function detectRemoteTechStack(headers) {
@@ -1588,7 +1587,7 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
   };
 }
 
-// src/cli-source.ts
+// bin/cli.mjs
 var args = process.argv.slice(2);
 var command = args[0] || "help";
 var ANSI = {

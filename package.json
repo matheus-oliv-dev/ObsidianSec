@@ -16,6 +16,8 @@
     "url": "git+https://github.com/matheus-oliv-dev/ObsidianSec.git"
   },
   "scripts": {
+    "build": "esbuild src/cli-source.ts --bundle --platform=node --target=node18 --format=esm --banner:js=\"#!/usr/bin/env node\" --outfile=bin/cli.mjs",
+    "prepublishOnly": "npm run build && npm test",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@types/node": "^22.13.5",
     "@vercel/node": "^5.1.8",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.3",
     "vitest": "^3.0.6"
   }
