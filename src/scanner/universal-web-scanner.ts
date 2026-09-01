@@ -1,6 +1,6 @@
 import { detectRemoteTechStack } from "../agents/polyglot/detector.ts";
-import { runBurpHeaderAudit, HeaderAuditBurpResult } from "../lib/security/cookie-cors-analyzer.ts";
-import { buildAttackChainGraph, AttackChainReport } from "../lib/security/attack-chain-analyzer.ts";
+import { runBurpHeaderAudit, type HeaderAuditBurpResult } from "../lib/security/cookie-cors-analyzer.ts";
+import { buildAttackChainGraph, type AttackChainReport } from "../lib/security/attack-chain-analyzer.ts";
 
 export interface UniversalAuditReport {
   targetUrl: string;

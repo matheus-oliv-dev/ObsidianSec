@@ -180,27 +180,41 @@
       </div>
 
       <!-- Navigation Tabs & Config -->
-      <div class="flex items-center gap-3 text-sm">
-        <div class="flex items-center gap-2 bg-monoblack-900 border-2 border-monoblack-border p-1">
+      <div class="flex items-center gap-3 text-sm flex-wrap">
+        <div class="flex items-center gap-1 bg-monoblack-900 border-2 border-monoblack-border p-1">
           <button 
             onclick="switchView('scanner')" 
             id="navScannerBtn"
-            class="px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm"
+            class="px-4 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm"
           >
-            <i class="fa-solid fa-radar mr-2"></i> SCANNER
+            <i class="fa-solid fa-radar mr-1.5"></i> SCANNER
+          </button>
+          <button 
+            onclick="switchView('playground')" 
+            id="navPlaygroundBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-key mr-1.5"></i> CRIPTO & CSP
+          </button>
+          <button 
+            onclick="switchView('dns')" 
+            id="navDnsBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+          >
+            <i class="fa-solid fa-envelope-shield mr-1.5"></i> DNS & EMAIL
           </button>
           <button 
             onclick="switchView('wiki')" 
             id="navWikiBtn"
-            class="px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
           >
-            <i class="fa-solid fa-book-skull mr-2"></i> BASE DE CONHECIMENTO
+            <i class="fa-solid fa-book-skull mr-1.5"></i> ENCICLOPÉDIA
           </button>
         </div>
 
         <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
           <i class="fa-solid fa-scale-balanced"></i>
-          <span>LGPD & TERMOS</span>
+          <span>LGPD</span>
         </button>
       </div>
 
@@ -505,11 +519,256 @@
           </div>
         </div>
 
+        <!-- ============================================================= -->
+        <!-- BADGE DO GITHUB & EXPORTADOR DE RELATÓRIO OFICIAL             -->
+        <!-- ============================================================= -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-lg text-white uppercase tracking-wider">
+              <i class="fa-solid fa-award text-green-400"></i>
+              <span>CERTIFICAÇÃO DE BORDA & EXPORTAÇÃO DE RELATÓRIO</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400 uppercase">[DEVOPS_TOOLING]</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- GITHUB BADGE -->
+            <div class="bg-monoblack-950 p-5 border-2 border-monoblack-border space-y-4">
+              <div class="flex items-center justify-between text-xs font-boxy font-bold text-white uppercase border-b border-monoblack-border pb-2">
+                <span><i class="fa-brands fa-github mr-2"></i> BADGE PARA O README DO GITHUB</span>
+                <span class="text-green-400 font-mono">SVG LIVE</span>
+              </div>
+              <div class="flex items-center justify-center p-4 bg-black border border-neutral-800">
+                <img id="liveBadgePreview" src="/api/badge?grade=A%2B&score=100" alt="ObsidianSec Badge" class="h-7 shadow-md">
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] font-mono text-neutral-400">Copie e cole no README.md do seu repositório:</div>
+                <div class="flex gap-2">
+                  <input type="text" id="badgeMarkdownInput" readonly class="flex-1 bg-black border border-neutral-700 text-neutral-300 font-mono text-xs px-3 py-2" value="[![ObsidianSec](https://obsidiansec.dev/api/badge)](https://obsidiansec.dev)">
+                  <button onclick="copyBadgeMarkdown()" class="bg-white text-black font-bold text-xs px-3 py-2 uppercase hover:bg-neutral-200 transition">
+                    COPIAR
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- EXPORT REPORT -->
+            <div class="bg-monoblack-950 p-5 border-2 border-monoblack-border space-y-4 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs font-boxy font-bold text-white uppercase border-b border-monoblack-border pb-2">
+                  <span><i class="fa-solid fa-file-shield mr-2 text-cyan-400"></i> RELATÓRIO EXECUTIVO OFICIAL</span>
+                  <span class="text-neutral-400 font-mono">C-LEVEL & DEVS</span>
+                </div>
+                <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+                  Gere um dossiê completo em Markdown com sumário executivo de risco (LGPD/OWASP), caminho de ataque e patches prontos, ou imprima a auditoria formatada.
+                </p>
+              </div>
+
+              <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="exportReportMarkdown()" class="flex-1 bg-white text-black font-black text-xs uppercase px-4 py-3 hover:bg-neutral-200 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-download"></i>
+                  <span>BAIXAR RELATÓRIO (.MD)</span>
+                </button>
+                <button onclick="window.print()" class="bg-monoblack-900 border-2 border-white text-white font-black text-xs uppercase px-4 py-3 hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-print"></i>
+                  <span>IMPRIMIR / PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
     <!-- ============================================================= -->
-    <!-- VIEW 2: OPEN INFOSEC ENCYCLOPEDIA (MONOCHROME CARDS)          -->
+    <!-- VIEW 2: PLAYGROUND DE CRIPTOGRAFIA & GERADOR VISUAL DE CSP    -->
+    <!-- ============================================================= -->
+    <div id="playgroundSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-flask"></i>
+          <span>PLAYGROUND DEFENSIVO & GERADORES DE CÓDIGO</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          LABORATÓRIO CRIPTOGRÁFICO & CSP
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Calcule entropia de senhas com fórmulas de Shannon, valide segredos JWT contra dicionários e gere políticas CSP à prova de falhas com seleção visual.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- CRIPTO & ENTROPIA (HASHCAT/SHANNON) -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-base text-white uppercase tracking-wider">
+              <i class="fa-solid fa-calculator text-yellow-400"></i>
+              <span>CALCULADORA DE ENTROPIA DE SENHAS (SHANNON)</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400">[HASHCAT_ESTIMATE]</span>
+          </div>
+
+          <div class="space-y-4 font-mono text-xs">
+            <div class="space-y-2">
+              <label class="text-neutral-300 uppercase font-bold">Digite uma senha ou frase-senha para teste:</label>
+              <input 
+                type="text" 
+                id="entropyInput" 
+                placeholder="Ex: Trator$Azul#Voador!9876" 
+                oninput="updateEntropyCalculator()"
+                class="w-full bg-monoblack-950 border-2 border-monoblack-border text-white px-4 py-3 font-mono text-sm focus:border-white focus:outline-none"
+              >
+            </div>
+
+            <!-- Métricas de Entropia -->
+            <div class="grid grid-cols-2 gap-4 bg-monoblack-950 p-4 border border-neutral-800">
+              <div>
+                <div class="text-neutral-500 uppercase text-[10px]">Bits de Entropia:</div>
+                <div id="entropyBitsVal" class="text-2xl font-black text-white font-boxy">0 BITS</div>
+              </div>
+              <div>
+                <div class="text-neutral-500 uppercase text-[10px]">Nível de Força:</div>
+                <div id="entropyStrengthVal" class="text-sm font-black text-red-400 uppercase">VAZIA</div>
+              </div>
+            </div>
+
+            <div class="space-y-1 bg-monoblack-950 p-4 border-l-4 border-yellow-400">
+              <div class="text-neutral-400 text-[11px] font-bold uppercase">Tempo Estimado de Quebra (Cluster RTX 4090):</div>
+              <div id="entropyCrackTimeVal" class="text-white text-sm font-bold font-sans">Instantâneo (0s)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GERADOR VISUAL DE CSP -->
+        <div class="brutal-card p-8 space-y-6">
+          <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+            <div class="flex items-center gap-3 font-boxy font-black text-base text-white uppercase tracking-wider">
+              <i class="fa-solid fa-shield-virus text-cyan-400"></i>
+              <span>GERADOR VISUAL DE CSP (CONTENT-SECURITY-POLICY)</span>
+            </div>
+            <span class="text-xs font-mono text-neutral-400">[ZERO_XSS]</span>
+          </div>
+
+          <div class="space-y-4 text-xs font-mono">
+            <div class="text-neutral-300">Marque os serviços legítimos que sua aplicação utiliza:</div>
+            
+            <div class="grid grid-cols-2 gap-3 text-neutral-300">
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspFonts" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Google Fonts</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspAnalytics" onchange="buildCspPreview()" class="accent-white">
+                <span>Google Analytics</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspStripe" onchange="buildCspPreview()" class="accent-white">
+                <span>Stripe / Pagamentos</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspCloudflare" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Cloudflare CDN</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspImagesData" onchange="buildCspPreview()" checked class="accent-white">
+                <span>Imagens data: / HTTPS</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-2 bg-monoblack-950 border border-neutral-800 hover:border-white">
+                <input type="checkbox" id="cspWebSocket" onchange="buildCspPreview()" class="accent-white">
+                <span>WebSockets (wss:)</span>
+              </label>
+            </div>
+
+            <!-- Output CSP -->
+            <div class="space-y-2 pt-2">
+              <div class="flex items-center justify-between">
+                <span class="text-neutral-400 font-bold uppercase text-[11px]">DIRETIVA GERADA:</span>
+                <button onclick="copyGeneratedCsp()" class="text-white hover:underline text-[11px] font-bold uppercase">
+                  [COPIAR CSP]
+                </button>
+              </div>
+              <textarea id="cspOutputBox" readonly rows="3" class="w-full bg-black border border-neutral-700 text-green-400 font-mono text-xs p-3 focus:outline-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 3: AUDITOR DE DNS, EMAIL & ANTI-PHISHING                 -->
+    <!-- ============================================================= -->
+    <div id="dnsSection" class="hidden space-y-10">
+      
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-envelope-shield"></i>
+          <span>AUDITORIA ANTI-PHISHING & INTEGRIDADE DNS</span>
+        </div>
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          DNS & EMAIL SECURITY INSPECTOR
+        </h2>
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans">
+          Valide registros SPF, DMARC e DNSSEC para proteger seu domínio contra ataques de falsificação de identidade (Business Email Compromise).
+        </p>
+      </div>
+
+      <!-- SEARCH DNS CONSOLE -->
+      <div class="brutal-card p-8 space-y-6">
+        <form onsubmit="handleDnsAuditSubmit(event)" class="space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <input 
+              type="text" 
+              id="dnsTargetDomain" 
+              placeholder="Ex: gov.br ou seudominio.com.br" 
+              required
+              class="flex-1 bg-monoblack-950 border-2 border-monoblack-border text-white font-mono text-base px-6 py-4 focus:border-white focus:outline-none"
+            >
+            <button 
+              type="submit" 
+              id="dnsSubmitBtn"
+              class="bg-white text-black hover:bg-neutral-200 font-black font-boxy uppercase tracking-wider px-8 py-4 text-base transition flex items-center justify-center gap-3"
+            >
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>AUDITAR DNS</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="dnsLoader" class="hidden text-center py-8 font-mono text-xs text-neutral-400 uppercase tracking-wider">
+          <i class="fa-solid fa-spinner fa-spin text-xl text-white mb-2"></i>
+          <div>Consultando servidores DNS-over-HTTPS...</div>
+        </div>
+
+        <div id="dnsResultBox" class="hidden space-y-6 pt-4 border-t-2 border-monoblack-border">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-monoblack-950 p-6 border-2 border-monoblack-border">
+            <div>
+              <div class="text-xs uppercase font-bold text-neutral-400 font-mono">DOMÍNIO ANALISADO</div>
+              <div id="dnsResultDomain" class="text-2xl font-black text-white font-boxy">DOMINIO.COM</div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div>
+                <div class="text-xs uppercase font-bold text-neutral-400 font-mono text-right">SCORE EMAIL</div>
+                <div id="dnsScoreVal" class="text-3xl font-black text-white font-boxy">0/100</div>
+              </div>
+              <div id="dnsStatusBadge" class="px-4 py-2 bg-green-500 text-black font-black text-xs font-boxy uppercase">
+                SEGURO
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="dnsCardsGrid">
+            <!-- Cards SPF, DMARC, DNSSEC injetados via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- VIEW 4: OPEN INFOSEC ENCYCLOPEDIA (MONOCHROME CARDS)          -->
     <!-- ============================================================= -->
     <div id="wikiSection" class="hidden space-y-10">
       
@@ -690,25 +949,29 @@
     let currentSnippets = [];
     let currentActiveTab = 0;
     let rawKnowledgeItems = [];
+    let currentAuditData = null;
 
     function switchView(viewName) {
-      const scannerSec = document.getElementById('scannerSection');
-      const wikiSec = document.getElementById('wikiSection');
-      const navScanner = document.getElementById('navScannerBtn');
-      const navWiki = document.getElementById('navWikiBtn');
+      const views = {
+        scanner: { sec: document.getElementById('scannerSection'), btn: document.getElementById('navScannerBtn') },
+        playground: { sec: document.getElementById('playgroundSection'), btn: document.getElementById('navPlaygroundBtn') },
+        dns: { sec: document.getElementById('dnsSection'), btn: document.getElementById('navDnsBtn') },
+        wiki: { sec: document.getElementById('wikiSection'), btn: document.getElementById('navWikiBtn') },
+      };
 
-      if (viewName === 'wiki') {
-        scannerSec.classList.add('hidden');
-        wikiSec.classList.remove('hidden');
-        navWiki.className = "px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
-        navScanner.className = "px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
-        if (rawKnowledgeItems.length === 0) loadKnowledgeBase();
-      } else {
-        wikiSec.classList.add('hidden');
-        scannerSec.classList.remove('hidden');
-        navScanner.className = "px-5 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
-        navWiki.className = "px-5 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
+      for (const [key, item] of Object.entries(views)) {
+        if (!item.sec || !item.btn) continue;
+        if (key === viewName) {
+          item.sec.classList.remove('hidden');
+          item.btn.className = "px-4 py-2 bg-white text-black font-black text-xs uppercase tracking-wider transition shadow-sm";
+        } else {
+          item.sec.classList.add('hidden');
+          item.btn.className = "px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition";
+        }
       }
+
+      if (viewName === 'wiki' && rawKnowledgeItems.length === 0) loadKnowledgeBase();
+      if (viewName === 'playground') buildCspPreview();
     }
 
     async function loadKnowledgeBase() {
@@ -1106,7 +1369,266 @@
       currentSnippets = data.remediationSnippets || [];
       renderTabs();
 
+      // Atualiza Badge do GitHub e dados para exportação
+      currentAuditData = data;
+      const safeGrade = encodeURIComponent(data.grade || 'A+');
+      const safeScore = encodeURIComponent(String(data.score || 100));
+      const badgeImg = document.getElementById('liveBadgePreview');
+      if (badgeImg) badgeImg.src = `/api/badge?grade=${safeGrade}&score=${safeScore}`;
+      
+      const badgeInput = document.getElementById('badgeMarkdownInput');
+      if (badgeInput) {
+        badgeInput.value = `[![ObsidianSec Security Grade](https://obsidiansec.dev/api/badge?grade=${safeGrade}&score=${safeScore})](https://obsidiansec.dev)`;
+      }
+
       document.getElementById('auditResult').classList.remove('hidden');
+    }
+
+    function copyBadgeMarkdown() {
+      const input = document.getElementById('badgeMarkdownInput');
+      if (!input) return;
+      navigator.clipboard.writeText(input.value);
+      alert("Badge Markdown copiada com sucesso para a área de transferência!");
+    }
+
+    function exportReportMarkdown() {
+      if (!currentAuditData) {
+        alert("Realize uma auditoria primeiro para exportar o relatório.");
+        return;
+      }
+
+      const d = currentAuditData;
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      let md = `# RELATÓRIO EXECUTIVO DE AUDITORIA DE SEGURANÇA & BORDA // OBSIDIANSEC 2026\n\n`;
+      md += `**Alvo:** \`${d.url}\`\n`;
+      md += `**Data da Auditoria:** \`${dateStr}\`\n`;
+      md += `**Nota Final:** **GRADE ${d.grade} (${d.score}/100)**\n`;
+      md += `**Servidor / CDN Identificado:** \`${d.serverDetected}\`\n\n`;
+      md += `---\n\n`;
+      md += `## 1. Sumário Executivo para a Liderança (C-Level / CISO)\n\n`;
+      md += `${d.gradeVerdict}\n\n`;
+      if (d.attackChain?.riskSummary) {
+        md += `> **Cadeia de Ataque:** ${d.attackChain.riskSummary}\n\n`;
+      }
+      md += `## 2. Controles de Segurança de Borda Avaliados\n\n`;
+      const earned = d.scoreBreakdown?.earned || [];
+      const missed = d.scoreBreakdown?.missed || [];
+      if (earned.length > 0) {
+        md += `### ✅ Controles Ativos (+${d.score} Pts)\n`;
+        earned.forEach(item => {
+          md += `- **${item.control}** (+${item.points} pts): ${item.explanation}\n`;
+        });
+        md += `\n`;
+      }
+      if (missed.length > 0) {
+        md += `### ⚠️ Brechas Identificadas & Recomendações\n`;
+        missed.forEach(item => {
+          md += `- **${item.control}** (-${item.lostPoints} pts): ${item.risk}\n  - *Ação Requerida:* ${item.lesson}\n`;
+        });
+        md += `\n`;
+      }
+      if (currentSnippets.length > 0) {
+        md += `## 3. Patches Defensivos Prontos para Merge\n\n`;
+        currentSnippets.forEach(s => {
+          md += `### Configuração para ${s.serverType}\n\`\`\`\n${s.snippet}\n\`\`\`\n\n`;
+        });
+      }
+      md += `---\n*Gerado automaticamente pelo ObsidianSec - Open-Source DevSecOps Defense System.*`;
+
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `obsidiansec-relatorio-${d.url.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // =================================================================
+    // PLAYGROUND DE ENTROPIA SHANNON & GERADOR CSP
+    // =================================================================
+    function updateEntropyCalculator() {
+      const val = document.getElementById('entropyInput').value || '';
+      if (!val) {
+        document.getElementById('entropyBitsVal').innerText = "0 BITS";
+        document.getElementById('entropyStrengthVal').innerText = "VAZIA";
+        document.getElementById('entropyStrengthVal').className = "text-sm font-black text-red-400 uppercase";
+        document.getElementById('entropyCrackTimeVal').innerText = "Instantâneo (0s)";
+        return;
+      }
+
+      let pool = 0;
+      if (/[a-z]/.test(val)) pool += 26;
+      if (/[A-Z]/.test(val)) pool += 26;
+      if (/[0-9]/.test(val)) pool += 10;
+      if (/[^a-zA-Z0-9]/.test(val)) pool += 33;
+
+      const bits = Math.round(val.length * Math.log2(pool || 1));
+      document.getElementById('entropyBitsVal').innerText = `${bits} BITS`;
+
+      let strength = "MUITO FRACA";
+      let colorClass = "text-red-500";
+      let crackTime = "Instantâneo (< 1 segundo)";
+
+      if (bits >= 90) {
+        strength = "NÍVEL MILITAR (FORTE)";
+        colorClass = "text-green-400";
+        crackTime = "Centenas de Milênios em Cluster GPU";
+      } else if (bits >= 65) {
+        strength = "FORTE / SEGURO";
+        colorClass = "text-green-400";
+        crackTime = "Vários Séculos em Cluster GPU";
+      } else if (bits >= 45) {
+        strength = "MODERADA";
+        colorClass = "text-yellow-400";
+        crackTime = "Alguns Dias / Meses em GPU Cluster";
+      }
+
+      const strEl = document.getElementById('entropyStrengthVal');
+      strEl.innerText = strength;
+      strEl.className = `text-sm font-black ${colorClass} uppercase`;
+      document.getElementById('entropyCrackTimeVal').innerText = crackTime;
+    }
+
+    function buildCspPreview() {
+      const fonts = document.getElementById('cspFonts')?.checked;
+      const analytics = document.getElementById('cspAnalytics')?.checked;
+      const stripe = document.getElementById('cspStripe')?.checked;
+      const cf = document.getElementById('cspCloudflare')?.checked;
+      const imgData = document.getElementById('cspImagesData')?.checked;
+      const ws = document.getElementById('cspWebSocket')?.checked;
+
+      let defaultSrc = "'self'";
+      let scriptSrc = ["'self'"];
+      let styleSrc = ["'self'", "'unsafe-inline'"];
+      let fontSrc = ["'self'"];
+      let imgSrc = ["'self'"];
+      let connectSrc = ["'self'"];
+      let frameSrc = ["'none'"];
+
+      if (fonts) {
+        styleSrc.push("https://fonts.googleapis.com");
+        fontSrc.push("https://fonts.gstatic.com");
+      }
+      if (analytics) {
+        scriptSrc.push("https://www.googletagmanager.com", "https://www.google-analytics.com");
+        connectSrc.push("https://www.google-analytics.com");
+      }
+      if (stripe) {
+        scriptSrc.push("https://js.stripe.com");
+        frameSrc = ["https://js.stripe.com"];
+      }
+      if (cf) {
+        scriptSrc.push("https://static.cloudflareinsights.com");
+        connectSrc.push("https://cloudflareinsights.com");
+      }
+      if (imgData) {
+        imgSrc.push("data:", "https:");
+      }
+      if (ws) {
+        connectSrc.push("wss:");
+      }
+
+      const policy = [
+        `default-src ${defaultSrc}`,
+        `script-src ${scriptSrc.join(' ')}`,
+        `style-src ${styleSrc.join(' ')}`,
+        `font-src ${fontSrc.join(' ')}`,
+        `img-src ${imgSrc.join(' ')}`,
+        `connect-src ${connectSrc.join(' ')}`,
+        `frame-src ${frameSrc.join(' ')}`,
+        `object-src 'none'`,
+        `base-uri 'self'`,
+        `form-action 'self'`,
+        `frame-ancestors 'none'`,
+        `upgrade-insecure-requests`
+      ].join('; ');
+
+      const box = document.getElementById('cspOutputBox');
+      if (box) box.value = `Content-Security-Policy: ${policy};`;
+    }
+
+    function copyGeneratedCsp() {
+      const box = document.getElementById('cspOutputBox');
+      if (!box) return;
+      navigator.clipboard.writeText(box.value);
+      alert("Diretiva CSP copiada para a área de transferência!");
+    }
+
+    // =================================================================
+    // AUDITORIA DE DNS & EMAIL ANTI-PHISHING
+    // =================================================================
+    async function handleDnsAuditSubmit(e) {
+      e.preventDefault();
+      const domain = document.getElementById('dnsTargetDomain').value.trim();
+      if (!domain) return;
+
+      const loader = document.getElementById('dnsLoader');
+      const resultBox = document.getElementById('dnsResultBox');
+      const submitBtn = document.getElementById('dnsSubmitBtn');
+
+      loader.classList.remove('hidden');
+      resultBox.classList.add('hidden');
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/dns?domain=${encodeURIComponent(domain)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Falha ao auditar DNS.");
+
+        document.getElementById('dnsResultDomain').innerText = data.domain.toUpperCase();
+        document.getElementById('dnsScoreVal').innerText = `${data.emailScore}/100`;
+
+        const badge = document.getElementById('dnsStatusBadge');
+        badge.innerText = data.status;
+        if (data.status === 'SECURE') {
+          badge.className = "px-4 py-2 bg-green-500 text-black font-black text-xs font-boxy uppercase shadow-md shadow-green-500/20";
+        } else if (data.status === 'WARNING') {
+          badge.className = "px-4 py-2 bg-yellow-400 text-black font-black text-xs font-boxy uppercase shadow-md shadow-yellow-400/20";
+        } else {
+          badge.className = "px-4 py-2 bg-red-500 text-white font-black text-xs font-boxy uppercase shadow-md shadow-red-500/20";
+        }
+
+        const grid = document.getElementById('dnsCardsGrid');
+        grid.innerHTML = `
+          <!-- SPF CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.spf.isCompliant ? 'border-green-500/80' : 'border-red-500/80'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">SPF (SENDER POLICY)</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.spf.present ? 'bg-green-500 text-black' : 'bg-red-500 text-white'} uppercase">${data.spf.present ? 'ATIVO (' + data.spf.qualifier + ')' : 'AUSENTE'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.spf.present ? escapeHtml(data.spf.rawRecord) : 'Nenhum registro SPF configurado. Vulnerável a spoofing.'}</p>
+          </div>
+
+          <!-- DMARC CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.dmarc.isEnforcing ? 'border-green-500/80' : 'border-yellow-500/80'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">DMARC POLICY</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.dmarc.isEnforcing ? 'bg-green-500 text-black' : 'bg-yellow-400 text-black'} uppercase">${data.dmarc.present ? 'p=' + data.dmarc.policy : 'AUSENTE'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.dmarc.present ? escapeHtml(data.dmarc.rawRecord) : 'Nenhum registro DMARC configurado em _dmarc.'}</p>
+          </div>
+
+          <!-- DNSSEC CARD -->
+          <div class="brutal-card p-5 space-y-3 ${data.dnssecActive ? 'border-green-500/80' : 'border-neutral-800'}">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white font-boxy text-sm">DNSSEC (INTEGRIDADE)</span>
+              <span class="px-2 py-0.5 text-[10px] font-black ${data.dnssecActive ? 'bg-green-500 text-black' : 'bg-neutral-800 text-neutral-400'} uppercase">${data.dnssecActive ? 'ATIVO' : 'DESATIVADO'}</span>
+            </div>
+            <p class="text-xs text-neutral-300 font-sans">${data.dnssecActive ? 'Zonas DNS assinadas criptograficamente.' : 'Sem assinatura de zona DS detectada.'}</p>
+          </div>
+        `;
+
+        resultBox.classList.remove('hidden');
+      } catch (err) {
+        alert(`Erro na auditoria DNS: ${err.message}`);
+      } finally {
+        loader.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
     }
 
     function renderTabs() {

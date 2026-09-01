@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "ObsidianSec - DevSecOps Platform & Defense Encyclopedia",
   "type": "module",
+  "bin": {
+    "obsidiansec": "./bin/cli.mjs"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
