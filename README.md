@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/obsidiansec.svg?color=10b981&style=for-the-badge)](https://www.npmjs.com/package/obsidiansec)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Tests: 142 Passed](https://img.shields.io/badge/Tests-142%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
+[![Tests: 152 Passed](https://img.shields.io/badge/Tests-152%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
 [![CVSS: 0.0](https://img.shields.io/badge/Quality%20Gate-CVSS%200.0%20(Secure)-black.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
 
 **The Autonomous Edge Defense, DevSecOps Quality Gate & Anti-Phishing CLI.**  
@@ -25,22 +25,28 @@ npx obsidiansec audit https://your-website.com
 # 🛑 2. Use as a CI/CD Quality Gate (Fails build if security grade < A)
 npx obsidiansec audit https://staging.your-website.com --min-grade=A
 
-# 🔐 3. Scan local project directory for leaked secrets (.env, AWS, OpenAI, Stripe, SSH keys)
+# 🛡️ 3. Detect Web Application Firewall (Cloudflare, AWS WAF, ModSecurity, Imperva)
+npx obsidiansec waf https://your-website.com
+
+# 🚪 4. Audit 12 critical TCP ports & database exposure (Redis, MongoDB, MySQL, Postgres, RDP)
+npx obsidiansec ports your-server-ip-or-domain
+
+# 🔐 5. Scan local project directory for leaked secrets (.env, AWS, OpenAI, Stripe, SSH keys)
 npx obsidiansec scan-dir ./
 
-# 🎟️ 4. Audit and decode JWT token (detects alg: none, expiration & secret strength)
+# 🎟️ 6. Audit and decode JWT token (detects alg: none, expiration & secret strength)
 npx obsidiansec jwt <your-jwt-token>
 
-# 🌐 5. Passive Subdomain Reconnaissance via Certificate Transparency (crt.sh)
+# 🌐 7. Passive Subdomain Reconnaissance via Certificate Transparency (crt.sh)
 npx obsidiansec subdomains your-domain.com
 
-# 📧 6. Inspect DNS, Email Anti-Phishing & Spoofing (SPF, DMARC, DNSSEC)
+# 📧 8. Inspect DNS, Email Anti-Phishing & Spoofing (SPF, DMARC, DNSSEC)
 npx obsidiansec dns your-domain.com
 
-# 🔑 7. Calculate Shannon password entropy and GPU crack time (Hashcat model)
+# 🔑 9. Calculate Shannon password entropy and GPU crack time (Hashcat model)
 npx obsidiansec entropy "YourPasswordHere"
 
-# 📊 8. Output structured JSON for automation & Slack/Discord webhooks
+# 📊 10. Output structured JSON for automation & Slack/Discord webhooks
 npx obsidiansec audit https://your-website.com --json
 ```
 

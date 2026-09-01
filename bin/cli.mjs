@@ -5,6 +5,8 @@ import { scanDirectoryForSecrets } from "../src/lib/security/local-secret-scanne
 import { auditJwtToken } from "../src/lib/security/jwt-token-analyzer.ts";
 import { discoverSubdomains } from "../src/lib/security/subdomain-recon-analyzer.ts";
 import { calculatePasswordEntropy } from "../src/lib/security/crypto-entropy-analyzer.ts";
+import { detectWaf } from "../src/lib/security/waf-detector-analyzer.ts";
+import { scanHostCriticalPorts } from "../src/lib/security/tcp-port-scanner.ts";
 
 const args = process.argv.slice(2);
 const command = args[0] || "help";
@@ -288,6 +290,94 @@ async function runEntropy() {
   console.log(`\n======================================================================\n`);
 }
 
+async function runWaf() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec waf <url>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🛡️  Inspecionando assinaturas de WAF e Firewall de Borda para ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await detectWaf(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(0);
+  }
+
+  const statusColor = report.detected ? ANSI.green : ANSI.yellow;
+
+  console.log(`======================================================================`);
+  console.log(`📊 DETECTOR DE WAF // WEB APPLICATION FIREWALL (WAFW00F ENGINE)`);
+  console.log(`======================================================================`);
+  console.log(`• Alvo:                ${report.targetUrl}`);
+  console.log(`• Status do WAF:       ${statusColor}${ANSI.bold}${report.detected ? "ATIVO & DETECTADO" : "NÃO DETECTADO"}${ANSI.reset}`);
+  console.log(`• Firewall / Shield:   ${ANSI.bold}${report.wafName}${ANSI.reset}`);
+  console.log(`• Fabricante / Vendor: ${report.vendor}`);
+  console.log(`• Nível de Confiança:  ${report.confidence}`);
+  console.log(`• Fase de Detecção:    ${report.detectionPhase}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`• Recomendação:        ${report.recommendation}`);
+  console.log(`======================================================================\n`);
+
+  if (report.indicators.length > 0) {
+    console.log(`🔍 EVIDÊNCIAS E ASSINATURAS IDENTIFICADAS:`);
+    report.indicators.forEach((ind) => console.log(`  ${ANSI.cyan}•${ANSI.reset} ${ind}`));
+  }
+
+  console.log(`\n======================================================================\n`);
+}
+
+async function runPorts() {
+  const host = args[1];
+  if (!host) {
+    console.error(`${ANSI.red}❌ Erro: Host / IP alvo não especificado.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec ports <host>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🚪 [Nmap Engine] Auditando 12 portas críticas e caçando bancos de dados em ${ANSI.bold}${host}${ANSI.reset}...\n`);
+
+  const report = await scanHostCriticalPorts(host);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
+  }
+
+  const verdictColor = report.overallVerdict === "SECURE" ? ANSI.green : report.overallVerdict === "WARNING" ? ANSI.yellow : ANSI.red;
+
+  console.log(`======================================================================`);
+  console.log(`📊 RELATÓRIO DE AUDITORIA DE PORTAS CRÍTICAS & SERVIÇOS EXPOSTOS`);
+  console.log(`======================================================================`);
+  console.log(`• Host Auditado:       ${report.targetHost}`);
+  console.log(`• Portas Analisadas:   ${report.totalScanned}`);
+  console.log(`• Portas Abertas:      ${report.openCount > 0 ? ANSI.yellow + report.openCount : ANSI.green + "0"}${ANSI.reset}`);
+  console.log(`• Exposição Crítica:   ${report.criticalExposuresCount > 0 ? ANSI.red + report.criticalExposuresCount + " (RISCO GRAVE)" : ANSI.green + "0 (LIMPO)"}${ANSI.reset}`);
+  console.log(`• Diagnóstico:         ${verdictColor}${ANSI.bold}${report.overallVerdict}${ANSI.reset}`);
+  console.log(`• Duração:             ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  console.log(`📋 RESULTADO POR PORTA AUDITADA:`);
+  report.results.forEach((r) => {
+    const statusBadge = r.status === "OPEN" ? ANSI.red + "[OPEN]" : r.status === "FILTERED" ? ANSI.green + "[FILTERED]" : ANSI.gray + "[CLOSED]";
+    console.log(`  ${statusBadge}${ANSI.reset} ${ANSI.bold}Porta ${r.port}/TCP${ANSI.reset} - ${r.service} (${r.responseTimeMs}ms)`);
+    if (r.status === "OPEN" && (r.riskLevel === "CRITICAL" || r.riskLevel === "HIGH")) {
+      console.log(`      ⚠️  ${ANSI.red}${ANSI.bold}RISCO:${ANSI.reset} ${r.exposureRisk}`);
+      console.log(`      💡 ${ANSI.cyan}Mitigação:${ANSI.reset} ${r.mitigation}`);
+    }
+  });
+
+  console.log(`\n======================================================================\n`);
+  process.exit(report.overallVerdict === "CRITICAL" ? 1 : 0);
+}
+
 function printHelp() {
   printBanner();
   console.log(`Arsenal de Comandos Disponíveis:
@@ -296,6 +386,10 @@ function printHelp() {
     Opções:
       --min-grade=<A|B|C>         Define a nota mínima para o Quality Gate de CI/CD (padrão: B)
       --json                      Retorna o relatório completo em formato JSON
+
+  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (Cloudflare, AWS WAF, ModSecurity, Imperva)
+
+  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de portas TCP críticas (Redis, MongoDB, MySQL, Postgres, RDP, Telnet)
 
   ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Caçador de segredos & SAST local (AWS, OpenAI, Stripe, .env, chaves privadas)
   
@@ -314,6 +408,15 @@ function printHelp() {
 switch (command) {
   case "audit":
     runAudit();
+    break;
+  case "waf":
+  case "firewall":
+    runWaf();
+    break;
+  case "ports":
+  case "port-scan":
+  case "nmap":
+    runPorts();
     break;
   case "dns":
     runDns();
@@ -336,7 +439,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.1.0");
+    console.log("ObsidianSec CLI v1.2.0");
     break;
   default:
     printHelp();
