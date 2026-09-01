@@ -204,6 +204,14 @@
             <i class="fa-solid fa-envelope-shield mr-1.5"></i> DNS & EMAIL
           </button>
           <button 
+            onclick="switchView('cli')" 
+            id="navCliBtn"
+            class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-terminal mr-1"></i> CLI & NPM
+            <span class="px-1.5 py-0.5 text-[9px] bg-green-500 text-black font-black uppercase">v1.2.2</span>
+          </button>
+          <button 
             onclick="switchView('wiki')" 
             id="navWikiBtn"
             class="px-4 py-2 text-neutral-400 hover:text-white font-bold text-xs uppercase tracking-wider transition"
@@ -212,10 +220,22 @@
           </button>
         </div>
 
-        <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
-          <i class="fa-solid fa-scale-balanced"></i>
-          <span>LGPD</span>
-        </button>
+        <div class="flex items-center gap-3">
+          <a 
+            href="https://www.npmjs.com/package/obsidiansec" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="hidden sm:flex hover:bg-white hover:text-black text-white font-bold transition items-center gap-2 border-2 border-green-500/80 px-3 py-2 text-xs uppercase bg-monoblack-900"
+          >
+            <i class="fa-brands fa-npm text-red-500 text-sm"></i>
+            <span>NPM PACKAGE</span>
+          </a>
+
+          <button onclick="openTermsModal()" class="flex hover:bg-white hover:text-black text-neutral-300 font-bold transition items-center gap-2 border-2 border-monoblack-border px-4 py-2 text-xs uppercase bg-monoblack-900">
+            <i class="fa-solid fa-scale-balanced"></i>
+            <span>LGPD</span>
+          </button>
+        </div>
       </div>
 
     </div>
@@ -248,6 +268,30 @@
         <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans font-medium leading-relaxed">
           Inspecione cabeçalhos de rede, descubra o diagnóstico técnico e gere patches defensivos em preto e branco prontos para merge na sua infraestrutura.
         </p>
+
+        <!-- NPX QUICK EXECUTION CALLOUT -->
+        <div class="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs font-mono">
+          <div class="flex items-center gap-2 bg-monoblack-900 border-2 border-monoblack-border px-4 py-2 text-neutral-300">
+            <i class="fa-solid fa-terminal text-green-400"></i>
+            <span class="text-neutral-400">CLI:</span>
+            <code class="text-green-400 font-bold">npx obsidiansec audit https://seusite.com</code>
+            <button 
+              type="button" 
+              onclick="copyNpxCommand('npx obsidiansec audit https://seusite.com')" 
+              class="ml-2 px-2 py-0.5 bg-white text-black hover:bg-neutral-200 font-boxy font-black uppercase text-[10px] transition"
+            >
+              COPIAR
+            </button>
+          </div>
+
+          <button 
+            type="button" 
+            onclick="switchView('cli')" 
+            class="px-4 py-2 border-2 border-white hover:bg-white hover:text-black font-boxy font-bold uppercase transition text-xs tracking-wider"
+          >
+            VER ARSENAL CLI (8 COMANDOS) ➔
+          </button>
+        </div>
       </div>
 
       <!-- SCANNER SEARCH CONSOLE -->
@@ -803,6 +847,221 @@
 
     </div>
 
+    <!-- ============================================================= -->
+    <!-- VIEW 4: ARSENAL DEVSECOPS & NPM CLI                           -->
+    <!-- ============================================================= -->
+    <div id="cliSection" class="hidden space-y-10">
+
+      <!-- HERO BANNER CLI -->
+      <div class="text-center space-y-4 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-monoblack-900 border-2 border-monoblack-border text-white text-xs font-mono font-bold uppercase tracking-widest">
+          <i class="fa-solid fa-terminal text-green-400"></i>
+          <span>DEVSECOPS ARSENAL & CLI OFFICIAL RELEASE</span>
+        </div>
+
+        <h2 class="text-4xl sm:text-6xl font-boxy font-black text-white uppercase leading-none">
+          OBSIDIANSEC NO SEU TERMINAL <br>
+          <span class="text-green-400">& PIPELINES DE CI/CD</span>
+        </h2>
+
+        <p class="text-neutral-300 text-base sm:text-lg max-w-3xl mx-auto font-sans leading-relaxed">
+          Execute auditorias de borda, caça a segredos vazados no código, detector de WAF, scanner de portas e verificação de phishing diretamente na sua máquina ou no GitHub Actions.
+        </p>
+
+        <!-- BADGES ROW -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <a href="https://www.npmjs.com/package/obsidiansec" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/npm/v/obsidiansec.svg?color=10b981&style=for-the-badge" alt="npm version">
+          </a>
+          <img src="https://img.shields.io/badge/Tests-152%20Passed%20(100%25)-10b981.svg?style=for-the-badge" alt="Tests passed">
+          <img src="https://img.shields.io/badge/Quality%20Gate-CVSS%200.0-black.svg?style=for-the-badge" alt="Quality gate">
+          <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License">
+        </div>
+      </div>
+
+      <!-- 3 ACCESS METHOD CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono">
+        <!-- CARD 1: NPX INSTANT -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-green-500/80 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-green-500 text-black font-black text-xs font-boxy uppercase">01. ZERO SETUP</span>
+              <i class="fa-solid fa-bolt text-green-400"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">EXECUTE VIA NPX</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Sem precisar instalar nada. O Node.js baixa em memória e executa a versão mais recente em 1 segundo.
+            </p>
+          </div>
+          <div class="space-y-2 pt-2">
+            <div class="bg-black border border-monoblack-border p-3 text-xs text-green-400 font-bold overflow-x-auto flex items-center justify-between">
+              <code>npx obsidiansec audit &lt;url&gt;</code>
+              <button onclick="copyNpxCommand('npx obsidiansec audit https://seusite.com')" class="text-white hover:text-green-400 text-xs uppercase transition ml-2"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: GLOBAL INSTALL -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-monoblack-border flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-white text-black font-black text-xs font-boxy uppercase">02. INSTALAÇÃO GLOBAL</span>
+              <i class="fa-solid fa-download text-neutral-400"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">DISPONÍVEL NO PATH</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Instale uma única vez na sua máquina para ter o comando <code class="text-white">obsidiansec</code> disponível globalmente.
+            </p>
+          </div>
+          <div class="space-y-2 pt-2">
+            <div class="bg-black border border-monoblack-border p-3 text-xs text-neutral-300 font-bold overflow-x-auto flex items-center justify-between">
+              <code>npm install -g obsidiansec</code>
+              <button onclick="copyNpxCommand('npm install -g obsidiansec')" class="text-white hover:text-green-400 text-xs uppercase transition ml-2"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: NPM REGISTRY -->
+        <div class="brutal-card p-6 space-y-4 border-2 border-red-500/80 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 bg-red-600 text-white font-black text-xs font-boxy uppercase">03. REGISTRO OFICIAL</span>
+              <i class="fa-brands fa-npm text-red-500 text-lg"></i>
+            </div>
+            <h3 class="text-lg font-boxy font-black text-white uppercase">PÁGINA NO NPMJS.COM</h3>
+            <p class="text-xs text-neutral-300 font-sans leading-relaxed">
+              Consulte a documentação completa, estatísticas de downloads e releases públicos no registro oficial do NPM.
+            </p>
+          </div>
+          <div class="pt-2">
+            <a 
+              href="https://www.npmjs.com/package/obsidiansec" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-boxy font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition"
+            >
+              <span>ACESSAR NPMJS.COM</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARSENAL INTERATIVO: 8 COMANDOS DA CLI -->
+      <div class="brutal-card corner-mark p-8 sm:p-10 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-monoblack-border pb-4 gap-2">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 bg-white inline-block"></span>
+            <h3 class="text-xl font-boxy font-black text-white uppercase tracking-wider">ARSENAL DE 8 COMANDOS DE SEGURANÇA</h3>
+          </div>
+          <span class="text-xs font-mono text-neutral-400 uppercase">CLIQUE NO COMANDO PARA VER O USO & SIMULAÇÃO</span>
+        </div>
+
+        <!-- COMMAND SELECTOR BUTTONS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono font-bold" id="cliCommandTabs">
+          <button onclick="selectCliCommand('audit')" id="cliTab_audit" class="p-3 bg-white text-black font-black uppercase text-left transition border-2 border-white">
+            <div class="text-[10px] text-neutral-600">01. BORDA & CSP</div>
+            <div>audit &lt;url&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('waf')" id="cliTab_waf" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">02. FIREWALL</div>
+            <div>waf &lt;url&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('ports')" id="cliTab_ports" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">03. NMAP / PORTAS</div>
+            <div>ports &lt;host&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('scandir')" id="cliTab_scandir" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">04. SAST & SEGREDOS</div>
+            <div>scan-dir [dir]</div>
+          </button>
+          <button onclick="selectCliCommand('jwt')" id="cliTab_jwt" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">05. AUDITOR JWT</div>
+            <div>jwt &lt;token&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('subs')" id="cliTab_subs" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">06. SUBDOMÍNIOS</div>
+            <div>subdomains &lt;dom&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('dns')" id="cliTab_dns" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">07. ANTI-PHISHING</div>
+            <div>dns &lt;dominio&gt;</div>
+          </button>
+          <button onclick="selectCliCommand('entropy')" id="cliTab_entropy" class="p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border">
+            <div class="text-[10px] text-neutral-400">08. HASHCAT GPU</div>
+            <div>entropy &lt;senha&gt;</div>
+          </button>
+        </div>
+
+        <!-- COMMAND DETAIL VIEWPORT -->
+        <div class="space-y-4 pt-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
+            <div>
+              <span class="text-neutral-400 font-bold uppercase">DESCRIÇÃO:</span>
+              <span id="cliDetailDescription" class="text-white font-bold ml-2">Audita cabeçalhos de borda, cookies, CORS e MITRE attack chain.</span>
+            </div>
+            <button onclick="copyCurrentCliCommand()" class="px-4 py-2 bg-white text-black hover:bg-neutral-200 font-boxy font-black uppercase text-xs transition flex items-center gap-2">
+              <i class="fa-regular fa-copy"></i>
+              <span id="cliCopyBtnText">COPIAR COMANDO</span>
+            </button>
+          </div>
+
+          <!-- TERMINAL CODE BOX -->
+          <div class="mono-code-box p-6 font-mono text-sm leading-relaxed overflow-x-auto border-2 border-white/40">
+            <div class="text-neutral-400 text-xs mb-3 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span>
+              <span class="w-2.5 h-2.5 bg-yellow-500 rounded-full inline-block"></span>
+              <span class="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+              <span class="text-neutral-500 ml-2">terminal — bash / zsh / cmd</span>
+            </div>
+            <pre id="cliTerminalPreview" class="text-green-400 font-mono text-xs sm:text-sm whitespace-pre-wrap"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- CI/CD QUALITY GATE GITHUB ACTIONS SNIPPET -->
+      <div class="brutal-card p-8 sm:p-10 space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-monoblack-border pb-4">
+          <div class="flex items-center gap-3">
+            <i class="fa-brands fa-github text-2xl text-white"></i>
+            <div>
+              <h3 class="text-xl font-boxy font-black text-white uppercase">TRAVA AUTOMÁTICA EM CI/CD (GITHUB ACTIONS)</h3>
+              <p class="text-xs font-mono text-neutral-400">Bloqueie Pull Requests com nota de segurança inferior a "A" antes do deploy</p>
+            </div>
+          </div>
+          <button onclick="copyGithubActionsYaml()" class="px-4 py-2 bg-white text-black hover:bg-neutral-200 font-boxy font-black text-xs uppercase tracking-wider transition">
+            COPIAR YAML
+          </button>
+        </div>
+
+        <div class="mono-code-box p-6 font-mono text-xs sm:text-sm overflow-x-auto text-neutral-200">
+<pre id="githubActionsYaml">name: ObsidianSec DevSecOps Quality Gate
+
+on: [push, pull_request]
+
+jobs:
+  security-audit:
+    name: Tactical Edge & Secret Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Secret & SAST Scan
+        run: npx obsidiansec scan-dir ./
+
+      - name: Run Live Edge Quality Gate
+        run: npx obsidiansec audit https://staging.myapp.com --min-grade=A</pre>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- ================================================================= -->
@@ -956,6 +1215,7 @@
         scanner: { sec: document.getElementById('scannerSection'), btn: document.getElementById('navScannerBtn') },
         playground: { sec: document.getElementById('playgroundSection'), btn: document.getElementById('navPlaygroundBtn') },
         dns: { sec: document.getElementById('dnsSection'), btn: document.getElementById('navDnsBtn') },
+        cli: { sec: document.getElementById('cliSection'), btn: document.getElementById('navCliBtn') },
         wiki: { sec: document.getElementById('wikiSection'), btn: document.getElementById('navWikiBtn') },
       };
 
@@ -972,6 +1232,266 @@
 
       if (viewName === 'wiki' && rawKnowledgeItems.length === 0) loadKnowledgeBase();
       if (viewName === 'playground') buildCspPreview();
+      if (viewName === 'cli') selectCliCommand('audit');
+    }
+
+    // =================================================================
+    // ARSENAL INTERATIVO DA CLI & NPM
+    // =================================================================
+    let currentCliKey = 'audit';
+    const cliCommandsData = {
+      audit: {
+        cmd: 'npx obsidiansec audit https://meusite.com --min-grade=A',
+        desc: 'Audita cabeçalhos de borda (CSP, HSTS, X-Frame-Options), cookies HttpOnly/Secure, matriz CORS e gera grafo MITRE ATT&CK.',
+        sim: `$ npx obsidiansec audit https://staging.myapp.com --min-grade=A
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 [1/2] Disparando sondagem tática de borda em https://staging.myapp.com...
+
+======================================================================
+📊 RESULTADO DA AUDITORIA DE SEGURANÇA
+======================================================================
+• Alvo Auditado:           https://staging.myapp.com
+• Servidor / Borda:        cloudflare
+• Score de Blindagem:      95 / 100
+• Nota Final:              GRADE A+
+• Status:                  SEGURO
+• Cadeia de Ataque:        Zero Kill Chain Vulnerabilities
+======================================================================
+
+🛡️  CONTROLES DE BORDA:
+  [✓] Content-Security-Policy (CSP)
+  [✓] X-Frame-Options (Anti-Clickjacking)
+  [✓] Strict-Transport-Security (HSTS)
+  [✓] X-Content-Type-Options (nosniff)
+  [✓] Permissions-Policy
+
+✅ [CI/CD Quality Gate]: Aprovado com sucesso! O deploy atende aos requisitos de segurança.`
+      },
+      waf: {
+        cmd: 'npx obsidiansec waf https://meusite.com',
+        desc: 'Inspeciona e detecta em tempo real a presença de Cloudflare WAF, AWS WAF, ModSecurity, Imperva, Akamai, Azure WAF ou F5.',
+        sim: `$ npx obsidiansec waf https://cloudflare.com
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🛡️  Inspecionando assinaturas de WAF e Firewall de Borda para https://cloudflare.com...
+
+======================================================================
+📊 DETECTOR DE WAF // WEB APPLICATION FIREWALL (WAFW00F ENGINE)
+======================================================================
+• Alvo:                https://cloudflare.com
+• Status do WAF:       ATIVO & DETECTADO
+• Firewall / Shield:   Cloudflare Web Application Firewall
+• Fabricante / Vendor: Cloudflare, Inc.
+• Nível de Confiança:  HIGH
+• Fase de Detecção:    PASSIVE
+• Duração:             523ms
+• Recomendação:        WAF ativo e monitorando requisições de borda.
+======================================================================
+
+🔍 EVIDÊNCIAS E ASSINATURAS IDENTIFICADAS:
+  • Cabeçalho identificador: 'server: cloudflare'
+  • Cabeçalho identificador: 'cf-ray: a3465d01783701ab-GRU'
+  • Cabeçalho identificador: 'cf-cache-status: HIT'`
+      },
+      ports: {
+        cmd: 'npx obsidiansec ports 1.1.1.1',
+        desc: 'Audita 12 portas TCP críticas e emite alerta imediato caso bancos (Redis, MongoDB, MySQL, Postgres) estejam expostos para o mundo.',
+        sim: `$ npx obsidiansec ports 1.1.1.1
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🚪 [Nmap Engine] Auditando 12 portas críticas e caçando bancos de dados em 1.1.1.1...
+
+======================================================================
+📊 RELATÓRIO DE AUDITORIA DE PORTAS CRÍTICAS & SERVIÇOS EXPOSTOS
+======================================================================
+• Host Auditado:       1.1.1.1
+• Portas Analisadas:   12
+• Portas Abertas:      3
+• Exposição Crítica:   0 (LIMPO)
+• Diagnóstico:         SECURE
+• Duração:             1517ms
+======================================================================
+
+📋 RESULTADO POR PORTA AUDITADA:
+  [FILTERED] Porta 21/TCP - FTP (File Transfer Protocol)
+  [FILTERED] Porta 22/TCP - SSH (Secure Shell)
+  [FILTERED] Porta 23/TCP - Telnet (Terminal Remoto Legado)
+  [OPEN] Porta 80/TCP - HTTP (Web Server) (9ms)
+  [OPEN] Porta 443/TCP - HTTPS (Web Seguro) (9ms)
+  [FILTERED] Porta 3306/TCP - MySQL Database
+  [FILTERED] Porta 3389/TCP - RDP Windows
+  [FILTERED] Porta 5432/TCP - PostgreSQL Database
+  [FILTERED] Porta 6379/TCP - Redis Cache
+  [OPEN] Porta 8080/TCP - HTTP-Alt / Dev Server (10ms)
+  [FILTERED] Porta 9200/TCP - Elasticsearch REST API
+  [FILTERED] Porta 27017/TCP - MongoDB NoSQL Database`
+      },
+      scandir: {
+        cmd: 'npx obsidiansec scan-dir ./',
+        desc: 'Caçador de segredos e SAST local: varre o projeto em busca de chaves OpenAI, AWS, Stripe, GitHub, .env e senhas hardcoded.',
+        sim: `$ npx obsidiansec scan-dir ./
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 Varrendo arquivos e caçando segredos em ./...
+
+======================================================================
+📊 RELATÓRIO DO CAÇADOR DE SEGREDOS & SAST LOCAL
+======================================================================
+• Arquivos Analisados:     118
+• Duração:                 214ms
+• Vulnerabilidades:        0 (LIMPO)
+• Críticas:                0
+• Altas:                   0
+======================================================================
+
+✅ [SAST Gate]: Nenhum segredo ou credencial vazada detectada no código!`
+      },
+      jwt: {
+        cmd: 'npx obsidiansec jwt <seu-token-jwt>',
+        desc: 'Auditor & Decodificador de JWT: detecta a brecha crítica alg: none, expiração ausente (tokens infinitos) e vazamento de PII.',
+        sim: `$ npx obsidiansec jwt eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🎟️ AUDITORIA DE SEGURANÇA DE TOKEN JWT
+
+• Algoritmo:           NONE
+• Score de Segurança:  15 / 100
+• Status:              CRITICAL
+• Assinatura Presente: NÃO (alg: none)
+• Expiração:           SEM EXPIRAÇÃO
+
+📜 HEADER DECODIFICADO:
+{
+  "alg": "none",
+  "typ": "JWT"
+}
+
+⚠️  RISCOS DETECTADOS:
+  [CRITICAL] Vulnerabilidade Crítica 'alg: none': Token sem assinatura criptográfica, permitindo forja irrestrita de identidade.
+  [HIGH] Ausência do claim 'exp' (Token Infinito).`
+      },
+      subs: {
+        cmd: 'npx obsidiansec subdomains github.com',
+        desc: 'Descoberta passiva de subdomínios expostos via Certificate Transparency (crt.sh) sem enviar pacotes invasivos.',
+        sim: `$ npx obsidiansec subdomains github.com
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🌐 Buscando subdomínios via Certificate Transparency Logs para github.com...
+
+======================================================================
+📊 SUPERFÍCIE DE ATAQUE PASSIVA (SUBDOMÍNIOS)
+======================================================================
+• Domínio Alvo:        github.com
+• Total Descoberto:    117 subdomínios únicos
+• Fonte:               Certificate Transparency Logs (crt.sh)
+• Duração:             2840ms
+======================================================================
+
+  • api.github.com
+  • api.security.github.com
+  • classroom.github.com
+  • codespaces.github.com
+  • docs.github.com
+  • enterprise.github.com
+  • raw.github.com
+  • status.github.com`
+      },
+      dns: {
+        cmd: 'npx obsidiansec dns meudominio.com',
+        desc: 'Inspeciona políticas anti-phishing de e-mail: SPF (-all), DMARC (p=reject) e assinatura de integridade DNSSEC.',
+        sim: `$ npx obsidiansec dns gov.br
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔍 Consultando registros DNS e Anti-Phishing para gov.br...
+
+• Domínio:             gov.br
+• Score de Email:      95 / 100
+• Status:              SEGURO
+• SPF:                 ATIVO (-all)
+• DMARC:               ATIVO (p=reject)
+• DNSSEC:              ATIVO`
+      },
+      entropy: {
+        cmd: 'npx obsidiansec entropy "Trator#Azul$9876"',
+        desc: 'Calcula bits de Shannon e tempo estimado de quebra em cluster de placas de vídeo RTX 4090 (modelo Hashcat).',
+        sim: `$ npx obsidiansec entropy "Trator#Azul$9876"
+
+╔══════════════════════════════════════════════════════════════════════╗
+║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+🔑 CALCULADORA DE ENTROPIA SHANNON & HASHCAT
+
+• Tamanho da Senha:    15 caracteres
+• Bits de Entropia:    95 bits
+• Charset Estimado:    85 símbolos
+• Nível de Força:      VERY_STRONG
+• Tempo Estimado GPU:  Milhões de anos (Cluster RTX 4090 / Hashcat)`
+      }
+    };
+
+    function selectCliCommand(key) {
+      currentCliKey = key;
+      const data = cliCommandsData[key];
+      if (!data) return;
+
+      const tabIds = ['audit', 'waf', 'ports', 'scandir', 'jwt', 'subs', 'dns', 'entropy'];
+      tabIds.forEach(id => {
+        const btn = document.getElementById(`cliTab_${id}`);
+        if (!btn) return;
+        if (id === key) {
+          btn.className = "p-3 bg-white text-black font-black uppercase text-left transition border-2 border-white shadow-md";
+        } else {
+          btn.className = "p-3 bg-monoblack-900 hover:bg-neutral-800 text-white uppercase text-left transition border-2 border-monoblack-border";
+        }
+      });
+
+      document.getElementById('cliDetailDescription').innerText = data.desc;
+      document.getElementById('cliTerminalPreview').innerText = data.sim;
+      document.getElementById('cliCopyBtnText').innerText = "COPIAR COMANDO";
+    }
+
+    function copyCurrentCliCommand() {
+      const data = cliCommandsData[currentCliKey];
+      if (!data) return;
+      navigator.clipboard.writeText(data.cmd);
+      const btn = document.getElementById('cliCopyBtnText');
+      btn.innerText = "COPIADO!";
+      setTimeout(() => { btn.innerText = "COPIAR COMANDO"; }, 2000);
+    }
+
+    function copyNpxCommand(cmd) {
+      navigator.clipboard.writeText(cmd);
+      alert(`Comando copiado:\n${cmd}`);
+    }
+
+    function copyGithubActionsYaml() {
+      const el = document.getElementById('githubActionsYaml');
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText);
+      alert("Workflow do GitHub Actions copiado para a área de transferência!");
     }
 
     async function loadKnowledgeBase() {
