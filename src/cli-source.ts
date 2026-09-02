@@ -23,7 +23,7 @@ import {
   triggerBackgroundUpdateCheck,
 } from "./lib/security/index.ts";
 
-const CLI_VERSION = "1.4.0";
+const CLI_VERSION = "1.4.1";
 const args = process.argv.slice(2);
 const command = args[0] || "help";
 
@@ -772,7 +772,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.4.0");
+    console.log("ObsidianSec CLI v1.4.1");
     break;
   default:
     printHelp();

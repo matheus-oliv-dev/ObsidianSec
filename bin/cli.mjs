@@ -2044,7 +2044,7 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
 import fs3 from "node:fs";
 import path3 from "node:path";
 var DEFAULT_OBSIDIAN_CONFIG = {
-  version: "1.4.0",
+  version: "1.4.1",
   scope: {
     allowlist: [],
     blocklist: ["*.gov.br", "*.mil.br", "*.jus.br"],
@@ -2661,7 +2661,7 @@ function mapSeverityToSarifLevel(severity) {
       return "note";
   }
 }
-function convertSecretReportToSarif(report, version = "1.4.0") {
+function convertSecretReportToSarif(report, version = "1.4.1") {
   const ruleMap = /* @__PURE__ */ new Map();
   const results = [];
   for (const finding of report.findings) {
@@ -3050,7 +3050,7 @@ async function checkCliUpdate(currentVersion, options) {
 }
 
 // src/cli-source.ts
-var CLI_VERSION = "1.4.0";
+var CLI_VERSION = "1.4.1";
 var args = process.argv.slice(2);
 var command = args[0] || "help";
 var ANSI = {
@@ -3749,7 +3749,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.4.0");
+    console.log("ObsidianSec CLI v1.4.1");
     break;
   default:
     printHelp();
