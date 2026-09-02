@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
 import { auditUniversalEndpoint } from "./scanner/universal-web-scanner.ts";
 import {
   auditDomainDnsSecurity,
@@ -15,6 +17,8 @@ import {
   fingerprintTechStack,
   analyzeHttpMethods,
   detectOpenRedirects,
+  convertSecretReportToSarif,
+  generateHtmlSecurityReport,
 } from "./lib/security/index.ts";
 
 const args = process.argv.slice(2);
@@ -88,6 +92,16 @@ async function runAudit() {
     else if (score >= 70) grade = "A";
     else if (score >= 50) grade = "B";
     else if (score >= 30) grade = "C";
+
+    const isHtml = args.includes("--html") || args.includes("--report=html") || args.some((a) => a.startsWith("--html="));
+    const htmlArg = args.find((a) => a.startsWith("--html="));
+    const htmlPath = htmlArg ? htmlArg.split("=")[1] : "obsidiansec-report.html";
+
+    if (isHtml) {
+      const htmlContent = generateHtmlSecurityReport(report, score, grade);
+      fs.writeFileSync(path.resolve(process.cwd(), htmlPath), htmlContent, "utf-8");
+      console.log(`\n${ANSI.green}📄 Relatório Executivo HTML gerado com sucesso em:${ANSI.reset} ${htmlPath}`);
+    }
 
     if (isJson) {
       console.log(JSON.stringify({ ...report, score, grade }, null, 2));
@@ -168,17 +182,45 @@ async function runDns() {
 }
 
 async function runScanDir() {
-  const dirInput = args[1] || process.cwd();
-  const isJson = args.includes("--json");
+  const dirInput = args.find((a) => !a.startsWith("-") && a !== "scan-dir" && a !== "scan" && a !== "sast") || process.cwd();
+  const isJson = args.includes("--json") || args.some((a) => a.startsWith("--format=json"));
+  const isSarif = args.includes("--sarif") || args.some((a) => a.startsWith("--format=sarif"));
+  const outputArg = args.find((a) => a.startsWith("--output=") || a.startsWith("-o="));
+  const outputPath = outputArg ? outputArg.split("=")[1] : null;
 
-  if (!isJson) printBanner();
-  if (!isJson) console.log(`🔍 Varrendo arquivos e caçando segredos em ${ANSI.bold}${dirInput}${ANSI.reset}...\n`);
+  if (!isJson && !isSarif) printBanner();
+  if (!isJson && !isSarif) console.log(`🔍 Varrendo arquivos e caçando segredos em ${ANSI.bold}${dirInput}${ANSI.reset}...\n`);
 
   const report = scanDirectoryForSecrets(dirInput);
 
-  if (isJson) {
-    console.log(JSON.stringify(report, null, 2));
+  // Exportação SARIF v2.1.0 para GitHub Code Scanning / SonarQube
+  if (isSarif) {
+    const sarifDoc = convertSecretReportToSarif(report);
+    const serialized = JSON.stringify(sarifDoc, null, 2);
+
+    if (outputPath) {
+      fs.writeFileSync(path.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      console.log(`${ANSI.green}✅ Relatório SARIF v2.1.0 gerado com sucesso em:${ANSI.reset} ${outputPath}`);
+    } else {
+      console.log(serialized);
+    }
     process.exit(report.isClean ? 0 : 1);
+  }
+
+  if (isJson) {
+    const serialized = JSON.stringify(report, null, 2);
+    if (outputPath) {
+      fs.writeFileSync(path.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      console.log(`${ANSI.green}✅ Relatório JSON salvo em:${ANSI.reset} ${outputPath}`);
+    } else {
+      console.log(serialized);
+    }
+    process.exit(report.isClean ? 0 : 1);
+  }
+
+  if (outputPath) {
+    fs.writeFileSync(path.resolve(process.cwd(), outputPath), JSON.stringify(report, null, 2), "utf-8");
+    console.log(`${ANSI.green}📁 Cópia do relatório salva em:${ANSI.reset} ${outputPath}\n`);
   }
 
   console.log(`======================================================================`);

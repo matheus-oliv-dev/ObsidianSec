@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// src/cli-source.ts
+import fs4 from "node:fs";
+import path4 from "node:path";
+
 // src/agents/polyglot/detector.ts
 function detectRemoteTechStack(headers) {
   const getH = (name) => (headers.get(name) || "").toLowerCase();
@@ -800,8 +804,63 @@ function calculatePasswordEntropy(password) {
 }
 
 // src/lib/security/local-secret-scanner.ts
+import fs2 from "node:fs";
+import path2 from "node:path";
+
+// src/lib/security/custom-rule-loader.ts
 import fs from "node:fs";
 import path from "node:path";
+function compileCustomRules(definitions) {
+  const compiled = [];
+  for (const def of definitions) {
+    if (!def.id || !def.pattern || !def.description) continue;
+    try {
+      const regex = new RegExp(def.pattern, def.flags || "");
+      compiled.push({
+        id: def.id,
+        category: def.category || "API_KEY",
+        description: def.description,
+        regex,
+        severity: def.severity || "HIGH"
+      });
+    } catch (err) {
+      console.warn(`[RULES] Aviso: Padr\xE3o regex inv\xE1lido na regra customizada '${def.id}': ${err.message}`);
+    }
+  }
+  return compiled;
+}
+function loadCustomSecurityRules(targetDir = process.cwd()) {
+  const rulesJsonPath = path.resolve(targetDir, "obsidiansec.rules.json");
+  const configJsonPath = path.resolve(targetDir, "obsidiansec.config.json");
+  try {
+    if (fs.existsSync(rulesJsonPath)) {
+      const raw = fs.readFileSync(rulesJsonPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : parsed.rules || [];
+      return compileCustomRules(list);
+    }
+  } catch (err) {
+    console.warn(`[RULES] Aviso: Falha ao ler ${rulesJsonPath}: ${err.message}`);
+  }
+  try {
+    if (fs.existsSync(configJsonPath)) {
+      const raw = fs.readFileSync(configJsonPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.customRules)) {
+        return compileCustomRules(parsed.customRules);
+      }
+    }
+  } catch {
+  }
+  return [];
+}
+function mergeSecretPatterns(basePatterns, customPatterns) {
+  const customIds = new Set(customPatterns.map((p) => p.id));
+  const filteredBase = basePatterns.filter((p) => !customIds.has(p.id));
+  return [...filteredBase, ...customPatterns];
+}
+
+// src/lib/security/local-secret-scanner.ts
 var SECRET_PATTERNS = [
   // ═══════════════════════════════════════════════════════════════
   // CLOUD PROVIDERS (AWS, GCP, Azure)
@@ -1204,27 +1263,29 @@ function redactSecret(match) {
   if (match.length <= 8) return "********";
   return match.slice(0, 4) + "..." + match.slice(-4);
 }
-function scanDirectoryForSecrets(targetDir, maxFiles = 1e3) {
+function scanDirectoryForSecrets(targetDir, maxFiles = 1e3, options) {
   const startTime = Date.now();
   const findings = [];
   let filesCount = 0;
+  const custom = options?.customPatterns || loadCustomSecurityRules(targetDir);
+  const activePatterns = custom.length > 0 ? mergeSecretPatterns(SECRET_PATTERNS, custom) : SECRET_PATTERNS;
   function walk(currentDir, depth = 0) {
     if (depth > 6 || filesCount >= maxFiles) return;
     let entries = [];
     try {
-      entries = fs.readdirSync(currentDir, { withFileTypes: true });
+      entries = fs2.readdirSync(currentDir, { withFileTypes: true });
     } catch {
       return;
     }
     for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      const relPath = path.relative(targetDir, fullPath);
+      const fullPath = path2.join(currentDir, entry.name);
+      const relPath = path2.relative(targetDir, fullPath);
       if (entry.isDirectory()) {
         if (!IGNORED_DIRS.has(entry.name) && !entry.name.startsWith(".gemini")) {
           walk(fullPath, depth + 1);
         }
       } else if (entry.isFile()) {
-        const ext = path.extname(entry.name).toLowerCase();
+        const ext = path2.extname(entry.name).toLowerCase();
         if (IGNORED_EXTENSIONS.has(ext)) continue;
         filesCount++;
         if (SENSITIVE_FILENAMES.includes(entry.name)) {
@@ -1239,13 +1300,13 @@ function scanDirectoryForSecrets(targetDir, maxFiles = 1e3) {
           });
         }
         try {
-          const stat = fs.statSync(fullPath);
+          const stat = fs2.statSync(fullPath);
           if (stat.size > 1024 * 500) continue;
-          const content = fs.readFileSync(fullPath, "utf-8");
+          const content = fs2.readFileSync(fullPath, "utf-8");
           const lines = content.split("\n");
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            for (const pattern of SECRET_PATTERNS) {
+            for (const pattern of activePatterns) {
               const match = line.match(pattern.regex);
               if (match) {
                 const rawMatch = match[1] || match[0];
@@ -1980,8 +2041,8 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
 }
 
 // src/lib/config/obsidian-config.ts
-import fs2 from "node:fs";
-import path2 from "node:path";
+import fs3 from "node:fs";
+import path3 from "node:path";
 var DEFAULT_OBSIDIAN_CONFIG = {
   version: "1.3.1",
   scope: {
@@ -1997,10 +2058,10 @@ var DEFAULT_OBSIDIAN_CONFIG = {
   }
 };
 function loadObsidianConfig(customPath) {
-  const configPath = customPath || path2.resolve(process.cwd(), "obsidiansec.config.json");
+  const configPath = customPath || path3.resolve(process.cwd(), "obsidiansec.config.json");
   try {
-    if (fs2.existsSync(configPath)) {
-      const raw = fs2.readFileSync(configPath, "utf-8");
+    if (fs3.existsSync(configPath)) {
+      const raw = fs3.readFileSync(configPath, "utf-8");
       const parsed = JSON.parse(raw);
       return {
         version: parsed.version || DEFAULT_OBSIDIAN_CONFIG.version,
@@ -2020,7 +2081,7 @@ function loadObsidianConfig(customPath) {
   return { ...DEFAULT_OBSIDIAN_CONFIG };
 }
 function generateDefaultConfigFile(targetDir = process.cwd()) {
-  const targetPath = path2.resolve(targetDir, "obsidiansec.config.json");
+  const targetPath = path3.resolve(targetDir, "obsidiansec.config.json");
   const template = {
     "$schema": "https://obsidiansec.dev/schema.json",
     "version": "1.2.2",
@@ -2045,7 +2106,7 @@ function generateDefaultConfigFile(targetDir = process.cwd()) {
       "cacheTtlHours": 72
     }
   };
-  fs2.writeFileSync(targetPath, JSON.stringify(template, null, 2), "utf-8");
+  fs3.writeFileSync(targetPath, JSON.stringify(template, null, 2), "utf-8");
   return targetPath;
 }
 
@@ -2587,6 +2648,303 @@ async function detectOpenRedirects(targetUrl) {
   };
 }
 
+// src/lib/security/sarif-formatter.ts
+function mapSeverityToSarifLevel(severity) {
+  switch (severity) {
+    case "CRITICAL":
+    case "HIGH":
+      return "error";
+    case "MEDIUM":
+      return "warning";
+    case "LOW":
+    default:
+      return "note";
+  }
+}
+function convertSecretReportToSarif(report, version = "1.3.1") {
+  const ruleMap = /* @__PURE__ */ new Map();
+  const results = [];
+  for (const finding of report.findings) {
+    const level = mapSeverityToSarifLevel(finding.severity);
+    if (!ruleMap.has(finding.ruleId)) {
+      ruleMap.set(finding.ruleId, {
+        id: finding.ruleId,
+        name: finding.category,
+        shortDescription: {
+          text: finding.description
+        },
+        defaultConfiguration: {
+          level
+        },
+        helpUri: "https://obsidiansec.dev/docs/rules/" + finding.ruleId
+      });
+    }
+    results.push({
+      ruleId: finding.ruleId,
+      level,
+      message: {
+        text: `${finding.description} detected in ${finding.filePath}:${finding.lineNumber}`
+      },
+      locations: [
+        {
+          physicalLocation: {
+            artifactLocation: {
+              uri: finding.filePath.replace(/\\/g, "/")
+            },
+            region: {
+              startLine: finding.lineNumber || 1,
+              snippet: {
+                text: finding.snippet
+              }
+            }
+          }
+        }
+      ]
+    });
+  }
+  return {
+    $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+    version: "2.1.0",
+    runs: [
+      {
+        tool: {
+          driver: {
+            name: "ObsidianSec",
+            version,
+            informationUri: "https://obsidiansec.dev",
+            rules: Array.from(ruleMap.values())
+          }
+        },
+        results
+      }
+    ]
+  };
+}
+
+// src/lib/security/html-report-generator.ts
+function generateHtmlSecurityReport(report, score, grade) {
+  const gradeColor = grade === "A+" || grade === "A" ? "#10b981" : grade === "B" ? "#eab308" : grade === "C" ? "#f97316" : "#ef4444";
+  const dateStr = (/* @__PURE__ */ new Date()).toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "medium"
+  });
+  const headers = [
+    {
+      name: "Content-Security-Policy (CSP)",
+      present: report.securityHeaders.csp.present,
+      value: report.securityHeaders.csp.value,
+      desc: "XSS & code injection defense"
+    },
+    {
+      name: "Strict-Transport-Security (HSTS)",
+      present: report.securityHeaders.hsts.present,
+      value: report.securityHeaders.hsts.value,
+      desc: "Forces HTTPS encryption (RFC 6797)"
+    },
+    {
+      name: "X-Frame-Options",
+      present: report.securityHeaders.xFrameOptions.present,
+      value: report.securityHeaders.xFrameOptions.value,
+      desc: "Zero-clickjacking defense"
+    },
+    {
+      name: "X-Content-Type-Options",
+      present: report.securityHeaders.xContentTypeOptions.present,
+      value: report.securityHeaders.xContentTypeOptions.value,
+      desc: "MIME sniffing protection (nosniff)"
+    },
+    {
+      name: "Permissions-Policy",
+      present: report.securityHeaders.permissionsPolicy.present,
+      value: report.securityHeaders.permissionsPolicy.value,
+      desc: "Camera, microphone & geolocation lockdown"
+    },
+    {
+      name: "Referrer-Policy",
+      present: report.securityHeaders.referrerPolicy.present,
+      value: report.securityHeaders.referrerPolicy.value,
+      desc: "URL credential leakage prevention"
+    }
+  ];
+  const headerRows = headers.map((h) => {
+    const statusBadge = h.present ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">ACTIVE</span>` : `<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">MISSING</span>`;
+    return `
+        <tr style="border-bottom: 1px solid #27272a;">
+          <td style="padding: 12px; font-weight: 600;">${h.name}</td>
+          <td style="padding: 12px; color: #a1a1aa; font-size: 12px;">${h.desc}</td>
+          <td style="padding: 12px;">${statusBadge}</td>
+          <td style="padding: 12px; font-family: monospace; font-size: 11px; color: #d4d4d8; max-width: 300px; word-break: break-all;">
+            ${h.value ? h.value.slice(0, 100) + (h.value.length > 100 ? "..." : "") : "\u2014"}
+          </td>
+        </tr>
+      `;
+  }).join("");
+  const remediationCards = report.remediationSnippets.map(
+    (snip) => `
+      <div style="background: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 14px; margin-bottom: 12px;">
+        <div style="font-weight: 600; color: #38bdf8; font-size: 13px; margin-bottom: 6px;">\u{1F527} ${snip.serverType}</div>
+        <pre style="background: #09090b; padding: 10px; border-radius: 6px; color: #a1a1aa; font-family: monospace; font-size: 11px; overflow-x: auto; margin: 0;"><code>${snip.snippet}</code></pre>
+      </div>
+    `
+  ).join("");
+  const attackNodes = report.attackChain.nodes.map(
+    (node) => `
+      <div style="background: #18181b; border-left: 3px solid ${node.type === "ENTRY_POINT" ? "#ef4444" : node.type === "IMPACT" ? "#dc2626" : "#f97316"}; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 8px;">
+        <div style="font-weight: 600; font-size: 12px; color: #fafafa;">${node.label}</div>
+        <div style="font-size: 11px; color: #a1a1aa;">${node.description}</div>
+        ${node.mitreTechnique ? `<span style="display: inline-block; margin-top: 4px; background: #27272a; color: #38bdf8; font-size: 10px; font-family: monospace; padding: 2px 6px; border-radius: 4px;">MITRE ${node.mitreTechnique}</span>` : ""}
+      </div>
+    `
+  ).join("");
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ObsidianSec Security Audit Report - ${report.targetUrl}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .header-card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .score-badge {
+      background: #09090b;
+      border: 2px solid ${gradeColor};
+      border-radius: 12px;
+      padding: 12px 24px;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .footer {
+      text-align: center;
+      color: #71717a;
+      font-size: 12px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Top Header Card -->
+    <div class="header-card">
+      <div>
+        <div style="font-size: 12px; color: #a1a1aa; letter-spacing: 1px; text-transform: uppercase;">\u{1F6E1}\uFE0F ObsidianSec DevSecOps Arsenal</div>
+        <h1 style="margin: 4px 0 6px 0; font-size: 22px;">Security Audit: <span style="color: #38bdf8;">${report.targetUrl}</span></h1>
+        <div style="font-size: 12px; color: #71717a;">Generated on ${dateStr} \u2022 Status HTTP ${report.httpStatus}</div>
+      </div>
+      <div class="score-badge">
+        <div style="font-size: 11px; color: #a1a1aa; text-transform: uppercase;">Security Grade</div>
+        <div style="font-size: 38px; font-weight: 800; color: ${gradeColor}; line-height: 1.1;">${grade}</div>
+        <div style="font-size: 11px; color: #a1a1aa;">Score: ${score}/100</div>
+      </div>
+    </div>
+
+    <!-- Infrastructure Overview -->
+    <div class="grid">
+      <div class="card">
+        <h2 style="font-size: 15px; margin: 0 0 12px 0; color: #38bdf8;">\u{1F310} Edge & Infrastructure</h2>
+        <div style="font-size: 13px; display: grid; gap: 8px;">
+          <div><strong>Web Server:</strong> <span style="color: #a1a1aa;">${report.serverDetected}</span></div>
+          <div><strong>Framework:</strong> <span style="color: #a1a1aa;">${report.frameworkDetected || "Not Disclosed (Hardened)"}</span></div>
+          <div><strong>CDN / Edge Shield:</strong> <span style="color: #a1a1aa;">${report.cdnOrProxy || "Direct Server Exposure"}</span></div>
+          <div><strong>Version Leakage:</strong> <span style="color: ${report.versionExposed ? "#ef4444" : "#10b981"};">${report.versionExposed ? "\u26A0\uFE0F Version Exposed" : "\u2705 Hidden"}</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size: 15px; margin: 0 0 12px 0; color: #eab308;">\u{1F36A} Session & Cookie Audit</h2>
+        <div style="font-size: 13px; display: grid; gap: 8px;">
+          <div><strong>Cookies Analyzed:</strong> <span style="color: #a1a1aa;">${report.burpInspection.cookies.length}</span></div>
+          <div><strong>CORS Policy:</strong> <span style="color: ${report.burpInspection.cors.severity === "HIGH" ? "#ef4444" : "#10b981"};">${report.burpInspection.cors.severity === "HIGH" ? "\u26A0\uFE0F Insecure / Permissive" : "\u2705 Protected"}</span></div>
+          <div><strong>Wildcard with Credentials:</strong> <span style="color: ${report.burpInspection.cors.hasWildcardWithCredentials ? "#ef4444" : "#10b981"};">${report.burpInspection.cors.hasWildcardWithCredentials ? "CRITICAL RISK" : "None"}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Headers Table -->
+    <div class="card">
+      <h2 style="font-size: 16px; margin: 0 0 16px 0;">\u{1F6E1}\uFE0F Tactical Security Headers Inspection</h2>
+      <table>
+        <thead>
+          <tr style="border-bottom: 2px solid #27272a; text-align: left; color: #71717a; font-size: 11px; text-transform: uppercase;">
+            <th style="padding: 8px 12px;">Header</th>
+            <th style="padding: 8px 12px;">Defense Purpose</th>
+            <th style="padding: 8px 12px;">Status</th>
+            <th style="padding: 8px 12px;">Value Detected</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${headerRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MITRE ATT&CK Chain -->
+    <div class="card">
+      <h2 style="font-size: 16px; margin: 0 0 8px 0; color: #f43f5e;">\u{1F578}\uFE0F BloodHound MITRE ATT&CK Exploitation Graph</h2>
+      <p style="font-size: 12px; color: #a1a1aa; margin: 0 0 16px 0;">How an adversary can pivot missing defensive headers into active session hijacking and account takeover.</p>
+      ${attackNodes}
+    </div>
+
+    <!-- Remediation Patches -->
+    <div class="card">
+      <h2 style="font-size: 16px; margin: 0 0 14px 0; color: #10b981;">\u{1F680} Automated Virtual Patches (Ready to Deploy)</h2>
+      <p style="font-size: 12px; color: #a1a1aa; margin: 0 0 16px 0;">Copy and paste these hardened configuration blocks into your web server or edge proxy to immediately achieve Grade A+.</p>
+      ${remediationCards}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Generated automatically by <strong>ObsidianSec v1.3.1</strong> // The Autonomous DevSecOps & Edge Security Arsenal.<br>
+      <a href="https://github.com/matheus-oliv-dev/ObsidianSec" style="color: #38bdf8; text-decoration: none;">GitHub Repository</a> \u2022 <a href="https://www.npmjs.com/package/obsidiansec" style="color: #38bdf8; text-decoration: none;">NPM Package</a>
+    </div>
+
+  </div>
+</body>
+</html>`;
+}
+
 // src/cli-source.ts
 var args = process.argv.slice(2);
 var command = args[0] || "help";
@@ -2648,6 +3006,15 @@ async function runAudit() {
     else if (score >= 70) grade = "A";
     else if (score >= 50) grade = "B";
     else if (score >= 30) grade = "C";
+    const isHtml = args.includes("--html") || args.includes("--report=html") || args.some((a) => a.startsWith("--html="));
+    const htmlArg = args.find((a) => a.startsWith("--html="));
+    const htmlPath = htmlArg ? htmlArg.split("=")[1] : "obsidiansec-report.html";
+    if (isHtml) {
+      const htmlContent = generateHtmlSecurityReport(report, score, grade);
+      fs4.writeFileSync(path4.resolve(process.cwd(), htmlPath), htmlContent, "utf-8");
+      console.log(`
+${ANSI.green}\u{1F4C4} Relat\xF3rio Executivo HTML gerado com sucesso em:${ANSI.reset} ${htmlPath}`);
+    }
     if (isJson) {
       console.log(JSON.stringify({ ...report, score, grade }, null, 2));
       process.exit(0);
@@ -2729,15 +3096,40 @@ ${ANSI.red}\u274C Falha na auditoria DNS:${ANSI.reset} ${err.message}
   }
 }
 async function runScanDir() {
-  const dirInput = args[1] || process.cwd();
-  const isJson = args.includes("--json");
-  if (!isJson) printBanner();
-  if (!isJson) console.log(`\u{1F50D} Varrendo arquivos e ca\xE7ando segredos em ${ANSI.bold}${dirInput}${ANSI.reset}...
+  const dirInput = args.find((a) => !a.startsWith("-") && a !== "scan-dir" && a !== "scan" && a !== "sast") || process.cwd();
+  const isJson = args.includes("--json") || args.some((a) => a.startsWith("--format=json"));
+  const isSarif = args.includes("--sarif") || args.some((a) => a.startsWith("--format=sarif"));
+  const outputArg = args.find((a) => a.startsWith("--output=") || a.startsWith("-o="));
+  const outputPath = outputArg ? outputArg.split("=")[1] : null;
+  if (!isJson && !isSarif) printBanner();
+  if (!isJson && !isSarif) console.log(`\u{1F50D} Varrendo arquivos e ca\xE7ando segredos em ${ANSI.bold}${dirInput}${ANSI.reset}...
 `);
   const report = scanDirectoryForSecrets(dirInput);
-  if (isJson) {
-    console.log(JSON.stringify(report, null, 2));
+  if (isSarif) {
+    const sarifDoc = convertSecretReportToSarif(report);
+    const serialized = JSON.stringify(sarifDoc, null, 2);
+    if (outputPath) {
+      fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      console.log(`${ANSI.green}\u2705 Relat\xF3rio SARIF v2.1.0 gerado com sucesso em:${ANSI.reset} ${outputPath}`);
+    } else {
+      console.log(serialized);
+    }
     process.exit(report.isClean ? 0 : 1);
+  }
+  if (isJson) {
+    const serialized = JSON.stringify(report, null, 2);
+    if (outputPath) {
+      fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      console.log(`${ANSI.green}\u2705 Relat\xF3rio JSON salvo em:${ANSI.reset} ${outputPath}`);
+    } else {
+      console.log(serialized);
+    }
+    process.exit(report.isClean ? 0 : 1);
+  }
+  if (outputPath) {
+    fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), JSON.stringify(report, null, 2), "utf-8");
+    console.log(`${ANSI.green}\u{1F4C1} C\xF3pia do relat\xF3rio salva em:${ANSI.reset} ${outputPath}
+`);
   }
   console.log(`======================================================================`);
   console.log(`\u{1F4CA} RELAT\xD3RIO DO CA\xC7ADOR DE SEGREDOS & SAST LOCAL`);

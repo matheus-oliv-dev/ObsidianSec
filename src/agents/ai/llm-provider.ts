@@ -19,10 +19,11 @@ export interface LLMProvider {
  * Modelos Ativos Confirmados na sua Conta Google AI Studio (com Rotação Inteligente de Cota)
  */
 export const GEMINI_ACTIVE_MODELS = [
-  "gemini-3-flash-preview",  // Pool 1 (Ultra-rápido ~1.2s)
-  "gemini-3.6-flash",        // Pool 2 (~2.3s)
-  "gemini-3.7-flash",        // Pool 3
-  "gemini-3.5-flash",        // Pool 4
+  "gemini-3.8-flash",        // Pool 1 (Nova geração 2026 - Raciocínio de alta performance)
+  "gemini-3.7-flash",        // Pool 2 (Alta precisão e baixa latência)
+  "gemini-3-flash-preview",  // Pool 3 (Ultra-rápido)
+  "gemini-3.6-flash",        // Pool 4
+  "gemini-3.5-flash",        // Pool 5
 ];
 
 // Contador de Round-Robin para balanceamento de carga entre as cotas

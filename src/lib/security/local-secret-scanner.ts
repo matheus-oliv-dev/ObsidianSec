@@ -9,6 +9,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { loadCustomSecurityRules, mergeSecretPatterns } from "./custom-rule-loader.ts";
 
 export interface SecretFinding {
   ruleId: string;
@@ -31,7 +32,7 @@ export interface SecretScanReport {
   scanDurationMs: number;
 }
 
-interface SecretPattern {
+export interface SecretPattern {
   id: string;
   category: SecretFinding["category"];
   description: string;
@@ -39,7 +40,7 @@ interface SecretPattern {
   severity: SecretFinding["severity"];
 }
 
-const SECRET_PATTERNS: SecretPattern[] = [
+export const SECRET_PATTERNS: SecretPattern[] = [
   // ═══════════════════════════════════════════════════════════════
   // CLOUD PROVIDERS (AWS, GCP, Azure)
   // ═══════════════════════════════════════════════════════════════
@@ -457,10 +458,17 @@ function redactSecret(match: string): string {
   return match.slice(0, 4) + "..." + match.slice(-4);
 }
 
-export function scanDirectoryForSecrets(targetDir: string, maxFiles = 1000): SecretScanReport {
+export function scanDirectoryForSecrets(
+  targetDir: string,
+  maxFiles = 1000,
+  options?: { customPatterns?: SecretPattern[] }
+): SecretScanReport {
   const startTime = Date.now();
   const findings: SecretFinding[] = [];
   let filesCount = 0;
+
+  const custom = options?.customPatterns || loadCustomSecurityRules(targetDir);
+  const activePatterns = custom.length > 0 ? mergeSecretPatterns(SECRET_PATTERNS, custom) : SECRET_PATTERNS;
 
   function walk(currentDir: string, depth = 0) {
     if (depth > 6 || filesCount >= maxFiles) return;
@@ -509,7 +517,7 @@ export function scanDirectoryForSecrets(targetDir: string, maxFiles = 1000): Sec
 
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            for (const pattern of SECRET_PATTERNS) {
+            for (const pattern of activePatterns) {
               const match = line.match(pattern.regex);
               if (match) {
                 const rawMatch = match[1] || match[0];

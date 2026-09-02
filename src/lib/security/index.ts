@@ -24,5 +24,8 @@ export * from "./ssl-tls-analyzer";
 export * from "./tech-fingerprint-analyzer";
 export * from "./http-method-analyzer";
 export * from "./open-redirect-analyzer";
+export * from "./sarif-formatter";
+export * from "./custom-rule-loader";
+export * from "./html-report-generator";
 export * from "../config/obsidian-config";
 export * from "../../agents/ai/token-budget-guard";
