@@ -19,8 +19,11 @@ import {
   detectOpenRedirects,
   convertSecretReportToSarif,
   generateHtmlSecurityReport,
+  checkCachedUpdateSync,
+  triggerBackgroundUpdateCheck,
 } from "./lib/security/index.ts";
 
+const CLI_VERSION = "1.4.0";
 const args = process.argv.slice(2);
 const command = args[0] || "help";
 
@@ -41,6 +44,12 @@ ${ANSI.bold}${ANSI.cyan}╔═════════════════�
 ║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
 ╚══════════════════════════════════════════════════════════════════════╝${ANSI.reset}
 `);
+
+  if (!args.includes("--json") && !args.includes("--sarif") && !args.some((a) => a.startsWith("--format="))) {
+    const cachedUpdate = checkCachedUpdateSync(CLI_VERSION);
+    if (cachedUpdate) console.log(cachedUpdate);
+    triggerBackgroundUpdateCheck(CLI_VERSION);
+  }
 }
 
 async function runAudit() {

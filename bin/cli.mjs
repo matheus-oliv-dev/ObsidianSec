@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // src/cli-source.ts
-import fs4 from "node:fs";
-import path4 from "node:path";
+import fs5 from "node:fs";
+import path5 from "node:path";
 
 // src/agents/polyglot/detector.ts
 function detectRemoteTechStack(headers) {
@@ -2945,7 +2945,112 @@ function generateHtmlSecurityReport(report, score, grade) {
 </html>`;
 }
 
+// src/lib/security/update-notifier.ts
+import fs4 from "node:fs";
+import path4 from "node:path";
+function isNewerVersion(latest, current) {
+  const parse = (v) => v.replace(/^v/, "").split(".").map((n) => parseInt(n, 10) || 0);
+  const [lMaj, lMin, lPatch] = parse(latest);
+  const [cMaj, cMin, cPatch] = parse(current);
+  if (lMaj > cMaj) return true;
+  if (lMaj < cMaj) return false;
+  if (lMin > cMin) return true;
+  if (lMin < cMin) return false;
+  return lPatch > cPatch;
+}
+function formatUpdateNotification(currentVersion, latestVersion) {
+  const ANSI2 = {
+    yellow: "\x1B[33m",
+    cyan: "\x1B[36m",
+    green: "\x1B[32m",
+    bold: "\x1B[1m",
+    reset: "\x1B[0m"
+  };
+  return `${ANSI2.yellow}\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510
+\u2502                                                          \u2502
+\u2502   ${ANSI2.bold}Atualiza\xE7\xE3o dispon\xEDvel:${ANSI2.reset} ${currentVersion} \u2192 ${ANSI2.green}${latestVersion}${ANSI2.reset}${ANSI2.yellow}                \u2502
+\u2502   Execute: ${ANSI2.cyan}npm install -g obsidiansec${ANSI2.reset}${ANSI2.yellow} para atualizar     \u2502
+\u2502                                                          \u2502
+\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518${ANSI2.reset}`;
+}
+function checkCachedUpdateSync(currentVersion, cacheDir) {
+  const dir = cacheDir || path4.resolve(process.cwd(), ".obsidiansec");
+  const cacheFile = path4.join(dir, "version-cache.json");
+  try {
+    if (fs4.existsSync(cacheFile)) {
+      const raw = fs4.readFileSync(cacheFile, "utf-8");
+      const data = JSON.parse(raw);
+      if (data.latestVersion && isNewerVersion(data.latestVersion, currentVersion)) {
+        return formatUpdateNotification(currentVersion, data.latestVersion);
+      }
+    }
+  } catch {
+  }
+  return null;
+}
+function triggerBackgroundUpdateCheck(currentVersion, cacheDir) {
+  const dir = cacheDir || path4.resolve(process.cwd(), ".obsidiansec");
+  const cacheFile = path4.join(dir, "version-cache.json");
+  try {
+    if (fs4.existsSync(cacheFile)) {
+      const raw = fs4.readFileSync(cacheFile, "utf-8");
+      const data = JSON.parse(raw);
+      const isFresh = Date.now() - data.lastChecked < 24 * 60 * 60 * 1e3;
+      if (isFresh) return;
+    }
+  } catch {
+  }
+  checkCliUpdate(currentVersion, { cacheDir: dir, timeoutMs: 1200 }).catch(() => {
+  });
+}
+async function checkCliUpdate(currentVersion, options) {
+  const timeoutMs = options?.timeoutMs ?? 800;
+  const cacheDir = options?.cacheDir || path4.resolve(process.cwd(), ".obsidiansec");
+  const cacheFile = path4.join(cacheDir, "version-cache.json");
+  try {
+    if (fs4.existsSync(cacheFile)) {
+      const raw = fs4.readFileSync(cacheFile, "utf-8");
+      const data = JSON.parse(raw);
+      const isFresh = Date.now() - data.lastChecked < 24 * 60 * 60 * 1e3;
+      if (isFresh && data.latestVersion) {
+        if (isNewerVersion(data.latestVersion, currentVersion)) {
+          return formatUpdateNotification(currentVersion, data.latestVersion);
+        }
+        return null;
+      }
+    }
+  } catch {
+  }
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch("https://registry.npmjs.org/obsidiansec/latest", {
+      signal: controller.signal,
+      headers: { Accept: "application/json" }
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const latestVersion = data.version;
+    try {
+      if (!fs4.existsSync(cacheDir)) fs4.mkdirSync(cacheDir, { recursive: true });
+      fs4.writeFileSync(
+        cacheFile,
+        JSON.stringify({ lastChecked: Date.now(), latestVersion }, null, 2),
+        "utf-8"
+      );
+    } catch {
+    }
+    if (latestVersion && isNewerVersion(latestVersion, currentVersion)) {
+      return formatUpdateNotification(currentVersion, latestVersion);
+    }
+  } catch {
+  }
+  return null;
+}
+
 // src/cli-source.ts
+var CLI_VERSION = "1.4.0";
 var args = process.argv.slice(2);
 var command = args[0] || "help";
 var ANSI = {
@@ -2964,6 +3069,11 @@ ${ANSI.bold}${ANSI.cyan}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u
 \u2551    \u{1F6E1}\uFE0F  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      \u2551
 \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D${ANSI.reset}
 `);
+  if (!args.includes("--json") && !args.includes("--sarif") && !args.some((a) => a.startsWith("--format="))) {
+    const cachedUpdate = checkCachedUpdateSync(CLI_VERSION);
+    if (cachedUpdate) console.log(cachedUpdate);
+    triggerBackgroundUpdateCheck(CLI_VERSION);
+  }
 }
 async function runAudit() {
   const targetUrl = args[1];
@@ -3011,7 +3121,7 @@ async function runAudit() {
     const htmlPath = htmlArg ? htmlArg.split("=")[1] : "obsidiansec-report.html";
     if (isHtml) {
       const htmlContent = generateHtmlSecurityReport(report, score, grade);
-      fs4.writeFileSync(path4.resolve(process.cwd(), htmlPath), htmlContent, "utf-8");
+      fs5.writeFileSync(path5.resolve(process.cwd(), htmlPath), htmlContent, "utf-8");
       console.log(`
 ${ANSI.green}\u{1F4C4} Relat\xF3rio Executivo HTML gerado com sucesso em:${ANSI.reset} ${htmlPath}`);
     }
@@ -3109,7 +3219,7 @@ async function runScanDir() {
     const sarifDoc = convertSecretReportToSarif(report);
     const serialized = JSON.stringify(sarifDoc, null, 2);
     if (outputPath) {
-      fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      fs5.writeFileSync(path5.resolve(process.cwd(), outputPath), serialized, "utf-8");
       console.log(`${ANSI.green}\u2705 Relat\xF3rio SARIF v2.1.0 gerado com sucesso em:${ANSI.reset} ${outputPath}`);
     } else {
       console.log(serialized);
@@ -3119,7 +3229,7 @@ async function runScanDir() {
   if (isJson) {
     const serialized = JSON.stringify(report, null, 2);
     if (outputPath) {
-      fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), serialized, "utf-8");
+      fs5.writeFileSync(path5.resolve(process.cwd(), outputPath), serialized, "utf-8");
       console.log(`${ANSI.green}\u2705 Relat\xF3rio JSON salvo em:${ANSI.reset} ${outputPath}`);
     } else {
       console.log(serialized);
@@ -3127,7 +3237,7 @@ async function runScanDir() {
     process.exit(report.isClean ? 0 : 1);
   }
   if (outputPath) {
-    fs4.writeFileSync(path4.resolve(process.cwd(), outputPath), JSON.stringify(report, null, 2), "utf-8");
+    fs5.writeFileSync(path5.resolve(process.cwd(), outputPath), JSON.stringify(report, null, 2), "utf-8");
     console.log(`${ANSI.green}\u{1F4C1} C\xF3pia do relat\xF3rio salva em:${ANSI.reset} ${outputPath}
 `);
   }
