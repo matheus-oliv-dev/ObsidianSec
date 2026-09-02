@@ -3,25 +3,25 @@ import type { VercelRequest, VercelResponse } from "../src/types/index.ts";
 export const KNOWLEDGE_BASE = [
   {
     id: "nist-zero-trust-architecture",
-    title: "NIST SP 800-207: Arquitetura Zero Trust em Ambientes Web e Cloud",
+    title: "NIST SP 800-207: Zero Trust Architecture in Web and Cloud Environments",
     category: "ZeroTrust",
-    difficulty: "Intermediário",
+    difficulty: "Intermediate",
     frameworks: {
       nist: "NIST SP 800-207",
       mitre: "M1030 (Network Segmentation) & M1035 (Execution Prevention)",
       cis: "CIS Control 6 (Access Control Management)",
     },
     summary:
-      "A premissa fundamental do Zero Trust é 'nunca confiar, sempre verificar'. Em aplicações web e APIs modernas, isso exige autenticação contínua, micro-segmentação de serviços e validação estrita de identidade em cada requisição.",
-    threatMitigated: "Movimentação lateral de invasores pós-comprometimento, roubo de tokens de longa duração e elevação não autorizada de privilégios.",
+      "The foundational premise of Zero Trust is 'never trust, always verify'. In modern web applications and APIs, this requires continuous authentication, micro-segmentation, and strict identity validation per request.",
+    threatMitigated: "Post-compromise lateral movement, long-lived token theft, and unauthorized privilege escalation.",
     mitigations: [
-      "Implementar mTLS (Mutual TLS) entre todos os microserviços e pods.",
-      "Adotar tokens de acesso de curta duração (máximo 5-15 minutos) com rotação criptográfica via DPoP (RFC 9449).",
-      "Segmentar APIs e bancos de dados através de políticas de rede rígidas (Kubernetes NetworkPolicies / AWS Security Groups).",
+      "Implement mTLS (Mutual TLS) across all internal microservices and pods.",
+      "Adopt short-lived access tokens (5-15 minutes max) with cryptographic rotation via DPoP (RFC 9449).",
+      "Segment APIs and databases through strict network policies (Kubernetes NetworkPolicies / AWS Security Groups).",
     ],
     codeExample: {
       language: "typescript",
-      title: "Middleware Zero Trust com Validação Contínua de Contexto",
+      title: "Zero Trust Middleware with Continuous Context Validation",
       code: `export async function zeroTrustContextGuard(req: Request): Promise<boolean> {
   const clientCert = req.headers.get("x-client-cert");
   const deviceFingerprint = req.headers.get("x-device-fingerprint");
@@ -34,23 +34,23 @@ export const KNOWLEDGE_BASE = [
   },
   {
     id: "post-quantum-cryptography",
-    title: "Criptografia Pós-Quântica (PQC): FIPS 203 ML-KEM & Troca de Chaves Híbrida",
+    title: "Post-Quantum Cryptography (PQC): FIPS 203 ML-KEM & Hybrid Key Exchange",
     category: "Cryptography",
-    difficulty: "Avançado",
+    difficulty: "Advanced",
     frameworks: {
       nist: "NIST FIPS 203 (ML-KEM / Kyber) & FIPS 204 (ML-DSA)",
       owasp: "ASVS V6 (Cryptography)",
     },
     summary:
-      "Preparação de sistemas contra a ameaça 'Harvest Now, Decrypt Later' (HNDL), onde invasores interceptam tráfego criptografado hoje para decifrá-lo no futuro com computadores quânticos.",
-    threatMitigated: "Decifração retroativa de comunicações confidenciais e quebra de algoritmos assimétricos clássicos (RSA, ECDH, ECDSA).",
+      "Preparing systems against 'Harvest Now, Decrypt Later' (HNDL) threats, where adversaries intercept encrypted network traffic today to decrypt it using future quantum computers.",
+    threatMitigated: "Retroactive decryption of confidential communications and compromise of classic asymmetric algorithms (RSA, ECDH, ECDSA).",
     mitigations: [
-      "Habilitar suporte a curvas híbridas X25519Kyber768 (ML-KEM-768) no TLS 1.3 em proxies de borda.",
-      "Planejar inventário de criptografia e inventário de algoritmos (Cryptographic Bill of Materials - CBOM).",
+      "Enable hybrid X25519Kyber768 (ML-KEM-768) curve support in TLS 1.3 edge proxies.",
+      "Establish a Cryptographic Bill of Materials (CBOM) to audit algorithms across your infrastructure.",
     ],
     codeExample: {
       language: "nginx",
-      title: "Configuração TLS 1.3 Pós-Quântico no Nginx / Cloudflare",
+      title: "Post-Quantum TLS 1.3 Configuration for Nginx / Cloudflare",
       code: `ssl_protocols TLSv1.3;
 ssl_ciphers TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256;
 ssl_ecdh_curve X25519Kyber768Draft00:X25519:secp256r1;
@@ -59,23 +59,23 @@ ssl_prefer_server_ciphers on;`,
   },
   {
     id: "supply-chain-slsa-sbom",
-    title: "Segurança de Cadeia de Suprimentos: Níveis SLSA & Validação de SBOM (CycloneDX)",
+    title: "Supply Chain Security: SLSA Framework & SBOM Validation (CycloneDX)",
     category: "DevSecOps",
-    difficulty: "Avançado",
+    difficulty: "Advanced",
     frameworks: {
       nist: "NIST SP 800-161r1 (Cybersecurity Supply Chain Risk Management)",
       owasp: "OWASP CycloneDX & Software Component Verification Standard (SCVS)",
     },
     summary:
-      "Mitigação de ataques em dependências de terceiros, pacotes comprometidos, typosquatting e contaminação de pipelines CI/CD.",
-    threatMitigated: "Injeção de backdoors em bibliotecas npm/PyPI, dependency confusion e comprometimento de artefatos de build.",
+      "Defending against third-party dependency compromises, typosquatting attacks, and CI/CD pipeline contamination.",
+    threatMitigated: "Backdoor injection into open-source packages, dependency confusion, and build artifact tampering.",
     mitigations: [
-      "Gerar SBOM automatizado em formato CycloneDX a cada release.",
-      "Assinar artefatos criptograficamente com Sigstore / Cosign no GitHub Actions.",
+      "Generate automated SBOMs in CycloneDX format on every release.",
+      "Cryptographically sign build artifacts with Sigstore / Cosign inside GitHub Actions.",
     ],
     codeExample: {
       language: "yaml",
-      title: "Pipeline GitHub Actions com Geração de SBOM e Cosign",
+      title: "GitHub Actions Pipeline with SBOM Generation and Cosign Signing",
       code: `name: Supply Chain Defense
 on: [push]
 jobs:
@@ -89,24 +89,24 @@ jobs:
   },
   {
     id: "container-hardening-cis",
-    title: "Hardening de Contêineres & Cloud-Native: CIS Benchmark, Seccomp & Rootless",
+    title: "Container & Cloud-Native Hardening: CIS Benchmarks, Seccomp & Rootless",
     category: "CloudNative",
-    difficulty: "Intermediário",
+    difficulty: "Intermediate",
     frameworks: {
       cis: "CIS Docker Benchmark v1.6.0 & CIS Kubernetes Benchmark v1.9.0",
       mitre: "M1047 (Container Sandboxing)",
     },
     summary:
-      "Redução drástica da superfície de ataque em contêineres Docker e pods Kubernetes através do princípio de privilégio mínimo e isolamento de syscalls do Linux.",
-    threatMitigated: "Container Escape (fuga de contêiner para o host), execução de código com privilégios de root e exploração de vulnerabilidades no Kernel.",
+      "Drastically reducing attack surface in Docker containers and Kubernetes pods via least privilege principles and Linux syscall isolation.",
+    threatMitigated: "Container escape to the host node, root privilege execution, and kernel vulnerability exploitation.",
     mitigations: [
-      "Nunca executar processos como root (UID 0) dentro de contêineres.",
-      "Remover todas as Linux Capabilities padrão (CAP_DROP ALL).",
-      "Definir o sistema de arquivos raiz como Somente Leitura (readOnlyRootFilesystem: true).",
+      "Never run processes as root (UID 0) inside production containers.",
+      "Drop all default Linux capabilities (CAP_DROP ALL).",
+      "Mount root filesystem as Read-Only (readOnlyRootFilesystem: true).",
     ],
     codeExample: {
       language: "yaml",
-      title: "SecurityContext Blindado para Kubernetes / Docker Compose",
+      title: "Hardened SecurityContext for Kubernetes Pods",
       code: `securityContext:
   runAsNonRoot: true
   runAsUser: 10001
@@ -122,58 +122,58 @@ jobs:
     id: "browser-trusted-types-csp3",
     title: "Browser Hardening: CSP Level 3 Strict-Dynamic & W3C Trusted Types",
     category: "ApplicationSecurity",
-    difficulty: "Avançado",
+    difficulty: "Advanced",
     frameworks: {
       owasp: "ASVS V14.4 (HTTP Headers)",
       mitre: "D3-EPH (Execution Prevention in Host)",
     },
     summary:
-      "Eliminação de DOM XSS através de políticas de tipos confiáveis (Trusted Types) e CSP com nonces criptográficos e 'strict-dynamic'.",
-    threatMitigated: "Execução de scripts maliciosos em DOM Sinks perigosos (innerHTML, eval, document.write).",
+      "Complete elimination of DOM XSS through W3C Trusted Types policies and CSP with cryptographic nonces and 'strict-dynamic'.",
+    threatMitigated: "Malicious script injection into dangerous DOM sinks (innerHTML, eval, document.write).",
     mitigations: [
-      "Configurar require-trusted-types-for 'script' no Content-Security-Policy.",
-      "Implementar política TrustedHTML com sanitizador DOMPurify.",
+      "Configure require-trusted-types-for 'script' in Content-Security-Policy.",
+      "Implement a TrustedHTML policy using DOMPurify sanitizer.",
     ],
     codeExample: {
       language: "typescript",
-      title: "Criação de Política W3C Trusted Types",
+      title: "Creating a W3C Trusted Types Policy",
       code: `if (window.trustedTypes && window.trustedTypes.createPolicy) {
-  window.trustedTypes.createPolicy("bomberPolicy", {
+  window.trustedTypes.createPolicy("obsidianPolicy", {
     createHTML: (string) => DOMPurify.sanitize(string),
   });
 }`,
     },
   },
   {
-    id: "lgpd-privacy-by-design",
-    title: "LGPD (Lei nº 13.709/2018) & Privacy by Design: Proteção de Dados em Aplicações Web",
+    id: "data-privacy-by-design",
+    title: "Privacy by Design & Data Protection: Compliance in Web Applications",
     category: "Governance",
-    difficulty: "Iniciante",
+    difficulty: "Beginner",
     frameworks: {
       nist: "NIST Privacy Framework v1.0",
       owasp: "ASVS V8 (Data Protection) & OWASP Top 10 Privacy Risks",
       cis: "CIS Control 3 (Data Protection)",
     },
     summary:
-      "Diretrizes práticas para arquitetar sistemas em conformidade com a LGPD: minimização de coleta (Art. 6º, III), anonimização/pseudonimização (Art. 13), criptografia de dados em repouso e trânsito (Art. 46) e logs auditáveis sem vazamento de PII.",
-    threatMitigated: "Vazamento de dados pessoais (PII), infrações administrativas perante a ANPD e multas de até 2% do faturamento.",
+      "Practical guidelines for architecting compliant systems: collection minimization, data pseudonymization/anonymization, encryption at rest/transit, and audit-ready logging without PII leakage.",
+    threatMitigated: "Personally Identifiable Information (PII) leakage, regulatory fines, and unauthorized data harvesting.",
     mitigations: [
-      "Aplicar o princípio de minimização: coletar estritamente os campos essenciais para a regra de negócio.",
-      "Criptografar campos sensíveis com AES-256-GCM antes de persistir no banco.",
-      "Anonimizar dados de analytics e remover IPs ou identificadores pessoais de logs de erro.",
+      "Apply the data minimization principle: collect only fields strictly necessary for the business logic.",
+      "Encrypt sensitive database columns using AES-256-GCM before persisting.",
+      "Anonymize analytics streams and scrub IP addresses or PII from application logs.",
     ],
     codeExample: {
       language: "typescript",
-      title: "Função de Mascaramento e Anonimização de PII para Logs (LGPD)",
-      code: `export function maskPiiForLogging(email: string, cpf?: string): { maskedEmail: string; maskedCpf?: string } {
+      title: "PII Masking and Anonymization Function for Error Logging",
+      code: `export function maskPiiForLogging(email: string, idNumber?: string): { maskedEmail: string; maskedId?: string } {
   const [user, domain] = email.split("@");
   const maskedEmail = user.length > 2 
     ? \`\${user.slice(0, 2)}***@\${domain}\` 
     : \`*@\${domain}\`;
 
-  const maskedCpf = cpf ? cpf.replace(/^(\\d{3})\\.(\\d{3})\\.(\\d{3})-(\\d{2})$/, "$1.***.***-$4") : undefined;
+  const maskedId = idNumber ? idNumber.replace(/^(\\d{3})\\.(\\d{3})\\.(\\d{3})-(\\d{2})$/, "$1.***.***-$4") : undefined;
 
-  return { maskedEmail, maskedCpf };
+  return { maskedEmail, maskedId };
 }`,
     },
   },
@@ -187,7 +187,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
 
   if (req.method !== "GET") {
-    res.status(405).json({ error: "Método não permitido. Use GET." });
+    res.status(405).json({ error: "Method not allowed. Use GET." });
     return;
   }
 

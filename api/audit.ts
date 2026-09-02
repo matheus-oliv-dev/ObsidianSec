@@ -22,9 +22,9 @@ function analyzeSetCookieHeader(cookieStr: string) {
   }
 
   const issues: string[] = [];
-  if (!isHttpOnly) issues.push("Ausência da flag 'HttpOnly'.");
-  if (!isSecure) issues.push("Ausência da flag 'Secure'.");
-  if (sameSite === "Missing" || sameSite === "None") issues.push("Configuração frouxa de SameSite.");
+  if (!isHttpOnly) issues.push("Missing 'HttpOnly' flag.");
+  if (!isSecure) issues.push("Missing 'Secure' flag.");
+  if (sameSite === "Missing" || sameSite === "None") issues.push("Permissive SameSite configuration.");
 
   let severity: "LOW" | "MEDIUM" | "HIGH" | "PASSED" = "PASSED";
   if (!isHttpOnly && !isSecure) severity = "HIGH";
@@ -44,13 +44,13 @@ function analyzeCorsHeaders(headers: Headers) {
 
   if (allowOrigin === "*" && allowCredentials) {
     hasWildcardWithCredentials = true;
-    issues.push("CORS Crítico: 'Access-Control-Allow-Origin: *' combinado com 'Credentials: true'.");
+    issues.push("Critical CORS: 'Access-Control-Allow-Origin: *' combined with 'Credentials: true'.");
   }
   if (allowOrigin === "null") {
-    issues.push("CORS Inseguro: 'Access-Control-Allow-Origin: null' vulnerável a sandboxed iframes.");
+    issues.push("Insecure CORS: 'Access-Control-Allow-Origin: null' vulnerable to sandboxed iframes.");
   }
   if (allowOrigin && allowOrigin !== "*" && !vary.toLowerCase().includes("origin")) {
-    issues.push("Risco de Cache Poisoning: Falta 'Vary: Origin'.");
+    issues.push("Cache Poisoning Risk: Missing 'Vary: Origin'.");
   }
 
   let severity: "LOW" | "MEDIUM" | "HIGH" | "PASSED" = "PASSED";
@@ -85,46 +85,46 @@ function buildAttackChainGraph(targetUrl: string, defenses: {
     nodes.push({
       id: "node-recon-server",
       stage: "RECON",
-      title: "Identificação de Versão de Servidor Web (Server Fingerprinting)",
-      description: "O cabeçalho 'Server' expõe a versão exata do software.",
+      title: "Web Server Version Fingerprinting",
+      description: "The 'Server' header exposes exact software and version information.",
       mitreTechnique: "T1592.002",
     });
-    primaryPath.push("Identificação de Versão");
+    primaryPath.push("Version Fingerprinting");
   }
 
   if (!defenses.hasCsp) {
     nodes.push({
       id: "node-xss-injection",
       stage: "INITIAL_ACCESS",
-      title: "Injeção de Scripts Maliciosos (Cross-Site Scripting - XSS)",
-      description: "A ausência de Content-Security-Policy permite execução irrestrita de scripts.",
+      title: "Malicious Script Injection (Cross-Site Scripting - XSS)",
+      description: "Absence of Content-Security-Policy allows unrestricted script execution.",
       mitreTechnique: "T1189",
     });
-    primaryPath.push("Injeção de Script (XSS)");
-    priorities.push("Configurar Content-Security-Policy (CSP) estrito.");
+    primaryPath.push("Script Injection (XSS)");
+    priorities.push("Configure a strict Content-Security-Policy (CSP).");
   }
 
   if (!defenses.hasCsp && !defenses.hasSecureCookies) {
     nodes.push({
       id: "node-session-hijack",
       stage: "EXECUTION",
-      title: "Exfiltração de Cookies e Sequestro de Sessão (Session Hijacking)",
-      description: "Cookies sem HttpOnly podem ser exfiltrados por scripts maliciosos.",
+      title: "Cookie Exfiltration & Session Hijacking",
+      description: "Cookies lacking HttpOnly can be exfiltrated by malicious client-side scripts.",
       mitreTechnique: "T1539",
     });
-    primaryPath.push("Roubo de Cookie (Session Hijacking)");
-    priorities.push("Habilitar flag HttpOnly em todos os cookies de sessão.");
+    primaryPath.push("Session Hijacking");
+    priorities.push("Enable the HttpOnly flag on all session cookies.");
   }
 
   if (!defenses.hasXFrameOptions) {
     nodes.push({
       id: "node-clickjacking",
       stage: "INITIAL_ACCESS",
-      title: "Sequestro de Interface e Ações Invisíveis (Clickjacking)",
-      description: "Páginas autenticadas podem ser incorporadas em iframes transparentes.",
+      title: "UI Redressing & Invisible Action Hijacking (Clickjacking)",
+      description: "Authenticated pages can be embedded within transparent external iframes.",
       mitreTechnique: "T1204.001",
     });
-    priorities.push("Adicionar 'X-Frame-Options: DENY'.");
+    priorities.push("Add 'X-Frame-Options: DENY'.");
   }
 
   let maxImpactLevel: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" = "LOW";
@@ -132,11 +132,11 @@ function buildAttackChainGraph(targetUrl: string, defenses: {
     nodes.push({
       id: "node-account-takeover",
       stage: "IMPACT",
-      title: "Tomada Completa de Conta (Account Takeover)",
-      description: "Atacante utiliza a sessão roubada para assumir identidade da vítima.",
+      title: "Full Account Takeover",
+      description: "Attacker leverages stolen session credentials to assume victim identity.",
       mitreTechnique: "T1078",
     });
-    primaryPath.push("Comprometimento de Conta");
+    primaryPath.push("Account Takeover");
     maxImpactLevel = "CRITICAL";
   } else if (nodes.some((n) => n.id === "node-xss-injection") || nodes.some((n) => n.id === "node-clickjacking")) {
     maxImpactLevel = "HIGH";
@@ -146,10 +146,10 @@ function buildAttackChainGraph(targetUrl: string, defenses: {
 
   const riskSummary =
     primaryPath.length > 1
-      ? `Cadeia de Ataque Detectada: ${primaryPath.join(" ➔ ")}`
+      ? `Attack Chain Detected: ${primaryPath.join(" ➔ ")}`
       : nodes.length > 0
-        ? `Superfície de Risco Identificada com ${nodes.length} vetores potenciais de invasão.`
-        : "Nenhum vetor crítico de encadeamento de ataque detectado nas camadas de borda.";
+        ? `Risk Surface Identified with ${nodes.length} potential attack vectors.`
+        : "Isolated and hardened perimeter: No exploitable attack paths found.";
 
   return {
     target: targetUrl,
@@ -198,13 +198,13 @@ function validateTargetUrlSafety(targetUrl: string): { safe: boolean; reason?: s
     ) {
       return {
         safe: false,
-        reason: "SSRF Shield: Acesso a redes internas e loopback bloqueado por segurança.",
+        reason: "SSRF Shield: Access to internal networks and loopback interfaces is blocked for security.",
       };
     }
 
     return { safe: true };
   } catch (err: any) {
-    return { safe: false, reason: `URL malformada: ${err.message}` };
+    return { safe: false, reason: `Malformed URL: ${err.message}` };
   }
 }
 
@@ -247,7 +247,7 @@ async function auditUniversalEndpoint(targetUrl: string) {
     const coopVal = headers.get("cross-origin-opener-policy");
 
     // Detectar Servidor / CDN
-    let serverDetected = "Desconhecido / Proxy Oculto";
+    let serverDetected = "Unknown / Hidden Proxy";
     const sLower = serverHeader.toLowerCase();
     if (sLower.includes("cloudflare")) serverDetected = "Cloudflare Edge";
     else if (sLower.includes("nginx")) serverDetected = "Nginx Web Server";
@@ -407,15 +407,15 @@ Set Dynamic Header:
     const causeMsg = String(err?.cause?.message || err?.cause?.code || "").toLowerCase();
 
     if (msg.includes("abort") || msg.includes("timeout")) {
-      throw new Error("Tempo limite de conexão esgotado (timeout). O servidor alvo demorou a responder.");
+      throw new Error("Connection timeout. The target server took too long to respond.");
     }
     if (msg.includes("fetch failed") || causeMsg.includes("enotfound") || causeMsg.includes("eai_again")) {
-      throw new Error("Não foi possível localizar o endereço (DNS/Domínio não encontrado). Verifique se o domínio foi digitado corretamente.");
+      throw new Error("Target address could not be resolved (DNS/Domain not found). Verify that the domain was entered correctly.");
     }
     if (causeMsg.includes("econnrefused")) {
-      throw new Error("Conexão recusada pelo servidor de destino.");
+      throw new Error("Connection refused by target server.");
     }
-    throw new Error(err?.message || "Falha ao conectar com o servidor alvo.");
+    throw new Error(err?.message || "Failed to connect to target server.");
   }
 }
 
@@ -424,24 +424,24 @@ Set Dynamic Header:
 // ============================================================================
 async function generateAiDiagnosis(auditReport: any, score: number, grade: string, apiKey?: string) {
   const finalApiKey = apiKey || process.env.GEMINI_API_KEY || "";
-  const models = ["gemini-3-flash-preview", "gemini-3.6-flash", "gemini-3.7-flash"];
+  const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3-flash-preview", "gemini-3.6-flash"];
 
-  const prompt = `Você é o CyberBrain da plataforma ObsidianSec. Analise o relatório de segurança do site: ${auditReport.targetUrl}
+  const prompt = `You are CyberBrain from the ObsidianSec DevSecOps platform. Analyze this target security audit report: ${auditReport.targetUrl}
 - Score: ${score}/100 (Grade ${grade})
-- Servidor: ${auditReport.serverDetected}
-- CSP: ${auditReport.securityHeaders.csp.present ? "Presente" : "AUSENTE"}
-- X-Frame-Options: ${auditReport.securityHeaders.xFrameOptions.present ? "Presente" : "AUSENTE"}
-- X-Content-Type-Options: ${auditReport.securityHeaders.xContentTypeOptions.present ? "Presente" : "AUSENTE"}
-- Permissions-Policy: ${auditReport.securityHeaders.permissionsPolicy.present ? "Presente" : "AUSENTE"}
-- HSTS: ${auditReport.securityHeaders.hsts.present ? "Presente" : "AUSENTE"}
-- COOP: ${auditReport.securityHeaders.coop.present ? "Presente" : "AUSENTE"}
+- Server / Edge: ${auditReport.serverDetected}
+- CSP: ${auditReport.securityHeaders.csp.present ? "Present" : "MISSING"}
+- X-Frame-Options: ${auditReport.securityHeaders.xFrameOptions.present ? "Present" : "MISSING"}
+- X-Content-Type-Options: ${auditReport.securityHeaders.xContentTypeOptions.present ? "Present" : "MISSING"}
+- Permissions-Policy: ${auditReport.securityHeaders.permissionsPolicy.present ? "Present" : "MISSING"}
+- HSTS: ${auditReport.securityHeaders.hsts.present ? "Present" : "MISSING"}
+- COOP: ${auditReport.securityHeaders.coop.present ? "Present" : "MISSING"}
 
-Gere uma análise pedagógica, tática e defensiva curta (3 a 4 parágrafos) em português, destacando os riscos reais e como aplicar as correções.`;
+Generate a pedagogical, tactical, and defensive security analysis (3 to 4 paragraphs) in English, highlighting real-world attack vectors and how to apply edge hardening remediation.`;
 
   if (finalApiKey) {
-    const maestroSystemPrompt = `Você é o OBSIDIANSEC MASTER ORCHESTRATOR (CyberBrain Maestro), o cérebro supremo de IA do Esquadrão DevSecOps ObsidianSec.
-Sua missão: fornecer diagnósticos táticos, pedagógicos, investigativos e de alta autoridade técnica sobre a segurança de borda, cabeçalhos HTTP, arquitetura Zero Trust (NIST SP 800-207), OWASP Top 10 e conformidade LGPD.
-Tom de voz: Tático, analítico, imponente, preciso e orientador.`;
+    const maestroSystemPrompt = `You are the OBSIDIANSEC MASTER ORCHESTRATOR (CyberBrain Maestro), the supreme AI core of the ObsidianSec DevSecOps squad.
+Your mission: provide authoritative, pedagogical, investigative, and tactical technical diagnoses on edge security, HTTP response headers, Zero Trust Architecture (NIST SP 800-207), OWASP Top 10, and data privacy frameworks.
+Tone of voice: Tactical, analytical, authoritative, precise, and actionable.`;
 
     for (const model of models) {
       try {
@@ -460,31 +460,31 @@ Tom de voz: Tático, analítico, imponente, preciso e orientador.`;
         if (resp.ok) {
           const data = await resp.json();
           const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return { provider: "Google Gemini 3 Flash", analysis: text };
+          if (text) return { provider: "Google Gemini AI Core", analysis: text };
         }
 
         if (resp.status === 503 || resp.status === 429) {
-          break; // Google com pico de demanda: ativa fallback cognitivo instantâneo sem delay
+          break; // Fallback instantâneo
         }
       } catch {
-        break; // Timeout ou erro de rede: ativa fallback cognitivo instantâneo sem travar
+        break; // Timeout ou erro de rede: ativa fallback cognitivo
       }
     }
   }
 
-  // Motor Cognitivo Embutido (Offline Fallback Instantâneo)
-  let fallbackText = `### 🧠 PARECER COGNITIVO // OBSIDIANSEC DEFENSE CORE\n\n`;
-  fallbackText += `O alvo **${auditReport.targetUrl}** obteve pontuação **${score}/100 (Grade ${grade})** com infraestrutura identificada como **${auditReport.serverDetected}**.\n\n`;
+  // Motor Cognitivo Embutido (Offline Fallback Instantâneo em Inglês)
+  let fallbackText = `### 🧠 COGNITIVE VERDICT // OBSIDIANSEC DEFENSE CORE\n\n`;
+  fallbackText += `Target **${auditReport.targetUrl}** scored **${score}/100 (Grade ${grade})** with infrastructure identified as **${auditReport.serverDetected}**.\n\n`;
 
   if (score >= 90) {
-    fallbackText += `**Veredito:** O ambiente apresenta **Excelente Postura de Segurança**, implementando cabeçalhos de isolamento rigorosos contra ataques de Cross-Site Scripting (XSS), Clickjacking e MIME Sniffing.\n\n`;
+    fallbackText += `**Verdict:** The environment demonstrates an **Excellent Security Posture**, implementing rigorous isolation headers against Cross-Site Scripting (XSS), Clickjacking, and MIME Sniffing attacks.\n\n`;
   } else if (score >= 60) {
-    fallbackText += `**Veredito:** O ambiente possui **Postura Moderada de Segurança**, mas deixa brechas importantes abertas que facilitam ataques de Clickjacking ou execução de scripts maliciosos injetados.\n\n`;
+    fallbackText += `**Verdict:** The environment maintains a **Moderate Security Posture**, but leaves key attack surfaces exposed that could facilitate Clickjacking or malicious script execution.\n\n`;
   } else {
-    fallbackText += `**Veredito:** O ambiente encontra-se em **Estado Crítico de Vulnerabilidade**, sem políticas de isolamento de borda, permitindo iframe embeeding malicioso e bypass de políticas do navegador.\n\n`;
+    fallbackText += `**Verdict:** The environment is in a **Critical Vulnerability State**, lacking essential perimeter isolation policies and allowing unauthorized framing and browser policy bypasses.\n\n`;
   }
 
-  fallbackText += `**Recomendação Imediata:** Aplique os patches de cabeçalhos de resposta fornecidos abaixo na sua camada de proxy/CDN para elevar a nota para **A+ (100/100)** imediatamente.`;
+  fallbackText += `**Immediate Recommendation:** Apply the response header remediation patches provided below to your proxy/CDN layer to elevate your rating to **A+ (100/100)** immediately.`;
 
   return { provider: "ObsidianSec Cognitive Core", analysis: fallbackText };
 }
@@ -507,7 +507,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
 
   if (req.method !== "POST") {
-    res.status(405).json({ error: "Método não permitido. Use POST." });
+    res.status(405).json({ error: "Method not allowed. Use POST." });
     return;
   }
 
@@ -518,14 +518,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!acceptedTerms) {
       res.status(403).json({
-        error: "É obrigatório aceitar os Termos de Uso e Isenção de Responsabilidade (LGPD) para prosseguir.",
+        error: "Acceptance of Terms of Use and Disclaimer is required to proceed.",
       });
       return;
     }
     let targetUrl = typeof url === "string" ? url.trim() : "";
     if (!targetUrl) {
       res.status(400).json({
-        error: "URL inválida. Informe um domínio ou endereço web para a sondagem.",
+        error: "Invalid URL. Please provide a domain or web address for probing.",
       });
       return;
     }
@@ -547,15 +547,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "Content-Security-Policy (CSP)",
         points: 30,
-        explanation: "Diretiva ativa restringindo as origens permitidas de scripts e recursos.",
-        lesson: "Mitiga ataques devastadores de XSS e injeção maliciosa de dados.",
+        explanation: "Active directive restricting authorized script and resource execution origins.",
+        lesson: "Mitigates devastating Cross-Site Scripting (XSS) and malicious data injection attacks.",
       });
     } else {
       missedItems.push({
         control: "Content-Security-Policy (CSP)",
         lostPoints: 30,
-        risk: "Vulnerabilidade aberta a injeção de scripts (XSS) e carregamento de iframes não autorizados.",
-        lesson: "Defina o cabeçalho 'Content-Security-Policy: default-src 'self'' para bloquear scripts externos não auditados.",
+        risk: "Open attack surface for script injection (XSS) and unauthorized iframe embedding.",
+        lesson: "Define 'Content-Security-Policy: default-src 'self'' to block unvetted external scripts.",
       });
     }
 
@@ -563,15 +563,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "X-Frame-Options",
         points: 20,
-        explanation: `Proteção ativa configurada com valor '${h.xFrameOptions.value}'.`,
-        lesson: "Impede que páginas de phishing incorporem seu site em iframes transparentes.",
+        explanation: `Active protection configured with value '${h.xFrameOptions.value}'.`,
+        lesson: "Prevents phishing pages from embedding your application inside invisible iframes.",
       });
     } else {
       missedItems.push({
         control: "X-Frame-Options",
         lostPoints: 20,
-        risk: "Risco severo de Clickjacking / UI Redressing.",
-        lesson: "Configure 'X-Frame-Options: DENY' ou use CSP 'frame-ancestors 'none''.",
+        risk: "Severe risk of Clickjacking / UI Redressing attacks.",
+        lesson: "Configure 'X-Frame-Options: DENY' or use CSP 'frame-ancestors 'none''.",
       });
     }
 
@@ -579,15 +579,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "X-Content-Type-Options",
         points: 15,
-        explanation: "Proteção 'nosniff' ativa contra interpretação incorreta de tipos MIME.",
-        lesson: "Evita que navegadores executem arquivos de imagem ou texto como scripts JavaScript.",
+        explanation: "Active 'nosniff' protection against MIME-type confusion attacks.",
+        lesson: "Prevents browsers from executing user-uploaded images or text files as JavaScript.",
       });
     } else {
       missedItems.push({
         control: "X-Content-Type-Options",
         lostPoints: 15,
-        risk: "Vulnerável a MIME-Sniffing e execução de payloads camuflados em uploads.",
-        lesson: "Adicione 'X-Content-Type-Options: nosniff' nas respostas do servidor.",
+        risk: "Vulnerable to MIME-Sniffing and disguised polyglot file uploads.",
+        lesson: "Add 'X-Content-Type-Options: nosniff' to HTTP response headers.",
       });
     }
 
@@ -595,15 +595,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "Strict-Transport-Security (HSTS)",
         points: 15,
-        explanation: "Forçamento criptográfico de conexões HTTPS ativado.",
-        lesson: "Impede ataques de downgrade SSL Strip e interceptação em redes Wi-Fi públicas.",
+        explanation: "Cryptographic HTTPS enforcement enabled across all connections.",
+        lesson: "Prevents SSL-strip downgrade attacks and interception on public Wi-Fi networks.",
       });
     } else {
       missedItems.push({
         control: "Strict-Transport-Security (HSTS)",
         lostPoints: 15,
-        risk: "Possibilidade de ataques Man-in-the-Middle (MitM) com downgrade para HTTP plano.",
-        lesson: "Habilite 'Strict-Transport-Security: max-age=63072000; includeSubDomains; preload'.",
+        risk: "Vulnerable to Man-in-the-Middle (MitM) attacks via plaintext HTTP downgrade.",
+        lesson: "Enable 'Strict-Transport-Security: max-age=63072000; includeSubDomains; preload'.",
       });
     }
 
@@ -611,14 +611,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "Permissions-Policy",
         points: 10,
-        explanation: "Restrição de APIs de hardware ativada.",
-        lesson: "Bloqueia acesso a microfone, câmera e geolocalização por scripts de terceiros.",
+        explanation: "Hardware API restriction and device isolation active.",
+        lesson: "Blocks third-party scripts from accessing microphone, camera, and geolocation.",
       });
     } else {
       missedItems.push({
         control: "Permissions-Policy",
         lostPoints: 10,
-        risk: "Scripts maliciosos podem tentar invocar APIs de sensores, câmera ou pagamentos.",
+        risk: "Malicious scripts can attempt to invoke device sensors, camera, or payment APIs.",
         lesson: "Configure 'Permissions-Policy: camera=(), microphone=(), geolocation=()'.",
       });
     }
@@ -627,15 +627,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "Cross-Origin-Opener-Policy (COOP)",
         points: 5,
-        explanation: "Isolamento de contexto de janela ('same-origin') ativo.",
-        lesson: "Protege o processo do navegador contra ataques de canal lateral como Spectre.",
+        explanation: "Active window context isolation ('same-origin').",
+        lesson: "Protects browser process memory against side-channel attacks like Spectre.",
       });
     } else {
       missedItems.push({
         control: "Cross-Origin-Opener-Policy (COOP)",
         lostPoints: 5,
-        risk: "Janelas abertas podem manter referências de contexto acessíveis a janelas maliciosas.",
-        lesson: "Adicione 'Cross-Origin-Opener-Policy: same-origin'.",
+        risk: "Opened windows may retain context references accessible to malicious origins.",
+        lesson: "Add 'Cross-Origin-Opener-Policy: same-origin'.",
       });
     }
 
@@ -643,34 +643,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       earnedItems.push({
         control: "Referrer-Policy",
         points: 5,
-        explanation: "Isolamento de metadados em navegação externa ativo.",
-        lesson: "Evita o vazamento de caminhos de URLs internas para domínios de terceiros.",
+        explanation: "Active metadata isolation on cross-origin navigation.",
+        lesson: "Prevents sensitive internal URL paths from leaking to third-party domains.",
       });
     } else {
       missedItems.push({
         control: "Referrer-Policy",
         lostPoints: 5,
-        risk: "URLs com dados sensíveis podem ser expostas no cabeçalho Referer em cliques externos.",
-        lesson: "Adicione 'Referrer-Policy: strict-origin-when-cross-origin'.",
+        risk: "Sensitive query parameters in URLs can leak via the Referer header on external links.",
+        lesson: "Add 'Referrer-Policy: strict-origin-when-cross-origin'.",
       });
     }
 
     const totalScore = earnedItems.reduce((acc, curr) => acc + curr.points, 0);
 
     let grade = "F";
-    let gradeVerdict = "Postura Crítica de Segurança: Múltiplas defesas essenciais ausentes.";
+    let gradeVerdict = "Critical Security Posture: Multiple essential perimeter defenses are missing.";
     if (totalScore >= 95) {
       grade = "A+";
-      gradeVerdict = "Excelente! Fortaleza de Borda: Controles de isolamento e cabeçalhos em nível máximo.";
+      gradeVerdict = "Excellent! Edge Fortress: Maximum level of isolation and edge security controls.";
     } else if (totalScore >= 80) {
       grade = "A";
-      gradeVerdict = "Ótima Blindagem: A maioria dos controles defensivos está ativa e protegendo o usuário.";
+      gradeVerdict = "Strong Perimeter: Most defensive controls are active and safeguarding users.";
     } else if (totalScore >= 60) {
       grade = "B";
-      gradeVerdict = "Postura Regular: Controles parciais. Recomenda-se aplicar os patches fornecidos.";
+      gradeVerdict = "Moderate Posture: Partial controls active. Applying recommended patches is advised.";
     } else if (totalScore >= 40) {
       grade = "C";
-      gradeVerdict = "Postura Fraca: Falhas graves de cabeçalhos facilitam exploração por atacantes.";
+      gradeVerdict = "Weak Posture: Significant header deficiencies expose users to exploitation.";
     }
 
     // 3. Síntese com Inteligência Artificial
@@ -704,7 +704,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (err: any) {
     res.status(500).json({
-      error: `Erro ao processar auditoria: ${err.message || "Erro desconhecido."}`,
+      error: `Error processing security audit: ${err.message || "Unknown error."}`,
     });
   }
 }

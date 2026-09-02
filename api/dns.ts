@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .toLowerCase();
 
   if (!cleanDomain) {
-    res.status(400).json({ error: "Parâmetro 'domain' é obrigatório. Ex: gov.br ou redubla.com.br" });
+    res.status(400).json({ error: "'domain' parameter is required. E.g., example.com or redubla.com.br" });
     return;
   }
 
@@ -64,10 +64,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       else if (spfRaw.includes("?all")) spfQualifier = "?all";
       else if (spfRaw.includes("+all")) {
         spfQualifier = "+all";
-        spfIssues.push("SPF Perigoso (+all): Autoriza qualquer servidor no mundo a enviar emails.");
+        spfIssues.push("Dangerous SPF (+all): Authorizes any mail server in the world to send emails on your behalf.");
       }
     } else {
-      spfIssues.push("Ausência de registro SPF: Domínio desprotegido contra falsificação de remetente.");
+      spfIssues.push("Missing SPF record: Domain is vulnerable to email spoofing and sender forgery.");
     }
 
     // DMARC Analysis
@@ -80,10 +80,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const pMatch = dmarcRaw.match(/p=([a-zA-Z]+)/i);
       if (pMatch) dmarcPolicy = pMatch[1].toLowerCase();
       if (dmarcPolicy === "none") {
-        dmarcIssues.push("DMARC em modo apenas monitoramento (p=none). Não bloqueia envio de emails forjados.");
+        dmarcIssues.push("DMARC in monitoring mode only (p=none): Does not block fraudulent or spoofed emails.");
       }
     } else {
-      dmarcIssues.push("Ausência de registro DMARC (_dmarc): Domínio vulnerável a ataques de Business Email Compromise (BEC).");
+      dmarcIssues.push("Missing DMARC record (_dmarc): Domain is vulnerable to Business Email Compromise (BEC) and phishing.");
     }
 
     const dnssecActive = dsRecords.length > 0;
@@ -124,6 +124,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       status,
     });
   } catch (err: any) {
-    res.status(500).json({ error: `Erro ao auditar DNS: ${err.message || "Erro desconhecido"}` });
+    res.status(500).json({ error: `Error auditing DNS: ${err.message || "Unknown error"}` });
   }
 }
