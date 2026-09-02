@@ -763,7 +763,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.3.1");
+    console.log("ObsidianSec CLI v1.4.0");
     break;
   default:
     printHelp();

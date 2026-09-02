@@ -75,7 +75,7 @@ function mapSeverityToSarifLevel(severity: SecretFinding["severity"]): "error" |
  */
 export function convertSecretReportToSarif(
   report: SecretScanReport,
-  version: string = "1.3.1"
+  version: string = "1.4.0"
 ): SarifLog {
   const ruleMap = new Map<string, SarifRule>();
   const results: SarifResult[] = [];
