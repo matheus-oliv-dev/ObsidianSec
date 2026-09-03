@@ -1,0 +1,26 @@
+{
+  "name": "obsidiansec",
+  "version": "1.5.0",
+  "description": "ObsidianSec has officially evolved into ChimeraGuard! This package automatically forwards commands to chimeraguard.",
+  "main": "bin/cli.mjs",
+  "bin": {
+    "obsidiansec": "bin/cli.mjs"
+  },
+  "dependencies": {
+    "chimeraguard": "^1.5.0"
+  },
+  "keywords": [
+    "obsidiansec",
+    "chimeraguard",
+    "security",
+    "devsecops",
+    "dast",
+    "sast"
+  ],
+  "author": "ChimeraGuard Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matheus-oliv-dev/ChimeraGuard.git"
+  }
+}
