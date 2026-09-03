@@ -45,7 +45,7 @@ export function formatUpdateNotification(currentVersion: string, latestVersion: 
   return `${ANSI.yellow}┌──────────────────────────────────────────────────────────┐
 │                                                          │
 │   ${ANSI.bold}Atualização disponível:${ANSI.reset} ${currentVersion} → ${ANSI.green}${latestVersion}${ANSI.reset}${ANSI.yellow}                │
-│   Execute: ${ANSI.cyan}npm install -g obsidiansec${ANSI.reset}${ANSI.yellow} para atualizar     │
+│   Execute: ${ANSI.cyan}npm install -g chimeraguard${ANSI.reset}${ANSI.yellow} para atualizar    │
 │                                                          │
 └──────────────────────────────────────────────────────────┘${ANSI.reset}`;
 }
@@ -57,7 +57,9 @@ export function checkCachedUpdateSync(
   currentVersion: string,
   cacheDir?: string
 ): string | null {
-  const dir = cacheDir || path.resolve(process.cwd(), ".obsidiansec");
+  const dir = cacheDir || (fs.existsSync(path.resolve(process.cwd(), ".chimeraguard")) 
+    ? path.resolve(process.cwd(), ".chimeraguard") 
+    : path.resolve(process.cwd(), ".obsidiansec"));
   const cacheFile = path.join(dir, "version-cache.json");
 
   try {
@@ -133,10 +135,16 @@ export async function checkCliUpdate(
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    const res = await fetch("https://registry.npmjs.org/obsidiansec/latest", {
+    let res = await fetch("https://registry.npmjs.org/chimeraguard/latest", {
       signal: controller.signal,
       headers: { Accept: "application/json" },
     });
+    if (!res.ok) {
+      res = await fetch("https://registry.npmjs.org/obsidiansec/latest", {
+        signal: controller.signal,
+        headers: { Accept: "application/json" },
+      });
+    }
     clearTimeout(timer);
 
     if (!res.ok) return null;

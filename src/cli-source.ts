@@ -40,9 +40,16 @@ const ANSI = {
 };
 
 function printBanner() {
+  const isLegacyInvoked = (process.argv[1] || "").toLowerCase().includes("obsidiansec");
+  if (isLegacyInvoked && !args.includes("--json") && !args.includes("--sarif") && !args.some((a) => a.startsWith("--format="))) {
+    console.log(`${ANSI.yellow}⚡ NOTICE: ObsidianSec has officially evolved into ChimeraGuard!${ANSI.reset}`);
+    console.log(`${ANSI.yellow}   Both commands work, but 'npx chimeraguard' is now the official CLI.${ANSI.reset}\n`);
+  }
+
   console.log(`
 ${ANSI.bold}${ANSI.cyan}╔══════════════════════════════════════════════════════════════════════╗
-║    🛡️  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      ║
+║    🛡️  CHIMERAGUARD CLI // DEVSECOPS & DEFENSE ARSENAL 2026           ║
+║    (Formerly ObsidianSec · Multi-Vector Security Guardian)           ║
 ╚══════════════════════════════════════════════════════════════════════╝${ANSI.reset}
 `);
 
@@ -738,38 +745,38 @@ function printHelp() {
   printBanner();
   console.log(`Arsenal de Comandos Disponíveis:
 
-  ${ANSI.bold}obsidiansec audit <url>${ANSI.reset}            Audita cabeçalhos de borda, cookies, CORS e MITRE attack chain
+  ${ANSI.bold}chimeraguard audit <url>${ANSI.reset}           Audita cabeçalhos de borda, cookies, CORS e MITRE attack chain
     Opções:
       --min-grade=<A|B|C>         Define a nota mínima para o Quality Gate de CI/CD (padrão: B)
       --json                      Retorna o relatório completo em formato JSON
 
-  ${ANSI.bold}obsidiansec origin <url>${ANSI.reset}           Caça vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdomínios)
+  ${ANSI.bold}chimeraguard origin <url>${ANSI.reset}          Caça vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdomínios)
 
-  ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expiração e nota de segurança
+  ${ANSI.bold}chimeraguard ssl <url>${ANSI.reset}             Auditoria de certificados SSL/TLS, validade, expiração e nota de segurança
   
-  ${ANSI.bold}obsidiansec tech <url>${ANSI.reset}             Identificação de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
+  ${ANSI.bold}chimeraguard tech <url>${ANSI.reset}            Identificação de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
 
-  ${ANSI.bold}obsidiansec methods <url>${ANSI.reset}          Enumera métodos HTTP e caça verbos perigosos (TRACE/XST, PUT, DELETE)
+  ${ANSI.bold}chimeraguard methods <url>${ANSI.reset}         Enumera métodos HTTP e caça verbos perigosos (TRACE/XST, PUT, DELETE)
 
-  ${ANSI.bold}obsidiansec redirects <url>${ANSI.reset}        Detecta falhas de Open Redirect nos parâmetros de URL (OWASP CWE-601)
+  ${ANSI.bold}chimeraguard redirects <url>${ANSI.reset}       Detecta falhas de Open Redirect nos parâmetros de URL (OWASP CWE-601)
 
-  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
+  ${ANSI.bold}chimeraguard waf <url>${ANSI.reset}             Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
 
-  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de 37 portas TCP críticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
+  ${ANSI.bold}chimeraguard ports <host>${ANSI.reset}          Auditoria de 37 portas TCP críticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
 
-  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Caçador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
+  ${ANSI.bold}chimeraguard scan-dir [pasta]${ANSI.reset}      Caçador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
   
-  ${ANSI.bold}obsidiansec jwt <token>${ANSI.reset}            Auditor de tokens JWT (detecta alg: none, expiração e decodifica claims)
+  ${ANSI.bold}chimeraguard jwt <token>${ANSI.reset}           Auditor de tokens JWT (detecta alg: none, expiração e decodifica claims)
 
-  ${ANSI.bold}obsidiansec subdomains <dominio>${ANSI.reset}   Descoberta passiva de subdomínios via Certificate Transparency
+  ${ANSI.bold}chimeraguard subdomains <dominio>${ANSI.reset}  Descoberta passiva de subdomínios via Certificate Transparency
 
-  ${ANSI.bold}obsidiansec dns <dominio>${ANSI.reset}          Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
+  ${ANSI.bold}chimeraguard dns <dominio>${ANSI.reset}         Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
 
-  ${ANSI.bold}obsidiansec entropy <senha>${ANSI.reset}        Calcula bits de Shannon e tempo de quebra em GPU cluster
+  ${ANSI.bold}chimeraguard entropy <senha>${ANSI.reset}       Calcula bits de Shannon e tempo de quebra em GPU cluster
 
-  ${ANSI.bold}obsidiansec init-config${ANSI.reset}            Gera o template de obsidiansec.config.json (Scope & AI Budget)
+  ${ANSI.bold}chimeraguard init-config${ANSI.reset}           Gera o template de configuração de escopo e IA
 
-  ${ANSI.bold}obsidiansec help${ANSI.reset}                   Exibe este menu de ajuda
+  ${ANSI.bold}chimeraguard help${ANSI.reset}                  Exibe este menu de ajuda
 `);
 }
 
@@ -838,7 +845,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.5.0");
+    console.log("ChimeraGuard CLI v1.5.0 (formerly ObsidianSec)");
     break;
   default:
     printHelp();

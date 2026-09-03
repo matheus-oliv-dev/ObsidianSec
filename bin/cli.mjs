@@ -2058,7 +2058,8 @@ var DEFAULT_OBSIDIAN_CONFIG = {
   }
 };
 function loadObsidianConfig(customPath) {
-  const configPath = customPath || path3.resolve(process.cwd(), "obsidiansec.config.json");
+  const defaultFile = fs3.existsSync(path3.resolve(process.cwd(), "chimeraguard.config.json")) ? path3.resolve(process.cwd(), "chimeraguard.config.json") : path3.resolve(process.cwd(), "obsidiansec.config.json");
+  const configPath = customPath || defaultFile;
   try {
     if (fs3.existsSync(configPath)) {
       const raw = fs3.readFileSync(configPath, "utf-8");
@@ -2081,7 +2082,7 @@ function loadObsidianConfig(customPath) {
   return { ...DEFAULT_OBSIDIAN_CONFIG };
 }
 function generateDefaultConfigFile(targetDir = process.cwd()) {
-  const targetPath = path3.resolve(targetDir, "obsidiansec.config.json");
+  const targetPath = path3.resolve(targetDir, "chimeraguard.config.json");
   const template = {
     "$schema": "https://obsidiansec.dev/schema.json",
     "version": "1.2.2",
@@ -2969,12 +2970,12 @@ function formatUpdateNotification(currentVersion, latestVersion) {
   return `${ANSI2.yellow}\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510
 \u2502                                                          \u2502
 \u2502   ${ANSI2.bold}Atualiza\xE7\xE3o dispon\xEDvel:${ANSI2.reset} ${currentVersion} \u2192 ${ANSI2.green}${latestVersion}${ANSI2.reset}${ANSI2.yellow}                \u2502
-\u2502   Execute: ${ANSI2.cyan}npm install -g obsidiansec${ANSI2.reset}${ANSI2.yellow} para atualizar     \u2502
+\u2502   Execute: ${ANSI2.cyan}npm install -g chimeraguard${ANSI2.reset}${ANSI2.yellow} para atualizar    \u2502
 \u2502                                                          \u2502
 \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518${ANSI2.reset}`;
 }
 function checkCachedUpdateSync(currentVersion, cacheDir) {
-  const dir = cacheDir || path4.resolve(process.cwd(), ".obsidiansec");
+  const dir = cacheDir || (fs4.existsSync(path4.resolve(process.cwd(), ".chimeraguard")) ? path4.resolve(process.cwd(), ".chimeraguard") : path4.resolve(process.cwd(), ".obsidiansec"));
   const cacheFile = path4.join(dir, "version-cache.json");
   try {
     if (fs4.existsSync(cacheFile)) {
@@ -3024,10 +3025,16 @@ async function checkCliUpdate(currentVersion, options) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const res = await fetch("https://registry.npmjs.org/obsidiansec/latest", {
+    let res = await fetch("https://registry.npmjs.org/chimeraguard/latest", {
       signal: controller.signal,
       headers: { Accept: "application/json" }
     });
+    if (!res.ok) {
+      res = await fetch("https://registry.npmjs.org/obsidiansec/latest", {
+        signal: controller.signal,
+        headers: { Accept: "application/json" }
+      });
+    }
     clearTimeout(timer);
     if (!res.ok) return null;
     const data = await res.json();
@@ -3330,9 +3337,16 @@ var ANSI = {
   magenta: "\x1B[35m"
 };
 function printBanner() {
+  const isLegacyInvoked = (process.argv[1] || "").toLowerCase().includes("obsidiansec");
+  if (isLegacyInvoked && !args.includes("--json") && !args.includes("--sarif") && !args.some((a) => a.startsWith("--format="))) {
+    console.log(`${ANSI.yellow}\u26A1 NOTICE: ObsidianSec has officially evolved into ChimeraGuard!${ANSI.reset}`);
+    console.log(`${ANSI.yellow}   Both commands work, but 'npx chimeraguard' is now the official CLI.${ANSI.reset}
+`);
+  }
   console.log(`
 ${ANSI.bold}${ANSI.cyan}\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
-\u2551    \u{1F6E1}\uFE0F  OBSIDIANSEC CLI // DEVSECOPS & EDGE AUDITING ARSENAL 2026      \u2551
+\u2551    \u{1F6E1}\uFE0F  CHIMERAGUARD CLI // DEVSECOPS & DEFENSE ARSENAL 2026           \u2551
+\u2551    (Formerly ObsidianSec \xB7 Multi-Vector Security Guardian)           \u2551
 \u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D${ANSI.reset}
 `);
   if (!args.includes("--json") && !args.includes("--sarif") && !args.some((a) => a.startsWith("--format="))) {
@@ -3980,38 +3994,38 @@ function printHelp() {
   printBanner();
   console.log(`Arsenal de Comandos Dispon\xEDveis:
 
-  ${ANSI.bold}obsidiansec audit <url>${ANSI.reset}            Audita cabe\xE7alhos de borda, cookies, CORS e MITRE attack chain
+  ${ANSI.bold}chimeraguard audit <url>${ANSI.reset}           Audita cabe\xE7alhos de borda, cookies, CORS e MITRE attack chain
     Op\xE7\xF5es:
       --min-grade=<A|B|C>         Define a nota m\xEDnima para o Quality Gate de CI/CD (padr\xE3o: B)
       --json                      Retorna o relat\xF3rio completo em formato JSON
 
-  ${ANSI.bold}obsidiansec origin <url>${ANSI.reset}           Ca\xE7a vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdom\xEDnios)
+  ${ANSI.bold}chimeraguard origin <url>${ANSI.reset}          Ca\xE7a vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdom\xEDnios)
 
-  ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expira\xE7\xE3o e nota de seguran\xE7a
+  ${ANSI.bold}chimeraguard ssl <url>${ANSI.reset}             Auditoria de certificados SSL/TLS, validade, expira\xE7\xE3o e nota de seguran\xE7a
   
-  ${ANSI.bold}obsidiansec tech <url>${ANSI.reset}             Identifica\xE7\xE3o de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
+  ${ANSI.bold}chimeraguard tech <url>${ANSI.reset}            Identifica\xE7\xE3o de stack de tecnologias (Wappalyzer: React, Next, Nginx, CDNs)
 
-  ${ANSI.bold}obsidiansec methods <url>${ANSI.reset}          Enumera m\xE9todos HTTP e ca\xE7a verbos perigosos (TRACE/XST, PUT, DELETE)
+  ${ANSI.bold}chimeraguard methods <url>${ANSI.reset}         Enumera m\xE9todos HTTP e ca\xE7a verbos perigosos (TRACE/XST, PUT, DELETE)
 
-  ${ANSI.bold}obsidiansec redirects <url>${ANSI.reset}        Detecta falhas de Open Redirect nos par\xE2metros de URL (OWASP CWE-601)
+  ${ANSI.bold}chimeraguard redirects <url>${ANSI.reset}       Detecta falhas de Open Redirect nos par\xE2metros de URL (OWASP CWE-601)
 
-  ${ANSI.bold}obsidiansec waf <url>${ANSI.reset}              Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
+  ${ANSI.bold}chimeraguard waf <url>${ANSI.reset}             Detector de WAF & Firewall de Borda (22+ assinaturas: Cloudflare, AWS, etc)
 
-  ${ANSI.bold}obsidiansec ports <host>${ANSI.reset}           Auditoria de 37 portas TCP cr\xEDticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
+  ${ANSI.bold}chimeraguard ports <host>${ANSI.reset}          Auditoria de 37 portas TCP cr\xEDticas (Redis, Mongo, MySQL, Postgres, RDP, etc)
 
-  ${ANSI.bold}obsidiansec scan-dir [pasta]${ANSI.reset}       Ca\xE7ador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
+  ${ANSI.bold}chimeraguard scan-dir [pasta]${ANSI.reset}      Ca\xE7ador de segredos & SAST local (45+ patterns: AWS, Stripe, Slack, Discord)
   
-  ${ANSI.bold}obsidiansec jwt <token>${ANSI.reset}            Auditor de tokens JWT (detecta alg: none, expira\xE7\xE3o e decodifica claims)
+  ${ANSI.bold}chimeraguard jwt <token>${ANSI.reset}           Auditor de tokens JWT (detecta alg: none, expira\xE7\xE3o e decodifica claims)
 
-  ${ANSI.bold}obsidiansec subdomains <dominio>${ANSI.reset}   Descoberta passiva de subdom\xEDnios via Certificate Transparency
+  ${ANSI.bold}chimeraguard subdomains <dominio>${ANSI.reset}  Descoberta passiva de subdom\xEDnios via Certificate Transparency
 
-  ${ANSI.bold}obsidiansec dns <dominio>${ANSI.reset}          Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
+  ${ANSI.bold}chimeraguard dns <dominio>${ANSI.reset}         Inspeciona registros anti-phishing SPF, DMARC e DNSSEC
 
-  ${ANSI.bold}obsidiansec entropy <senha>${ANSI.reset}        Calcula bits de Shannon e tempo de quebra em GPU cluster
+  ${ANSI.bold}chimeraguard entropy <senha>${ANSI.reset}       Calcula bits de Shannon e tempo de quebra em GPU cluster
 
-  ${ANSI.bold}obsidiansec init-config${ANSI.reset}            Gera o template de obsidiansec.config.json (Scope & AI Budget)
+  ${ANSI.bold}chimeraguard init-config${ANSI.reset}           Gera o template de configura\xE7\xE3o de escopo e IA
 
-  ${ANSI.bold}obsidiansec help${ANSI.reset}                   Exibe este menu de ajuda
+  ${ANSI.bold}chimeraguard help${ANSI.reset}                  Exibe este menu de ajuda
 `);
 }
 switch (command) {
@@ -4079,7 +4093,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.5.0");
+    console.log("ChimeraGuard CLI v1.5.0 (formerly ObsidianSec)");
     break;
   default:
     printHelp();

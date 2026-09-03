@@ -1,15 +1,17 @@
-# 🛡️ ObsidianSec // Autonomous DevSecOps & Edge Security Arsenal
+# 🛡️ ChimeraGuard // Multi-Vector DevSecOps Platform & Defense Arsenal
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/obsidiansec.svg?color=10b981&style=for-the-badge)](https://www.npmjs.com/package/obsidiansec)
+[![npm version](https://img.shields.io/npm/v/chimeraguard.svg?color=10b981&style=for-the-badge)](https://www.npmjs.com/package/chimeraguard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Tests: 166 Passed](https://img.shields.io/badge/Tests-166%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
-[![Security Tools: 15 Engines](https://img.shields.io/badge/Arsenal-15%20Engines%20in%201%20CLI-blueviolet.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
-[![Quality Gate](https://img.shields.io/badge/CI%2FCD-Quality%20Gate%20Ready-black.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ObsidianSec)
+[![Tests: 181 Passed](https://img.shields.io/badge/Tests-181%20Passed%20(100%25)-10b981.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ChimeraGuard)
+[![Security Tools: 16 Engines](https://img.shields.io/badge/Arsenal-16%20Engines%20in%201%20CLI-blueviolet.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ChimeraGuard)
+[![Quality Gate](https://img.shields.io/badge/CI%2FCD-Quality%20Gate%20Ready-black.svg?style=for-the-badge)](https://github.com/matheus-oliv-dev/ChimeraGuard)
 
 **The All-In-One DevSecOps, Edge Defense, SAST & Reconnaissance CLI.**  
-*Consolidating 15 specialized security tools into a single, zero-dependency `npm install`.*
+*Consolidating 16 specialized security engines into a single, zero-dependency `npm install`.*
+
+> ⚡ **Evolution Notice:** Formerly known as **ObsidianSec**. All existing commands (`npx obsidiansec ...`) continue to work seamlessly for backward compatibility!
 
 </div>
 
@@ -17,47 +19,50 @@
 
 ## ⚡ Quick Start (No Install Needed)
 
-Run any of the 13 tactical commands instantly using `npx`:
+Run any of the 14 tactical commands instantly using `npx`:
 
 ```bash
 # 🔍 1. Complete Edge Audit (Headers, Cookies, CORS & MITRE Attack Chain)
-npx obsidiansec audit https://your-website.com
+npx chimeraguard audit https://your-website.com
 
-# 🔒 2. SSL/TLS Certificate & Protocol Security (SSL Labs Engine)
-npx obsidiansec ssl https://your-website.com
+# 🎯 2. Cloudflare & Origin Bypass Finder (Detects Real IP leaks via SPF, MX & Subdomains)
+npx chimeraguard origin https://your-website.com
 
-# 🧬 3. Technology Stack Fingerprinting (Wappalyzer Engine: React, Next.js, Nginx, CDNs)
-npx obsidiansec tech https://your-website.com
+# 🔒 3. SSL/TLS Certificate & Protocol Security (SSL Labs Engine)
+npx chimeraguard ssl https://your-website.com
 
-# 📡 4. HTTP Method Enumeration (Detects dangerous TRACE/XST, PUT, DELETE)
-npx obsidiansec methods https://your-website.com
+# 🧬 4. Technology Stack Fingerprinting (Wappalyzer Engine: React, Next.js, Nginx, CDNs)
+npx chimeraguard tech https://your-website.com
 
-# 🔀 5. Open Redirect Detector (OWASP CWE-601 Parameter Fuzzing)
-npx obsidiansec redirects https://your-website.com
+# 📡 5. HTTP Method Enumeration (Detects dangerous TRACE/XST, PUT, DELETE)
+npx chimeraguard methods https://your-website.com
 
-# 🛡️ 6. Web Application Firewall Detector (22+ WAFs: Cloudflare, AWS WAF, Fastly, Fortinet)
-npx obsidiansec waf https://your-website.com
+# 🔀 6. Open Redirect Detector (OWASP CWE-601 Parameter Fuzzing)
+npx chimeraguard redirects https://your-website.com
 
-# 🚪 7. TCP Port Scanner (37 Critical Ports: Redis, Mongo, MSSQL, Oracle, K8s, SMB, VNC)
-npx obsidiansec ports your-server-ip-or-domain
+# 🛡️ 7. Web Application Firewall Detector (22+ WAFs: Cloudflare, AWS WAF, Fastly, Fortinet)
+npx chimeraguard waf https://your-website.com
 
-# 🔐 8. Secret Hunter & SAST Local (45+ Patterns: AWS, Stripe, Supabase, Slack, Discord, PGP)
-npx obsidiansec scan-dir ./
+# 🚪 8. TCP Port Scanner (37 Critical Ports: Redis, Mongo, MSSQL, Oracle, K8s, SMB, VNC)
+npx chimeraguard ports your-server-ip-or-domain
 
-# 🎟️ 9. JWT Token Security Auditor (Detects alg: none, expiration & decodes claims)
-npx obsidiansec jwt <your-jwt-token>
+# 🔐 9. Secret Hunter & SAST Local (45+ Patterns: AWS, Stripe, Supabase, Slack, Discord, PGP)
+npx chimeraguard scan-dir ./
 
-# 🌐 10. Passive Subdomain Reconnaissance (Certificate Transparency Logs)
-npx obsidiansec subdomains your-domain.com
+# 🎟️ 10. JWT Token Security Auditor (Detects alg: none, expiration & decodes claims)
+npx chimeraguard jwt <your-jwt-token>
 
-# 📧 11. DNS & Email Anti-Phishing Suite (SPF, DMARC, DNSSEC)
-npx obsidiansec dns your-domain.com
+# 🌐 11. Passive Subdomain Reconnaissance (Certificate Transparency Logs)
+npx chimeraguard subdomains your-domain.com
 
-# 🔑 12. Shannon Password Entropy & GPU Cluster Crack Time (Hashcat Model)
-npx obsidiansec entropy "YourPasswordHere"
+# 📧 12. DNS & Email Anti-Phishing Suite (SPF, DMARC, DNSSEC)
+npx chimeraguard dns your-domain.com
 
-# ⚙️ 13. Generate Scope & AI Budget Config Template
-npx obsidiansec init-config
+# 🔑 13. Shannon Password Entropy & GPU Cluster Crack Time (Hashcat Model)
+npx chimeraguard entropy "YourPasswordHere"
+
+# ⚙️ 14. Generate Scope & AI Budget Config Template
+npx chimeraguard init-config
 ```
 
 ---
@@ -67,6 +72,7 @@ npx obsidiansec init-config
 | Command | Category | Engine / Reference | Key Capabilities |
 |---|---|---|---|
 | `audit <url>` | Edge Security | Mozilla Observatory / Burp | CSP, HSTS, X-Frame-Options, Cookie flags, CORS, MITRE ATT&CK Graph |
+| `origin <url>` | Perimeter Defense | Shodan / DoH Recon | Uncovers real origin IP leaks bypassing Cloudflare/WAF; generates UFW patches |
 | `ssl <url>` | Cryptography | SSL Labs | TLS 1.3/1.2 validation, SAN inspection, weak cipher/hash detection, expiry days |
 | `tech <url>` | Reconnaissance | Wappalyzer / BuiltWith | Identifies React, Next.js, Vue, Angular, WordPress, Django, Nginx, Cloudflare |
 | `methods <url>` | Protocol Audit | OWASP Testing Guide | Enumerates verbs; detects TRACE (XST vector), unauthenticated PUT/DELETE |
@@ -78,7 +84,7 @@ npx obsidiansec init-config
 | `subdomains <dom>` | OSINT Recon | Subfinder / crt.sh | Passive subdomain enumeration via public Certificate Transparency logs |
 | `dns <dom>` | Anti-Phishing | RFC 7208 / 7489 | Audits SPF hardfail mechanisms, DMARC reject policies, and DNSSEC |
 | `entropy <pass>` | Cryptanalysis | Shannon Entropy / Hashcat | Bits of entropy, character set diversity & GPU brute-force crack time |
-| `init-config` | Configuration | ObsidianSec Core | Generates `obsidiansec.config.json` with authorized scope and AI budget limits |
+| `init-config` | Configuration | ChimeraGuard Core | Generates `chimeraguard.config.json` with authorized scope and AI budget limits |
 
 ---
 
@@ -111,7 +117,7 @@ Translates missing headers into an **actionable exploitation graph**, demonstrat
 Fail pull requests automatically if security standards or perimeter requirements are violated:
 
 ```yaml
-name: ObsidianSec CI/CD Quality Gate
+name: ChimeraGuard CI/CD Quality Gate
 
 on: [push, pull_request]
 
@@ -123,27 +129,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Secret Hunter (SAST)
-        run: npx obsidiansec scan-dir ./
+        run: npx chimeraguard scan-dir ./
 
       - name: Edge Security Audit (Quality Gate Grade >= A)
-        run: npx obsidiansec audit https://staging.yourdomain.com --min-grade=A
-```
-
----
-
-## 🏆 Dynamic GitHub README Badge
-
-Add a live security rating badge to your GitHub repository:
-
-```markdown
-[![ObsidianSec Security Grade](https://obsidiansec.dev/api/badge?grade=A%2B&score=100)](https://obsidiansec.dev)
+        run: npx chimeraguard audit https://staging.yourdomain.com --min-grade=A
 ```
 
 ---
 
 ## 🧪 Automated Testing
 
-ObsidianSec is thoroughly tested with **34 Vitest suites and 166 automated tests (100% GREEN)**:
+ChimeraGuard is thoroughly tested with **39 Vitest suites and 181 automated tests (100% GREEN)**:
 
 ```bash
 # Run complete test suite
@@ -157,5 +153,5 @@ npm run build
 
 ## 📜 License & Compliance
 
-MIT License © 2026 Matheus Oliveira & ObsidianSec Contributors.  
+MIT License © 2026 Matheus Oliveira & ChimeraGuard Contributors.  
 Designed in compliance with **OWASP Top 10**, **NIST SP 800-207 (Zero Trust)**, and **CWE Standards**.

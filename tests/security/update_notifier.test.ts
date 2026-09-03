@@ -22,7 +22,7 @@ describe("🔔 Automated Version Update Notifier", () => {
     const banner = formatUpdateNotification("1.3.1", "1.4.0");
     expect(banner).toContain("1.3.1 →");
     expect(banner).toContain("1.4.0");
-    expect(banner).toContain("npm install -g obsidiansec");
+    expect(banner).toContain("npm install -g chimeraguard");
   });
 
   it("não quebra e retorna null quando offline ou com timeout de rede", async () => {

@@ -40,7 +40,10 @@ export const DEFAULT_OBSIDIAN_CONFIG: ObsidianConfig = {
  * Se não encontrar, retorna as configurações padrão seguras (zero-AI, custo zero).
  */
 export function loadObsidianConfig(customPath?: string): ObsidianConfig {
-  const configPath = customPath || path.resolve(process.cwd(), "obsidiansec.config.json");
+  const defaultFile = fs.existsSync(path.resolve(process.cwd(), "chimeraguard.config.json"))
+    ? path.resolve(process.cwd(), "chimeraguard.config.json")
+    : path.resolve(process.cwd(), "obsidiansec.config.json");
+  const configPath = customPath || defaultFile;
 
   try {
     if (fs.existsSync(configPath)) {
@@ -66,10 +69,10 @@ export function loadObsidianConfig(customPath?: string): ObsidianConfig {
 }
 
 /**
- * Gera um template do obsidiansec.config.json no diretório informado
+ * Gera um template do chimeraguard.config.json no diretório informado
  */
 export function generateDefaultConfigFile(targetDir: string = process.cwd()): string {
-  const targetPath = path.resolve(targetDir, "obsidiansec.config.json");
+  const targetPath = path.resolve(targetDir, "chimeraguard.config.json");
   const template = {
     "$schema": "https://obsidiansec.dev/schema.json",
     "version": "1.2.2",
