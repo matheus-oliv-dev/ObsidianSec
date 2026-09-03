@@ -1,6 +1,6 @@
 {
   "name": "obsidiansec",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "ObsidianSec - DevSecOps Platform & Defense Encyclopedia",
   "type": "module",
   "bin": {

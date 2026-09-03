@@ -2044,7 +2044,7 @@ async function scanHostCriticalPorts(hostInput, timeoutMs = 1500) {
 import fs3 from "node:fs";
 import path3 from "node:path";
 var DEFAULT_OBSIDIAN_CONFIG = {
-  version: "1.4.1",
+  version: "1.5.0",
   scope: {
     allowlist: [],
     blocklist: ["*.gov.br", "*.mil.br", "*.jus.br"],
@@ -3049,8 +3049,274 @@ async function checkCliUpdate(currentVersion, options) {
   return null;
 }
 
+// src/lib/security/origin-leak-analyzer.ts
+var CLOUDFLARE_IPV4_CIDRS = [
+  "173.245.48.0/20",
+  "103.21.244.0/22",
+  "103.22.200.0/22",
+  "103.31.4.0/22",
+  "141.101.64.0/18",
+  "108.162.192.0/18",
+  "190.93.240.0/20",
+  "188.114.96.0/20",
+  "197.234.240.0/22",
+  "198.41.128.0/17",
+  "162.158.0.0/15",
+  "104.16.0.0/13",
+  "104.24.0.0/14",
+  "172.64.0.0/13",
+  "131.0.72.0/22",
+  "1.0.0.0/24",
+  "1.1.1.0/24"
+];
+var HIGH_RISK_ORIGIN_SUBDOMAINS = [
+  "direct",
+  "origin",
+  "origin-api",
+  "direct-connect",
+  "cpanel",
+  "whm",
+  "webmail",
+  "mail",
+  "smtp",
+  "ftp",
+  "ssh",
+  "vpn",
+  "dev",
+  "staging",
+  "test",
+  "internal",
+  "portal",
+  "backup",
+  "admin"
+];
+function ipToInt(ip) {
+  return ip.split(".").reduce((acc, octet) => (acc << 8) + parseInt(octet, 10) >>> 0, 0);
+}
+function ipInCidr(ip, cidr) {
+  try {
+    const [range, bitsStr] = cidr.split("/");
+    const bits = parseInt(bitsStr, 10);
+    const mask = bits === 0 ? 0 : ~0 << 32 - bits >>> 0;
+    const ipVal = ipToInt(ip);
+    const rangeVal = ipToInt(range);
+    return (ipVal & mask) === (rangeVal & mask);
+  } catch {
+    return false;
+  }
+}
+function isCloudflareIp(ip) {
+  if (!ip || !ip.includes(".")) return false;
+  return CLOUDFLARE_IPV4_CIDRS.some((cidr) => ipInCidr(ip, cidr));
+}
+function extractSpfIps(spfRecord) {
+  if (!spfRecord) return [];
+  const matches = spfRecord.match(/ip4:([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(?:\/[0-9]+)?)/gi) || [];
+  const ips = [];
+  for (const m of matches) {
+    const raw = m.replace(/^ip4:/i, "").split("/")[0].trim();
+    if (!raw.startsWith("127.") && !raw.startsWith("10.") && !raw.startsWith("192.168.") && !raw.startsWith("0.") && !ips.includes(raw)) {
+      ips.push(raw);
+    }
+  }
+  return ips;
+}
+async function queryDohRecords2(name, type, timeoutMs = 2500) {
+  const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { Accept: "application/dns-json" }
+    });
+    clearTimeout(timer);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.Answer || !Array.isArray(data.Answer)) return [];
+    return data.Answer.map((a) => {
+      let str = String(a.data || "");
+      if (str.startsWith('"') && str.endsWith('"')) {
+        str = str.slice(1, -1);
+      }
+      return str;
+    });
+  } catch {
+    return [];
+  }
+}
+function generateOriginFirewallPatches(candidateIps = []) {
+  const ufwScript = `# ====================================================================
+# OBSIDIANSEC DEFENSE PATCH: BLOCK DIRECT ORIGIN ACCESS (UFW)
+# Permite tr\xE1fego HTTPS apenas das faixas oficiais da Cloudflare
+# ====================================================================
+sudo ufw default deny incoming
+${CLOUDFLARE_IPV4_CIDRS.map((cidr) => `sudo ufw allow from ${cidr} to any port 443 proto tcp comment "Cloudflare Edge"`).join("\n")}
+sudo ufw deny 443/tcp comment "Block direct HTTP/HTTPS bypass"
+sudo ufw reload`;
+  const nginxSnippet = `# ====================================================================
+# OBSIDIANSEC DEFENSE PATCH: NGINX RESTRICTED ORIGIN ACCESS
+# Rejeita requisi\xE7\xF5es diretas que n\xE3o vierem do proxy da Cloudflare
+# ====================================================================
+# Adicione dentro do bloco server { ... } em /etc/nginx/sites-available/
+${CLOUDFLARE_IPV4_CIDRS.map((cidr) => `set_real_ip_from ${cidr};`).join("\n")}
+real_ip_header CF-Connecting-IP;
+
+# Negar qualquer acesso direto fora da Cloudflare
+allow 127.0.0.1;
+${CLOUDFLARE_IPV4_CIDRS.map((cidr) => `allow ${cidr};`).join("\n")}
+deny all;`;
+  return { ufwScript, nginxSnippet };
+}
+async function analyzeOriginLeak(targetUrl, options) {
+  const startTime = Date.now();
+  const probeVhost = options?.probeVirtualHost !== false;
+  let rawHost = targetUrl.replace(/^https?:\/\//i, "").split("/")[0].split(":")[0].trim().toLowerCase();
+  const cleanDomain = rawHost;
+  const primaryA = await queryDohRecords2(cleanDomain, "A");
+  const primaryIps = primaryA.filter((ip) => /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(ip));
+  const isCloudflare = primaryIps.length > 0 && primaryIps.every(isCloudflareIp);
+  const isBehindProxyOrCdn = isCloudflare || primaryIps.some(isCloudflareIp);
+  let proxyProvider = "Direct Origin";
+  if (isCloudflare) proxyProvider = "Cloudflare";
+  else if (isBehindProxyOrCdn) proxyProvider = "Generic CDN";
+  const candidateOriginIps = [];
+  const spfIpsFound = [];
+  const mxHostsFound = [];
+  const subdomainsExposed = [];
+  const txtRecords = await queryDohRecords2(cleanDomain, "TXT");
+  for (const txt of txtRecords) {
+    if (txt.toLowerCase().startsWith("v=spf1")) {
+      const ips = extractSpfIps(txt);
+      for (const ip of ips) {
+        if (!spfIpsFound.includes(ip)) spfIpsFound.push(ip);
+        if (!isCloudflareIp(ip) && !primaryIps.includes(ip)) {
+          candidateOriginIps.push({
+            ip,
+            sourceVector: "SPF_RECORD",
+            isCloudflare: false
+          });
+        }
+      }
+    }
+  }
+  const mxRecords = await queryDohRecords2(cleanDomain, "MX");
+  for (const mx of mxRecords) {
+    const parts = mx.split(/\s+/);
+    const host = (parts.length > 1 ? parts[1] : parts[0]).replace(/\.$/, "");
+    if (host && !mxHostsFound.includes(host)) {
+      mxHostsFound.push(host);
+      if (host.endsWith(cleanDomain)) {
+        const mxA = await queryDohRecords2(host, "A");
+        for (const ip of mxA) {
+          if (!isCloudflareIp(ip) && !primaryIps.includes(ip)) {
+            candidateOriginIps.push({
+              ip,
+              sourceVector: "MX_HOST",
+              discoveredHost: host,
+              isCloudflare: false
+            });
+          }
+        }
+      }
+    }
+  }
+  await Promise.all(
+    HIGH_RISK_ORIGIN_SUBDOMAINS.map(async (sub) => {
+      const subHost = `${sub}.${cleanDomain}`;
+      const subA = await queryDohRecords2(subHost, "A");
+      for (const ip of subA) {
+        if (/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(ip)) {
+          if (!isCloudflareIp(ip)) {
+            subdomainsExposed.push(`${subHost} -> ${ip}`);
+            if (!candidateOriginIps.some((c) => c.ip === ip)) {
+              candidateOriginIps.push({
+                ip,
+                sourceVector: "GRAY_CLOUD_SUBDOMAIN",
+                discoveredHost: subHost,
+                isCloudflare: false
+              });
+            }
+          }
+        }
+      }
+    })
+  );
+  const confirmedBypassIps = [];
+  if (probeVhost && candidateOriginIps.length > 0) {
+    const uniqueIps = Array.from(new Set(candidateOriginIps.map((c) => c.ip)));
+    await Promise.all(
+      uniqueIps.slice(0, 5).map(async (ip) => {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 3e3);
+          const res = await fetch(`http://${ip}/`, {
+            signal: controller.signal,
+            headers: {
+              Host: cleanDomain,
+              "User-Agent": "ObsidianSec-Origin-Probe/1.4"
+            }
+          });
+          clearTimeout(timer);
+          const candidate = candidateOriginIps.find((c) => c.ip === ip);
+          if (candidate) {
+            candidate.statusCode = res.status;
+            candidate.serverBanner = res.headers.get("server") || void 0;
+            if (res.status < 500 && res.status !== 404 && res.status !== 403) {
+              candidate.virtualHostMatch = true;
+              if (!confirmedBypassIps.includes(ip)) {
+                confirmedBypassIps.push(ip);
+              }
+            }
+          }
+        } catch {
+        }
+      })
+    );
+  }
+  let riskScore = 0;
+  let overallStatus = "SECURE";
+  let summary = "Nenhum vazamento de IP real de origem foi detectado. Borda e proxies protegidos.";
+  if (confirmedBypassIps.length > 0) {
+    overallStatus = "CRITICAL_BYPASS";
+    riskScore = 95;
+    summary = `CR\xCDTICO: Vazamento confirmado! O servidor de origem responde diretamente em ${confirmedBypassIps.join(", ")}, ignorando 100% da prote\xE7\xE3o da CDN/WAF.`;
+  } else if (candidateOriginIps.length > 0) {
+    overallStatus = "WARNING";
+    riskScore = 65;
+    summary = `ALERTA: Foram descobertos ${candidateOriginIps.length} IPs candidatos fora da CDN via registros SPF/MX/Subdom\xEDnios. Recomenda-se bloquear acesso direto no firewall.`;
+  } else if (!isBehindProxyOrCdn) {
+    overallStatus = "WARNING";
+    riskScore = 50;
+    summary = `O dom\xEDnio n\xE3o utiliza servi\xE7o de proxy ou CDN de borda (como Cloudflare). O tr\xE1fego bate diretamente no IP p\xFAblico ${primaryIps.join(", ") || "desconhecido"}.`;
+  }
+  const durationMs = Date.now() - startTime;
+  const firewallPatches = generateOriginFirewallPatches(confirmedBypassIps.length > 0 ? confirmedBypassIps : candidateOriginIps.map((c) => c.ip));
+  return {
+    targetDomain: cleanDomain,
+    isBehindProxyOrCdn,
+    proxyProvider,
+    primaryIps,
+    candidateOriginIps,
+    confirmedBypassIps,
+    testedVectors: {
+      spfInspected: true,
+      spfIpsFound,
+      mxInspected: true,
+      mxHostsFound,
+      subdomainsProbed: HIGH_RISK_ORIGIN_SUBDOMAINS.length,
+      subdomainsExposed
+    },
+    overallStatus,
+    riskScore,
+    summary,
+    firewallPatches,
+    durationMs
+  };
+}
+
 // src/cli-source.ts
-var CLI_VERSION = "1.4.1";
+var CLI_VERSION = "1.5.0";
 var args = process.argv.slice(2);
 var command = args[0] || "help";
 var ANSI = {
@@ -3641,6 +3907,62 @@ async function runRedirects() {
 `);
   process.exit(report.vulnerableCount > 0 ? 1 : 0);
 }
+async function runOrigin() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}\u274C Erro: Dom\xEDnio ou URL alvo n\xE3o especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec origin <url|dominio>${ANSI.reset}`);
+    process.exit(1);
+  }
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`\u{1F50D} Ca\xE7ando vazamentos de IP real e bypass de CDN/WAF em ${ANSI.bold}${targetUrl}${ANSI.reset}...
+`);
+  const report = await analyzeOriginLeak(targetUrl);
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.overallStatus === "CRITICAL_BYPASS" ? 1 : 0);
+  }
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+  console.log(`======================================================================`);
+  console.log(`\u{1F4CA} DETECTOR DE ORIGIN BYPASS & VAZAMENTO DE IP REAL`);
+  console.log(`======================================================================`);
+  console.log(`\u2022 Dom\xEDnio Analisado:    ${report.targetDomain}`);
+  console.log(`\u2022 Protegido por CDN:    ${report.isBehindProxyOrCdn ? ANSI.green + "SIM (" + report.proxyProvider + ")" : ANSI.yellow + "N\xC3O (ORIGEM DIRETA)"}${ANSI.reset}`);
+  console.log(`\u2022 IPs P\xFAblicos (Borda): ${report.primaryIps.join(", ") || "Nenhum"}`);
+  console.log(`\u2022 Risco de Bypass:      ${statusColor}${ANSI.bold}${report.riskScore}/100 [${report.overallStatus}]${ANSI.reset}`);
+  console.log(`\u2022 Dura\xE7\xE3o da An\xE1lise:   ${report.durationMs}ms`);
+  console.log(`======================================================================
+`);
+  console.log(`\u{1F4CB} VETORES INSPECIONADOS:`);
+  console.log(`  \u2022 Registros SPF/TXT:    ${report.testedVectors.spfIpsFound.length > 0 ? ANSI.yellow + report.testedVectors.spfIpsFound.join(", ") : ANSI.green + "Nenhum IP exposto"}${ANSI.reset}`);
+  console.log(`  \u2022 Servidores de E-mail:  ${report.testedVectors.mxHostsFound.length > 0 ? report.testedVectors.mxHostsFound.join(", ") : "Nenhum MX detectado"}`);
+  console.log(`  \u2022 Subdom\xEDnios Testados:  ${report.testedVectors.subdomainsProbed} sondados (${report.testedVectors.subdomainsExposed.length > 0 ? ANSI.red + report.testedVectors.subdomainsExposed.length + " expostos fora da CDN" : ANSI.green + "Todos protegidos"}${ANSI.reset})`);
+  if (report.candidateOriginIps.length > 0) {
+    console.log(`
+\u{1F3AF} CANDIDATOS A IP REAL DE ORIGEM:`);
+    report.candidateOriginIps.forEach((c) => {
+      const matchBadge = c.virtualHostMatch ? ANSI.red + " [CONFIRMADO: VIRTUAL HOST MATCH]" : "";
+      console.log(`  \u2022 IP: ${ANSI.bold}${c.ip}${ANSI.reset} | Vetor: ${c.sourceVector} ${c.discoveredHost ? "(" + c.discoveredHost + ")" : ""}${matchBadge}`);
+    });
+  }
+  if (report.confirmedBypassIps.length > 0) {
+    console.log(`
+${ANSI.red}\u{1F6A8} ALERTA CR\xCDTICO: Vazamento de origem confirmado!${ANSI.reset}`);
+    console.log(`O servidor f\xEDsico responde diretamente em ${report.confirmedBypassIps.join(", ")}, permitindo que atacantes ignorem 100% da Cloudflare/WAF.`);
+  }
+  console.log(`
+\u{1F6E1}\uFE0F  PATCH RECOMENDADO DE FIREWALL (UFW / NGINX):`);
+  console.log(`  Para fechar conex\xF5es diretas na porta 443 e aceitar tr\xE1fego apenas da Cloudflare:`);
+  console.log(`${ANSI.cyan}  sudo ufw default deny incoming
+  sudo ufw allow from 173.245.48.0/20 to any port 443 proto tcp
+  sudo ufw deny 443/tcp
+  sudo ufw reload${ANSI.reset}`);
+  console.log(`
+======================================================================
+`);
+  process.exit(report.overallStatus === "CRITICAL_BYPASS" ? 1 : 0);
+}
 function runInitConfig() {
   printBanner();
   try {
@@ -3662,6 +3984,8 @@ function printHelp() {
     Op\xE7\xF5es:
       --min-grade=<A|B|C>         Define a nota m\xEDnima para o Quality Gate de CI/CD (padr\xE3o: B)
       --json                      Retorna o relat\xF3rio completo em formato JSON
+
+  ${ANSI.bold}obsidiansec origin <url>${ANSI.reset}           Ca\xE7a vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdom\xEDnios)
 
   ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expira\xE7\xE3o e nota de seguran\xE7a
   
@@ -3693,6 +4017,12 @@ function printHelp() {
 switch (command) {
   case "audit":
     runAudit();
+    break;
+  case "origin":
+  case "origin-leak":
+  case "origin-bypass":
+  case "bypass":
+    runOrigin();
     break;
   case "ssl":
   case "tls":
@@ -3749,7 +4079,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.4.1");
+    console.log("ObsidianSec CLI v1.5.0");
     break;
   default:
     printHelp();

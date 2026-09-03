@@ -21,9 +21,10 @@ import {
   generateHtmlSecurityReport,
   checkCachedUpdateSync,
   triggerBackgroundUpdateCheck,
+  analyzeOriginLeak,
 } from "./lib/security/index.ts";
 
-const CLI_VERSION = "1.4.1";
+const CLI_VERSION = "1.5.0";
 const args = process.argv.slice(2);
 const command = args[0] || "help";
 
@@ -664,6 +665,63 @@ async function runRedirects() {
   process.exit(report.vulnerableCount > 0 ? 1 : 0);
 }
 
+async function runOrigin() {
+  const targetUrl = args[1];
+  if (!targetUrl) {
+    console.error(`${ANSI.red}❌ Erro: Domínio ou URL alvo não especificada.${ANSI.reset}`);
+    console.log(`Uso: ${ANSI.bold}npx obsidiansec origin <url|dominio>${ANSI.reset}`);
+    process.exit(1);
+  }
+
+  const isJson = args.includes("--json");
+  if (!isJson) printBanner();
+  if (!isJson) console.log(`🔍 Caçando vazamentos de IP real e bypass de CDN/WAF em ${ANSI.bold}${targetUrl}${ANSI.reset}...\n`);
+
+  const report = await analyzeOriginLeak(targetUrl);
+
+  if (isJson) {
+    console.log(JSON.stringify(report, null, 2));
+    process.exit(report.overallStatus === "CRITICAL_BYPASS" ? 1 : 0);
+  }
+
+  const statusColor = report.overallStatus === "SECURE" ? ANSI.green : report.overallStatus === "WARNING" ? ANSI.yellow : ANSI.red;
+
+  console.log(`======================================================================`);
+  console.log(`📊 DETECTOR DE ORIGIN BYPASS & VAZAMENTO DE IP REAL`);
+  console.log(`======================================================================`);
+  console.log(`• Domínio Analisado:    ${report.targetDomain}`);
+  console.log(`• Protegido por CDN:    ${report.isBehindProxyOrCdn ? ANSI.green + "SIM (" + report.proxyProvider + ")" : ANSI.yellow + "NÃO (ORIGEM DIRETA)"}${ANSI.reset}`);
+  console.log(`• IPs Públicos (Borda): ${report.primaryIps.join(", ") || "Nenhum"}`);
+  console.log(`• Risco de Bypass:      ${statusColor}${ANSI.bold}${report.riskScore}/100 [${report.overallStatus}]${ANSI.reset}`);
+  console.log(`• Duração da Análise:   ${report.durationMs}ms`);
+  console.log(`======================================================================\n`);
+
+  console.log(`📋 VETORES INSPECIONADOS:`);
+  console.log(`  • Registros SPF/TXT:    ${report.testedVectors.spfIpsFound.length > 0 ? ANSI.yellow + report.testedVectors.spfIpsFound.join(", ") : ANSI.green + "Nenhum IP exposto"}${ANSI.reset}`);
+  console.log(`  • Servidores de E-mail:  ${report.testedVectors.mxHostsFound.length > 0 ? report.testedVectors.mxHostsFound.join(", ") : "Nenhum MX detectado"}`);
+  console.log(`  • Subdomínios Testados:  ${report.testedVectors.subdomainsProbed} sondados (${report.testedVectors.subdomainsExposed.length > 0 ? ANSI.red + report.testedVectors.subdomainsExposed.length + " expostos fora da CDN" : ANSI.green + "Todos protegidos"}${ANSI.reset})`);
+
+  if (report.candidateOriginIps.length > 0) {
+    console.log(`\n🎯 CANDIDATOS A IP REAL DE ORIGEM:`);
+    report.candidateOriginIps.forEach((c) => {
+      const matchBadge = c.virtualHostMatch ? ANSI.red + " [CONFIRMADO: VIRTUAL HOST MATCH]" : "";
+      console.log(`  • IP: ${ANSI.bold}${c.ip}${ANSI.reset} | Vetor: ${c.sourceVector} ${c.discoveredHost ? "(" + c.discoveredHost + ")" : ""}${matchBadge}`);
+    });
+  }
+
+  if (report.confirmedBypassIps.length > 0) {
+    console.log(`\n${ANSI.red}🚨 ALERTA CRÍTICO: Vazamento de origem confirmado!${ANSI.reset}`);
+    console.log(`O servidor físico responde diretamente em ${report.confirmedBypassIps.join(", ")}, permitindo que atacantes ignorem 100% da Cloudflare/WAF.`);
+  }
+
+  console.log(`\n🛡️  PATCH RECOMENDADO DE FIREWALL (UFW / NGINX):`);
+  console.log(`  Para fechar conexões diretas na porta 443 e aceitar tráfego apenas da Cloudflare:`);
+  console.log(`${ANSI.cyan}  sudo ufw default deny incoming\n  sudo ufw allow from 173.245.48.0/20 to any port 443 proto tcp\n  sudo ufw deny 443/tcp\n  sudo ufw reload${ANSI.reset}`);
+
+  console.log(`\n======================================================================\n`);
+  process.exit(report.overallStatus === "CRITICAL_BYPASS" ? 1 : 0);
+}
+
 function runInitConfig() {
   printBanner();
   try {
@@ -684,6 +742,8 @@ function printHelp() {
     Opções:
       --min-grade=<A|B|C>         Define a nota mínima para o Quality Gate de CI/CD (padrão: B)
       --json                      Retorna o relatório completo em formato JSON
+
+  ${ANSI.bold}obsidiansec origin <url>${ANSI.reset}           Caça vazamentos de IP real e bypass de Cloudflare/WAF (SPF, MX, Subdomínios)
 
   ${ANSI.bold}obsidiansec ssl <url>${ANSI.reset}              Auditoria de certificados SSL/TLS, validade, expiração e nota de segurança
   
@@ -716,6 +776,12 @@ function printHelp() {
 switch (command) {
   case "audit":
     runAudit();
+    break;
+  case "origin":
+  case "origin-leak":
+  case "origin-bypass":
+  case "bypass":
+    runOrigin();
     break;
   case "ssl":
   case "tls":
@@ -772,7 +838,7 @@ switch (command) {
   case "version":
   case "-v":
   case "--version":
-    console.log("ObsidianSec CLI v1.4.1");
+    console.log("ObsidianSec CLI v1.5.0");
     break;
   default:
     printHelp();

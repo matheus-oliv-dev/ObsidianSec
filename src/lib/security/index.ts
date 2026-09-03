@@ -28,5 +28,6 @@ export * from "./sarif-formatter";
 export * from "./custom-rule-loader";
 export * from "./html-report-generator";
 export * from "./update-notifier";
+export * from "./origin-leak-analyzer";
 export * from "../config/obsidian-config";
 export * from "../../agents/ai/token-budget-guard";
