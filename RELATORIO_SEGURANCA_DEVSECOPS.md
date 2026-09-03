@@ -124,3 +124,7 @@ graph TD
 ## 🏆 5. Conclusão & Conformidade
 
 A arquitetura do Redubla atende aos padrões internacionais de segurança para aplicações web em tempo real (OWASP Top 10 e práticas de Zero Trust). O sistema está blindado, resiliente e validado com 100% de sucesso.
+
+
+---
+*Documentação integrada da suíte ChimeraGuard DevSecOps.*

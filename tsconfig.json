@@ -6,7 +6,11 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "allowJs": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,8 +18,15 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "scripts/**/*", "api/**/*"]
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "scripts/**/*",
+    "api/**/*"
+  ]
 }

@@ -623,3 +623,7 @@ Para exportar este padrão e criar o seu **repositório dedicado de testes de se
    npm test
    node scripts/run-security-audit.mjs
    ```
+
+
+---
+*Documentação integrada da suíte ChimeraGuard DevSecOps.*

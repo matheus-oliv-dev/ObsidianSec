@@ -58,3 +58,7 @@ O projeto possui um pipeline automatizado de auditoria executado tanto localment
 * **Bucket de Clipes (`clips`):** Apenas leitura pública de mídias ativas (`status = 'ACTIVE'`). Escrita e exclusão restritas exclusivamente ao `service_role`.
 * **Bucket de Gravações (`recordings`):** 100% privado. Uploads usam URLs assinadas temporárias (`createUploadUrl`) com tokens de curta duração.
 * **Auto-Expiração:** Mídias temporárias de salas encerradas são purgadas automaticamente pelas rotinas de limpeza periódica.
+
+
+---
+*Documentação integrada da suíte ChimeraGuard DevSecOps.*

@@ -98,3 +98,7 @@ normalizar salas, envios e votos em tabelas transacionais e testar concorrência
 - [Limites de upload do Storage](https://supabase.com/docs/guides/storage/uploads/file-limits)
 - [Autenticação anônima](https://supabase.com/docs/guides/auth/auth-anonymous)
 - [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+
+
+---
+*Documentação integrada da suíte ChimeraGuard DevSecOps.*
