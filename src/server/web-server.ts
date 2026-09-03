@@ -96,7 +96,7 @@ function checkRateLimit(ip: string, maxRequests = 10, windowMs = 60000): { allow
 }
 
 /**
- * Servidor Web Nativo BomberCyber Dashboard (Resiliente, Rate-Limited e Blindado)
+ * Servidor Web Nativo ChimeraGuard Dashboard (Resiliente, Rate-Limited e Blindado)
  */
 export function createWebServer() {
   const server = http.createServer(async (req, res) => {

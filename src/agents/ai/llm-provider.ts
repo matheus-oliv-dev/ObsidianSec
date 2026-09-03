@@ -203,7 +203,7 @@ export class OllamaLocalProvider implements LLMProvider {
  * Provedor Simulado / Motor Cognitivo Embutido (Offline Sandbox)
  */
 export class BuiltinCognitiveSimulator implements LLMProvider {
-  public name = "BomberCyber Built-in Cognitive Engine (Offline)";
+  public name = "ChimeraGuard Built-in Cognitive Engine (Offline)";
 
   async generateResponse(messages: LLMMessage[]): Promise<string> {
     const analysis = {

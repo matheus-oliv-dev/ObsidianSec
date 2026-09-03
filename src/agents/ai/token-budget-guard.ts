@@ -27,7 +27,7 @@ export class TokenBudgetGuard {
   private cacheFilePath: string;
 
   constructor(customCacheDir?: string) {
-    const dir = customCacheDir || path.resolve(process.cwd(), ".obsidiansec");
+    const dir = customCacheDir || path.resolve(process.cwd(), ".chimeraguard");
     this.cacheFilePath = path.join(dir, "ai-cache.json");
     this.loadCacheFromDisk();
   }
@@ -45,7 +45,7 @@ export class TokenBudgetGuard {
    */
   public evaluateBudget(
     fingerprint: string,
-    config: ObsidianConfig = DEFAULT_OBSIDIAN_CONFIG,
+    config: ChimeraConfig = DEFAULT_OBSIDIAN_CONFIG,
     forceAI: boolean = false
   ): TokenBudgetStatus {
     // 1. Se IA estiver explicitamente desativada na config e sem override de flag

@@ -3,7 +3,7 @@ import { CYBERBRAIN_SYSTEM_PROMPT } from "./prompts.ts";
 import { runPolyglotAudit, type PolyglotAuditReport } from "../polyglot/engine.ts";
 import { auditUniversalEndpoint, type UniversalAuditReport } from "../../scanner/universal-web-scanner.ts";
 import { TokenBudgetGuard } from "./token-budget-guard.ts";
-import { loadObsidianConfig, type ObsidianConfig } from "../../lib/config/obsidian-config.ts";
+import { loadObsidianConfig as loadChimeraConfig, type ObsidianConfig as ChimeraConfig } from "../../lib/config/obsidian-config.ts";
 
 export interface AICognitiveAnalysis {
   thoughtProcess: string[];
@@ -48,14 +48,14 @@ export class AutonomousSecurityAIOrchestrator {
    */
   public async runCognitiveCycle(
     target: string,
-    options: { forceAI?: boolean; config?: ObsidianConfig } = {}
+    options: { forceAI?: boolean; config?: ChimeraConfig } = {}
   ): Promise<{
     deterministicReport: PolyglotAuditReport | UniversalAuditReport;
     aiAnalysis: AICognitiveAnalysis;
     providerUsed: string;
     tokenUsageSource: string;
   }> {
-    const config = options.config || loadObsidianConfig();
+    const config = options.config || loadChimeraConfig();
 
     let rawLogData = "";
     let reportData: any;
@@ -111,7 +111,7 @@ export class AutonomousSecurityAIOrchestrator {
       {
         role: "user",
         content: `Alvo auditado: ${target}
-Abaixo estão os logs brutos e achados retornados pelo motor de testes do ObsidianSec:
+Abaixo estão os logs brutos e achados retornados pelo motor de testes do ChimeraGuard:
 
 \`\`\`json
 ${rawLogData}

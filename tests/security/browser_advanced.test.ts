@@ -7,7 +7,7 @@ import { sanitizeInput } from "@/lib/security/sanitizer";
 describe("🌐 Advanced Browser & Frontend Security Suite", () => {
   describe("1. Matriz de CORS Misconfigurations", () => {
     const corsConfig = {
-      allowedOrigins: ["https://bombercyber.io", "https://bot.matheusdev.com.br"],
+      allowedOrigins: ["https://chimeraguard.io", "https://bot.matheusdev.com.br"],
       allowCredentials: true,
     };
 
@@ -23,7 +23,7 @@ describe("🌐 Advanced Browser & Frontend Security Suite", () => {
     });
 
     it("TEST-028: impede bypass de regex com subdomínios forjados", () => {
-      const result = validateCorsOrigin("https://bombercyber.io.evil.com", corsConfig);
+      const result = validateCorsOrigin("https://chimeraguard.io.evil.com", corsConfig);
       expect(result.allowed).toBe(false);
     });
 

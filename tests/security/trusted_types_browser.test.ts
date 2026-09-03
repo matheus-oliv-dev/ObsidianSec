@@ -4,8 +4,8 @@ import { createBrowserSecurityHeaders } from "@/lib/security/browser-shield";
 
 describe("🌐 Browser Hardening: CSP Strict-Dynamic & Trusted Types", () => {
   describe("1. Política de Trusted Types", () => {
-    it("sanitiza strings de HTML geradas através da política bomberPolicy", () => {
-      const policy = createTrustedTypePolicy("bomberPolicy");
+    it("sanitiza strings de HTML geradas através da política chimeraPolicy", () => {
+      const policy = createTrustedTypePolicy("chimeraPolicy");
       const sanitized = policy.createHTML('<img src=x onerror="alert(1)">');
 
       expect(sanitized).not.toContain("<img");
@@ -13,14 +13,14 @@ describe("🌐 Browser Hardening: CSP Strict-Dynamic & Trusted Types", () => {
     });
 
     it("bloqueia esquemas perigosos (javascript:) em URLs de scripts", () => {
-      const policy = createTrustedTypePolicy("bomberPolicy");
+      const policy = createTrustedTypePolicy("chimeraPolicy");
       expect(() => policy.createScriptURL("javascript:alert(document.cookie)")).toThrow(
         /SecurityError/i,
       );
     });
 
     it("permite URLs de scripts seguras e confiáveis", () => {
-      const policy = createTrustedTypePolicy("bomberPolicy");
+      const policy = createTrustedTypePolicy("chimeraPolicy");
       const safeUrl = policy.createScriptURL("https://bot.matheusdev.com.br/app.js");
       expect(safeUrl).toBe("https://bot.matheusdev.com.br/app.js");
     });
@@ -33,7 +33,7 @@ describe("🌐 Browser Hardening: CSP Strict-Dynamic & Trusted Types", () => {
         {
           enableStrictDynamic: true,
           enableTrustedTypes: true,
-          trustedPolicyName: "bomberPolicy",
+          trustedPolicyName: "chimeraPolicy",
           coepMode: "credentialless",
         },
         nonce,
@@ -44,7 +44,7 @@ describe("🌐 Browser Hardening: CSP Strict-Dynamic & Trusted Types", () => {
       expect(csp).toContain("'strict-dynamic'");
       expect(csp).toContain(`nonce-${nonce}`);
       expect(csp).toContain("require-trusted-types-for 'script'");
-      expect(csp).toContain("trusted-types bomberPolicy 'allow-duplicates'");
+      expect(csp).toContain("trusted-types chimeraPolicy 'allow-duplicates'");
       expect(headers["Cross-Origin-Embedder-Policy"]).toBe("credentialless");
     });
   });

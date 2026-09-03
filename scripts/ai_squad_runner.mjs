@@ -4,7 +4,7 @@ import { AutonomousSecurityAIOrchestrator } from "../src/agents/ai/autonomous-or
 const target = process.argv[2] || ".";
 
 console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-console.log("║    🧠 BOMBERCYBER CYBERBRAIN · ORQUESTRADOR COGNITIVO COM IA        ║");
+console.log("║    🧠 CHIMERAGUARD CYBERBRAIN · ORQUESTRADOR COGNITIVO COM IA        ║");
 console.log("║    Alvo: " + target.padEnd(52) + "║");
 console.log("╚══════════════════════════════════════════════════════════════════════╝");
 

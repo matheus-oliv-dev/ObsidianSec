@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const probeRes = await fetch(target, {
         method: "GET",
         signal: controller.signal,
-        headers: { "User-Agent": "ObsidianSec-Badge-Bot/1.0" },
+        headers: { "User-Agent": "ChimeraGuard-Badge-Bot/1.0" },
       });
       clearTimeout(timeout);
 
@@ -88,6 +88,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   else if (gradeParam === "ERR") colorHex = "#737373";
   else colorHex = "#ef4444";
 
-  const svg = generateSvgBadge("OBSIDIANSEC", displayScore, colorHex);
+  const svg = generateSvgBadge("CHIMERAGUARD", displayScore, colorHex);
   res.status(200).send(svg);
 }

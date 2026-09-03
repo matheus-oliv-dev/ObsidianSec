@@ -41,7 +41,7 @@ async function testMethod(url: string, method: string, timeout: number): Promise
       method,
       signal: controller.signal,
       redirect: "manual",
-      headers: { "User-Agent": "ObsidianSec-Method-Probe/1.2.2" },
+      headers: { "User-Agent": "ChimeraGuard-Method-Probe/1.2.2" },
     });
     clearTimeout(timer);
     return { statusCode: res.status, error: false };

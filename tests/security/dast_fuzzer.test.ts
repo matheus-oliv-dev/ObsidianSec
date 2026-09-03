@@ -14,7 +14,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY =
 describe("🛡️ Red Team Fuzzer: Simulação Dinâmica de Ataques (DAST)", () => {
   describe("1. Simulação de Acesso com Token Anônimo (Vetor BOLA)", () => {
     it("bloqueia terminantemente requisições administrativas sem cabeçalho Authorization com HTTP 401", async () => {
-      const request = new Request("https://bombercyber.io/api/admin/metrics");
+      const request = new Request("https://chimeraguard.io/api/admin/metrics");
       const result = await requireAdmin(request);
 
       expect("error" in result).toBe(true);
@@ -24,7 +24,7 @@ describe("🛡️ Red Team Fuzzer: Simulação Dinâmica de Ataques (DAST)", () 
     });
 
     it("bloqueia tokens que não possuem role ADMIN com HTTP 403", async () => {
-      const request = new Request("https://bombercyber.io/api/admin/metrics", {
+      const request = new Request("https://chimeraguard.io/api/admin/metrics", {
         headers: { Authorization: "Bearer token-invalido-ou-sem-admin" },
       });
 
@@ -51,7 +51,7 @@ describe("🛡️ Red Team Fuzzer: Simulação Dinâmica de Ataques (DAST)", () 
       for (let i = 0; i < 8; i++) {
         lastResponse = await enforceRateLimit({
           admin: fakeAdmin,
-          request: new Request("https://bombercyber.io/api/admin/login", {
+          request: new Request("https://chimeraguard.io/api/admin/login", {
             headers: { "x-vercel-forwarded-for": "198.51.100.25" },
           }),
           userId: userTarget,

@@ -285,7 +285,7 @@ export async function detectWaf(targetUrl: string): Promise<WafDetectionReport> 
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ObsidianSec/1.2",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ChimeraGuard/1.2",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -338,7 +338,7 @@ export async function detectWaf(targetUrl: string): Promise<WafDetectionReport> 
   if (!detectedWaf) {
     try {
       const parsed = new URL(url);
-      parsed.searchParams.set("obsidian_waf_probe", "<script>alert('obsidiansec_probe')</script>");
+      parsed.searchParams.set("chimera_waf_probe", "<script>alert('chimeraguard_probe')</script>");
 
       const probeController = new AbortController();
       const probeTimeout = setTimeout(() => probeController.abort(), 4000);
@@ -347,7 +347,7 @@ export async function detectWaf(targetUrl: string): Promise<WafDetectionReport> 
         method: "GET",
         signal: probeController.signal,
         headers: {
-          "User-Agent": "ObsidianSec-WAF-Probe/1.2 (+https://obsidiansec.dev)",
+          "User-Agent": "ChimeraGuard-WAF-Probe/1.2 (+https://chimera-guard.vercel.app)",
         },
       });
 

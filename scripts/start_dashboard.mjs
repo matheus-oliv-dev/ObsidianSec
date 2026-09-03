@@ -16,7 +16,7 @@ function startOnAvailablePort(initialPort = 3333) {
 
   server.listen(port, () => {
     console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-    console.log("║    🟢 OBSIDIANSEC // DEVSECOPS DEFENSE PLATFORM ONLINE!              ║");
+    console.log("║    🟢 CHIMERAGUARD // DEVSECOPS DEFENSE PLATFORM ONLINE!              ║");
     console.log("╠══════════════════════════════════════════════════════════════════════╣");
     console.log(`║    👉 Acesse no seu navegador: http://localhost:${port}               ║`);
     console.log("║    🎓 Diagnóstico Pedagógico & Por que da Pontuação Ativo            ║");

@@ -3,7 +3,7 @@ import https from "node:https";
 const TARGET_URL = "https://bot.matheusdev.com.br";
 
 console.log("======================================================================");
-console.log("🛡️  BOMBERCYBER LIVE SECURITY AUDIT · TESTES DE DEFESA AO VIVO");
+console.log("🛡️  CHIMERAGUARD LIVE SECURITY AUDIT · TESTES DE DEFESA AO VIVO");
 console.log("🎯  Alvo: " + TARGET_URL);
 console.log("📅  Data/Hora: " + new Date().toISOString());
 console.log("======================================================================\n");

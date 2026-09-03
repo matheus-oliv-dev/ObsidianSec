@@ -186,7 +186,7 @@ export const UserRegistrationSchema = z.object({
       language: "typescript",
       title: "Criação de Política W3C Trusted Types",
       code: `if (window.trustedTypes && window.trustedTypes.createPolicy) {
-  window.trustedTypes.createPolicy("bomberPolicy", {
+  window.trustedTypes.createPolicy("chimeraPolicy", {
     createHTML: (string) => DOMPurify.sanitize(string),
     createScriptURL: (url) => {
       if (!url.startsWith("https://cdn.meusite.com/")) throw new Error("Origem não autorizada");
@@ -278,7 +278,7 @@ export const UserRegistrationSchema = z.object({
     codeExample: {
       language: "typescript",
       title: "Middleware CORS Seguro com Allowlist Rigorosa e Vary Origin",
-      code: `const ALLOWED_ORIGINS = new Set(["https://app.obsidiansec.dev", "https://admin.obsidiansec.dev"]);
+      code: `const ALLOWED_ORIGINS = new Set(["https://app.chimeraguard.dev", "https://admin.chimeraguard.dev"]);
 
 export function corsGuard(req: Request, res: Response): boolean {
   const origin = req.headers.get("origin");

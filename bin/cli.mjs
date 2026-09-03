@@ -1815,7 +1815,7 @@ async function detectWaf(targetUrl) {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ObsidianSec/1.2",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ChimeraGuard/1.2",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
       }
     });
@@ -1860,14 +1860,14 @@ async function detectWaf(targetUrl) {
   if (!detectedWaf) {
     try {
       const parsed = new URL(url);
-      parsed.searchParams.set("obsidian_waf_probe", "<script>alert('obsidiansec_probe')</script>");
+      parsed.searchParams.set("chimera_waf_probe", "<script>alert('chimeraguard_probe')</script>");
       const probeController = new AbortController();
       const probeTimeout = setTimeout(() => probeController.abort(), 4e3);
       const probeRes = await fetch(parsed.toString(), {
         method: "GET",
         signal: probeController.signal,
         headers: {
-          "User-Agent": "ObsidianSec-WAF-Probe/1.2 (+https://obsidiansec.dev)"
+          "User-Agent": "ChimeraGuard-WAF-Probe/1.2 (+https://chimera-guard.vercel.app)"
         }
       });
       clearTimeout(probeTimeout);
@@ -2512,7 +2512,7 @@ async function testMethod(url, method, timeout) {
       method,
       signal: controller.signal,
       redirect: "manual",
-      headers: { "User-Agent": "ObsidianSec-Method-Probe/1.2.2" }
+      headers: { "User-Agent": "ChimeraGuard-Method-Probe/1.2.2" }
     });
     clearTimeout(timer);
     return { statusCode: res.status, error: false };
@@ -2582,7 +2582,7 @@ var REDIRECT_PARAMS = [
   "return_url",
   "checkout_url"
 ];
-var EVIL_DOMAIN = "https://evil.obsidiansec-test.com";
+var EVIL_DOMAIN = "https://evil.chimeraguard-test.com";
 async function testRedirectParam(baseUrl, param) {
   const payload = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(EVIL_DOMAIN)}`;
   try {
@@ -2592,7 +2592,7 @@ async function testRedirectParam(baseUrl, param) {
       method: "GET",
       signal: controller.signal,
       redirect: "manual",
-      headers: { "User-Agent": "ObsidianSec-Redirect-Probe/1.2.2" }
+      headers: { "User-Agent": "ChimeraGuard-Redirect-Probe/1.2.2" }
     });
     clearTimeout(timeout);
     const statusCode = res.status;
@@ -2603,9 +2603,9 @@ async function testRedirectParam(baseUrl, param) {
       try {
         const targetHost = new URL(location).hostname;
         const baseHost = new URL(baseUrl).hostname;
-        isOpenRedirect = targetHost !== baseHost && location.includes("evil.obsidiansec-test.com");
+        isOpenRedirect = targetHost !== baseHost && location.includes("evil.chimeraguard-test.com");
       } catch {
-        isOpenRedirect = location.includes("evil.obsidiansec-test.com");
+        isOpenRedirect = location.includes("evil.chimeraguard-test.com");
       }
     }
     return {
@@ -2677,7 +2677,7 @@ function convertSecretReportToSarif(report, version = "1.4.1") {
         defaultConfiguration: {
           level
         },
-        helpUri: "https://obsidiansec.dev/docs/rules/" + finding.ruleId
+        helpUri: "https://chimera-guard.vercel.app/docs/rules/" + finding.ruleId
       });
     }
     results.push({
@@ -2710,9 +2710,9 @@ function convertSecretReportToSarif(report, version = "1.4.1") {
       {
         tool: {
           driver: {
-            name: "ObsidianSec",
+            name: "ChimeraGuard",
             version,
-            informationUri: "https://obsidiansec.dev",
+            informationUri: "https://chimera-guard.vercel.app",
             rules: Array.from(ruleMap.values())
           }
         },
@@ -2802,7 +2802,7 @@ function generateHtmlSecurityReport(report, score, grade) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ObsidianSec Security Audit Report - ${report.targetUrl}</title>
+  <title>ChimeraGuard Security Audit Report - ${report.targetUrl}</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -2870,7 +2870,7 @@ function generateHtmlSecurityReport(report, score, grade) {
     <!-- Top Header Card -->
     <div class="header-card">
       <div>
-        <div style="font-size: 12px; color: #a1a1aa; letter-spacing: 1px; text-transform: uppercase;">\u{1F6E1}\uFE0F ObsidianSec DevSecOps Arsenal</div>
+        <div style="font-size: 12px; color: #a1a1aa; letter-spacing: 1px; text-transform: uppercase;">\u{1F6E1}\uFE0F ChimeraGuard DevSecOps Arsenal</div>
         <h1 style="margin: 4px 0 6px 0; font-size: 22px;">Security Audit: <span style="color: #38bdf8;">${report.targetUrl}</span></h1>
         <div style="font-size: 12px; color: #71717a;">Generated on ${dateStr} \u2022 Status HTTP ${report.httpStatus}</div>
       </div>
@@ -2937,8 +2937,8 @@ function generateHtmlSecurityReport(report, score, grade) {
 
     <!-- Footer -->
     <div class="footer">
-      Generated automatically by <strong>ObsidianSec v1.3.1</strong> // The Autonomous DevSecOps & Edge Security Arsenal.<br>
-      <a href="https://github.com/matheus-oliv-dev/ObsidianSec" style="color: #38bdf8; text-decoration: none;">GitHub Repository</a> \u2022 <a href="https://www.npmjs.com/package/obsidiansec" style="color: #38bdf8; text-decoration: none;">NPM Package</a>
+      Generated automatically by <strong>ChimeraGuard v1.3.1</strong> // The Autonomous DevSecOps & Edge Security Arsenal.<br>
+      <a href="https://github.com/matheus-oliv-dev/ChimeraGuard" style="color: #38bdf8; text-decoration: none;">GitHub Repository</a> \u2022 <a href="https://www.npmjs.com/package/chimeraguard" style="color: #38bdf8; text-decoration: none;">NPM Package</a>
     </div>
 
   </div>
@@ -3154,7 +3154,7 @@ async function queryDohRecords2(name, type, timeoutMs = 2500) {
 }
 function generateOriginFirewallPatches(candidateIps = []) {
   const ufwScript = `# ====================================================================
-# OBSIDIANSEC DEFENSE PATCH: BLOCK DIRECT ORIGIN ACCESS (UFW)
+# CHIMERAGUARD DEFENSE PATCH: BLOCK DIRECT ORIGIN ACCESS (UFW)
 # Permite tr\xE1fego HTTPS apenas das faixas oficiais da Cloudflare
 # ====================================================================
 sudo ufw default deny incoming
@@ -3162,7 +3162,7 @@ ${CLOUDFLARE_IPV4_CIDRS.map((cidr) => `sudo ufw allow from ${cidr} to any port 4
 sudo ufw deny 443/tcp comment "Block direct HTTP/HTTPS bypass"
 sudo ufw reload`;
   const nginxSnippet = `# ====================================================================
-# OBSIDIANSEC DEFENSE PATCH: NGINX RESTRICTED ORIGIN ACCESS
+# CHIMERAGUARD DEFENSE PATCH: NGINX RESTRICTED ORIGIN ACCESS
 # Rejeita requisi\xE7\xF5es diretas que n\xE3o vierem do proxy da Cloudflare
 # ====================================================================
 # Adicione dentro do bloco server { ... } em /etc/nginx/sites-available/
@@ -3261,7 +3261,7 @@ async function analyzeOriginLeak(targetUrl, options) {
             signal: controller.signal,
             headers: {
               Host: cleanDomain,
-              "User-Agent": "ObsidianSec-Origin-Probe/1.4"
+              "User-Agent": "ChimeraGuard-Origin-Probe/1.4"
             }
           });
           clearTimeout(timer);

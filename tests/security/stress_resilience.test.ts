@@ -34,7 +34,7 @@ describe("🛡️ Resiliência e Proteção contra Ataques de Sobrecarga (DoS)",
       const promises = Array.from({ length: 20 }, (_, idx) =>
         enforceRateLimit({
           admin: mockAdmin,
-          request: new Request("https://bombercyber.io/api/rooms", {
+          request: new Request("https://chimeraguard.io/api/rooms", {
             headers: {
               "x-vercel-forwarded-for": "203.0.113.50",
             },
@@ -66,7 +66,7 @@ describe("🛡️ Resiliência e Proteção contra Ataques de Sobrecarga (DoS)",
         const fakeUserId = `bot-anon-${i}-${Date.now()}`;
         const res = await enforceRateLimit({
           admin: mockAdmin,
-          request: new Request("https://bombercyber.io/api/rooms", {
+          request: new Request("https://chimeraguard.io/api/rooms", {
             headers: { "x-forwarded-for": botIP },
           }),
           userId: fakeUserId,
@@ -87,7 +87,7 @@ describe("🛡️ Resiliência e Proteção contra Ataques de Sobrecarga (DoS)",
     it("permite novas requisições quando a cota em memória é respeitada", async () => {
       const targetUser = `user-ok-${Date.now()}`;
       const res = await enforceRateLimit({
-        request: new Request("https://bombercyber.io/api/test"),
+        request: new Request("https://chimeraguard.io/api/test"),
         userId: targetUser,
         scope: "test-single",
         userLimit: 5,

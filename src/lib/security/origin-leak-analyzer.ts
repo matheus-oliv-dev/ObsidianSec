@@ -176,7 +176,7 @@ async function queryDohRecords(name: string, type: "A" | "TXT" | "MX", timeoutMs
  */
 export function generateOriginFirewallPatches(candidateIps: string[] = []): { ufwScript: string; nginxSnippet: string } {
   const ufwScript = `# ====================================================================
-# OBSIDIANSEC DEFENSE PATCH: BLOCK DIRECT ORIGIN ACCESS (UFW)
+# CHIMERAGUARD DEFENSE PATCH: BLOCK DIRECT ORIGIN ACCESS (UFW)
 # Permite tráfego HTTPS apenas das faixas oficiais da Cloudflare
 # ====================================================================
 sudo ufw default deny incoming
@@ -185,7 +185,7 @@ sudo ufw deny 443/tcp comment "Block direct HTTP/HTTPS bypass"
 sudo ufw reload`;
 
   const nginxSnippet = `# ====================================================================
-# OBSIDIANSEC DEFENSE PATCH: NGINX RESTRICTED ORIGIN ACCESS
+# CHIMERAGUARD DEFENSE PATCH: NGINX RESTRICTED ORIGIN ACCESS
 # Rejeita requisições diretas que não vierem do proxy da Cloudflare
 # ====================================================================
 # Adicione dentro do bloco server { ... } em /etc/nginx/sites-available/
@@ -317,7 +317,7 @@ export async function analyzeOriginLeak(
             signal: controller.signal,
             headers: {
               Host: cleanDomain,
-              "User-Agent": "ObsidianSec-Origin-Probe/1.4",
+              "User-Agent": "ChimeraGuard-Origin-Probe/1.4",
             },
           });
           clearTimeout(timer);

@@ -226,7 +226,7 @@ async function auditUniversalEndpoint(targetUrl: string) {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": "ObsidianSec-DevSecOps-Auditor/1.0 (+https://obsidiansec.dev)",
+        "User-Agent": "ChimeraGuard-DevSecOps-Auditor/1.0 (+https://chimera-guard.vercel.app)",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       },
     });
@@ -271,7 +271,7 @@ async function auditUniversalEndpoint(targetUrl: string) {
       {
         serverType: "Nginx (nginx.conf)",
         snippet: `# =========================================================
-# OBSIDIANSEC DEFENSE PATCH // NGINX HARDENING
+# CHIMERAGUARD DEFENSE PATCH // NGINX HARDENING
 # =========================================================
 add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'strict-dynamic'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
 add_header X-Frame-Options "DENY" always;
@@ -285,7 +285,7 @@ server_tokens off;`,
       {
         serverType: "Apache (.htaccess)",
         snippet: `# =========================================================
-# OBSIDIANSEC DEFENSE PATCH // APACHE HTTP HARDENING
+# CHIMERAGUARD DEFENSE PATCH // APACHE HTTP HARDENING
 # =========================================================
 <IfModule mod_headers.c>
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none';"
@@ -302,7 +302,7 @@ ServerSignature Off`,
       {
         serverType: "Node.js (Helmet / Express)",
         snippet: `// =========================================================
-// OBSIDIANSEC DEFENSE PATCH // NODE.JS & EXPRESS HELMET
+// CHIMERAGUARD DEFENSE PATCH // NODE.JS & EXPRESS HELMET
 // =========================================================
 import express from 'express';
 import helmet from 'helmet';
@@ -327,7 +327,7 @@ app.use(helmet({
       {
         serverType: "Cloudflare (Transform Rules)",
         snippet: `# =========================================================
-# OBSIDIANSEC DEFENSE PATCH // CLOUDFLARE EDGE HEADERS
+# CHIMERAGUARD DEFENSE PATCH // CLOUDFLARE EDGE HEADERS
 # HTTP Response Header Modification Rules
 # =========================================================
 Set Dynamic Header:
@@ -426,7 +426,7 @@ async function generateAiDiagnosis(auditReport: any, score: number, grade: strin
   const finalApiKey = apiKey || process.env.GEMINI_API_KEY || "";
   const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3-flash-preview", "gemini-3.6-flash"];
 
-  const prompt = `You are CyberBrain from the ObsidianSec DevSecOps platform. Analyze this target security audit report: ${auditReport.targetUrl}
+  const prompt = `You are CyberBrain from the ChimeraGuard DevSecOps platform. Analyze this target security audit report: ${auditReport.targetUrl}
 - Score: ${score}/100 (Grade ${grade})
 - Server / Edge: ${auditReport.serverDetected}
 - CSP: ${auditReport.securityHeaders.csp.present ? "Present" : "MISSING"}
@@ -439,7 +439,7 @@ async function generateAiDiagnosis(auditReport: any, score: number, grade: strin
 Generate a pedagogical, tactical, and defensive security analysis (3 to 4 paragraphs) in English, highlighting real-world attack vectors and how to apply edge hardening remediation.`;
 
   if (finalApiKey) {
-    const maestroSystemPrompt = `You are the OBSIDIANSEC MASTER ORCHESTRATOR (CyberBrain Maestro), the supreme AI core of the ObsidianSec DevSecOps squad.
+    const maestroSystemPrompt = `You are the CHIMERAGUARD MASTER ORCHESTRATOR (CyberBrain Maestro), the supreme AI core of the ChimeraGuard DevSecOps squad.
 Your mission: provide authoritative, pedagogical, investigative, and tactical technical diagnoses on edge security, HTTP response headers, Zero Trust Architecture (NIST SP 800-207), OWASP Top 10, and data privacy frameworks.
 Tone of voice: Tactical, analytical, authoritative, precise, and actionable.`;
 
@@ -473,7 +473,7 @@ Tone of voice: Tactical, analytical, authoritative, precise, and actionable.`;
   }
 
   // Motor Cognitivo Embutido (Offline Fallback Instantâneo em Inglês)
-  let fallbackText = `### 🧠 COGNITIVE VERDICT // OBSIDIANSEC DEFENSE CORE\n\n`;
+  let fallbackText = `### 🧠 COGNITIVE VERDICT // CHIMERAGUARD DEFENSE CORE\n\n`;
   fallbackText += `Target **${auditReport.targetUrl}** scored **${score}/100 (Grade ${grade})** with infrastructure identified as **${auditReport.serverDetected}**.\n\n`;
 
   if (score >= 90) {
@@ -486,7 +486,7 @@ Tone of voice: Tactical, analytical, authoritative, precise, and actionable.`;
 
   fallbackText += `**Immediate Recommendation:** Apply the response header remediation patches provided below to your proxy/CDN layer to elevate your rating to **A+ (100/100)** immediately.`;
 
-  return { provider: "ObsidianSec Cognitive Core", analysis: fallbackText };
+  return { provider: "ChimeraGuard Cognitive Core", analysis: fallbackText };
 }
 
 // ============================================================================

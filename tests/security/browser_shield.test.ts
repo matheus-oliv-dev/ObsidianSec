@@ -73,7 +73,7 @@ describe("🌐 Browser Security Shield & Client-Side Defenses", () => {
   describe("3. Defesa contra Exaustão de Memória / OOM Payload DoS", () => {
     it("processa JSON válido dentro do limite seguro", async () => {
       const payload = { message: "teste seguro", id: 123 };
-      const req = new Request("https://bombercyber.io/api/upload", {
+      const req = new Request("https://chimeraguard.io/api/upload", {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -84,7 +84,7 @@ describe("🌐 Browser Security Shield & Client-Side Defenses", () => {
 
     it("aborta imediatamente e lança PayloadTooLargeError se o payload exceder o limite em bytes", async () => {
       const hugePayload = { data: "X".repeat(5000) };
-      const req = new Request("https://bombercyber.io/api/upload", {
+      const req = new Request("https://chimeraguard.io/api/upload", {
         method: "POST",
         body: JSON.stringify(hugePayload),
       });
@@ -120,12 +120,12 @@ describe("🌐 Browser Security Shield & Client-Side Defenses", () => {
         "DELETE_SCENE",
         "203.0.113.10",
         { sceneId: "scene-999", reason: "Copyright infringement" },
-        "admin@bombercyber.io",
+        "admin@chimeraguard.io",
       );
 
       expect(entry.id).toBeDefined();
       expect(entry.actorId).toBe("admin-user-01");
-      expect(entry.actorEmail).toBe("admin@bombercyber.io");
+      expect(entry.actorEmail).toBe("admin@chimeraguard.io");
       expect(entry.payloadHash).toHaveLength(64); // SHA-256 Hex length
 
       const allLogs = getAuditLogs();

@@ -41,7 +41,7 @@ describe("📋 OASIS SARIF v2.1.0 Formatter (GitHub Code Scanning Standard)", ()
     expect(sarif.runs.length).toBe(1);
 
     const run = sarif.runs[0];
-    expect(run.tool.driver.name).toBe("ObsidianSec");
+    expect(run.tool.driver.name).toBe("ChimeraGuard");
     expect(run.tool.driver.version).toBe("1.3.1");
     expect(run.tool.driver.rules.length).toBe(2);
 

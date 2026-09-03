@@ -1,5 +1,5 @@
 /**
- * ObsidianSec Headless Security Engine & SDK
+ * ChimeraGuard Headless Security Engine & SDK
  * The All-In-One DevSecOps, Edge Defense, SAST & Reconnaissance Engine.
  */
 

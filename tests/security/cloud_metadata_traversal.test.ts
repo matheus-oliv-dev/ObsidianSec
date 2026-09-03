@@ -40,7 +40,7 @@ describe("☁️ Cloud, Metadata Security & Path Traversal Suite", () => {
       expect(validateSafeUrl("file:///etc/passwd").isAllowed).toBe(false);
       expect(validateSafeUrl("gopher://127.0.0.1:6379").isAllowed).toBe(false);
       expect(validateSafeUrl("http://169.254.169.254/latest/meta-data").isAllowed).toBe(false);
-      expect(validateSafeUrl("https://bombercyber.io/webhook").isAllowed).toBe(true);
+      expect(validateSafeUrl("https://chimeraguard.io/webhook").isAllowed).toBe(true);
     });
   });
 

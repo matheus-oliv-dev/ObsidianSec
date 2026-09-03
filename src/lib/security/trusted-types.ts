@@ -10,7 +10,7 @@ export interface TrustedTypePolicy {
 /**
  * Cria a política imutável de Trusted Types para eliminação de DOM XSS no navegador.
  */
-export function createTrustedTypePolicy(policyName = "bomberPolicy"): TrustedTypePolicy {
+export function createTrustedTypePolicy(policyName = "chimeraPolicy"): TrustedTypePolicy {
   return {
     name: policyName,
     createHTML: (input: string): string => {
@@ -38,7 +38,7 @@ export function createTrustedTypePolicy(policyName = "bomberPolicy"): TrustedTyp
 /**
  * Registra a política global de Trusted Types no ambiente window se disponível.
  */
-export function registerGlobalTrustedTypes(policyName = "bomberPolicy"): void {
+export function registerGlobalTrustedTypes(policyName = "chimeraPolicy"): void {
   if (typeof window !== "undefined" && (window as any).trustedTypes?.createPolicy) {
     try {
       const policy = createTrustedTypePolicy(policyName);

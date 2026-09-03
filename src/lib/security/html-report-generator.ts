@@ -110,7 +110,7 @@ export function generateHtmlSecurityReport(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ObsidianSec Security Audit Report - ${report.targetUrl}</title>
+  <title>ChimeraGuard Security Audit Report - ${report.targetUrl}</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -178,7 +178,7 @@ export function generateHtmlSecurityReport(
     <!-- Top Header Card -->
     <div class="header-card">
       <div>
-        <div style="font-size: 12px; color: #a1a1aa; letter-spacing: 1px; text-transform: uppercase;">🛡️ ObsidianSec DevSecOps Arsenal</div>
+        <div style="font-size: 12px; color: #a1a1aa; letter-spacing: 1px; text-transform: uppercase;">🛡️ ChimeraGuard DevSecOps Arsenal</div>
         <h1 style="margin: 4px 0 6px 0; font-size: 22px;">Security Audit: <span style="color: #38bdf8;">${report.targetUrl}</span></h1>
         <div style="font-size: 12px; color: #71717a;">Generated on ${dateStr} • Status HTTP ${report.httpStatus}</div>
       </div>
@@ -245,8 +245,8 @@ export function generateHtmlSecurityReport(
 
     <!-- Footer -->
     <div class="footer">
-      Generated automatically by <strong>ObsidianSec v1.3.1</strong> // The Autonomous DevSecOps & Edge Security Arsenal.<br>
-      <a href="https://github.com/matheus-oliv-dev/ObsidianSec" style="color: #38bdf8; text-decoration: none;">GitHub Repository</a> • <a href="https://www.npmjs.com/package/obsidiansec" style="color: #38bdf8; text-decoration: none;">NPM Package</a>
+      Generated automatically by <strong>ChimeraGuard v1.3.1</strong> // The Autonomous DevSecOps & Edge Security Arsenal.<br>
+      <a href="https://github.com/matheus-oliv-dev/ChimeraGuard" style="color: #38bdf8; text-decoration: none;">GitHub Repository</a> • <a href="https://www.npmjs.com/package/chimeraguard" style="color: #38bdf8; text-decoration: none;">NPM Package</a>
     </div>
 
   </div>

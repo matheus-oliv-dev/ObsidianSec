@@ -18,7 +18,7 @@ async function test() {
     const gemini = new GeminiProvider();
     const response = await gemini.generateResponse([
       { role: "system", content: "Você é o núcleo de inteligência de segurança cibernética CyberBrain." },
-      { role: "user", content: "Responda em uma frase curta: O sistema BomberCyber com IA está ativo?" }
+      { role: "user", content: "Responda em uma frase curta: O sistema ChimeraGuard com IA está ativo?" }
     ]);
     console.log("✅ RESPOSTA DA IA GEMINI RECEBIDA COM SUCESSO:");
     console.log(response);

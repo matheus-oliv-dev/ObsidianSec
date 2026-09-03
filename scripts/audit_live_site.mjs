@@ -4,7 +4,7 @@ import http from "node:http";
 const TARGET_URL = "https://bot.matheusdev.com.br";
 
 console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-console.log("║    🌐 AUDITORIA DE DIAGNÓSTICO EXTERNO · BOMBERCYBER SECURITY        ║");
+console.log("║    🌐 AUDITORIA DE DIAGNÓSTICO EXTERNO · CHIMERAGUARD SECURITY        ║");
 console.log("║    Alvo: " + TARGET_URL.padEnd(52) + "║");
 console.log("╚══════════════════════════════════════════════════════════════════════╝\n");
 

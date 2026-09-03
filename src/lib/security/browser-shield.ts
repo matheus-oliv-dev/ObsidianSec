@@ -94,7 +94,7 @@ export function createBrowserSecurityHeaders(
 
     // Trusted Types
     if (config.enableTrustedTypes) {
-      const policyName = config.trustedPolicyName || "bomberPolicy";
+      const policyName = config.trustedPolicyName || "chimeraPolicy";
       defaultDirectives["require-trusted-types-for"] = ["'script'"];
       defaultDirectives["trusted-types"] = [policyName, "'allow-duplicates'"];
     }

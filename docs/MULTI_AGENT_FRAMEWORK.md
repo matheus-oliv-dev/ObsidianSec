@@ -1,6 +1,6 @@
-# 🛡️ BomberCyber Autonomous Security Squad Framework
+# 🛡️ ChimeraGuard Autonomous Security Squad Framework
 
-Inspirado em arquiteturas de ponta de agentes autônomos (como OpenClaw, Hermes-Agent e LangGraph), o **BomberCyber Autonomous Security Squad** é um framework multi-agente focado em segurança defensiva, auditoria contínua e garantia de qualidade (Quality Gate).
+Inspirado em arquiteturas de ponta de agentes autônomos (como OpenClaw, Hermes-Agent e LangGraph), o **ChimeraGuard Autonomous Security Squad** é um framework multi-agente focado em segurança defensiva, auditoria contínua e garantia de qualidade (Quality Gate).
 
 ---
 

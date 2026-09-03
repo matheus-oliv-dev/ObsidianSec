@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { WebSocketSecurityGuard } from "@/lib/security/ws-guard";
 
 describe("⚡ WebSockets & Realtime Security Suite", () => {
-  const allowedOrigins = ["https://bombercyber.io", "https://redubla.com.br"];
+  const allowedOrigins = ["https://chimeraguard.io", "https://redubla.com.br"];
   const wsGuard = new WebSocketSecurityGuard(allowedOrigins, {
     maxPayloadBytes: 100 * 1024, // 100 KB
     maxMessagesPerSecond: 10,

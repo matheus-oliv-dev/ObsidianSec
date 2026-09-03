@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import http from "node:http";
 import { createWebServer } from "@/server/web-server";
 
-describe("🌐 BomberCyber Web Dashboard & Legal Compliance API", () => {
+describe("🌐 ChimeraGuard Web Dashboard & Legal Compliance API", () => {
   let serverInstance: http.Server;
   let mockTargetServer: http.Server;
   let testPort: number;

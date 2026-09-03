@@ -36,7 +36,7 @@ describe("🔑 Authentication, Session & Cryptography Security Suite", () => {
 
       const headerJson = JSON.parse(Buffer.from(headerWithJwk, "base64url").toString("utf-8"));
       expect(headerJson.jwk).toBeDefined();
-      // O validador do BomberCyber exige chave de servidor e descarta jwk do cliente
+      // O validador do ChimeraGuard exige chave de servidor e descarta jwk do cliente
       expect(headerJson.jwk.k).toBe("forged-key");
     });
   });

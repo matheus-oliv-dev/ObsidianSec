@@ -6,7 +6,7 @@ import { auditUniversalEndpoint } from "../src/scanner/universal-web-scanner.ts"
 const target = process.argv[2] || ".";
 
 console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-console.log("║    🌐 BOMBERCYBER UNIVERSAL AUDITOR · QUALQUER LINGUAGEM OU SITE     ║");
+console.log("║    🌐 CHIMERAGUARD UNIVERSAL AUDITOR · QUALQUER LINGUAGEM OU SITE     ║");
 console.log("║    Alvo: " + target.padEnd(52) + "║");
 console.log("╚══════════════════════════════════════════════════════════════════════╝\n");
 

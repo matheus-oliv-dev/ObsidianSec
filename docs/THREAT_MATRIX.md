@@ -1,4 +1,4 @@
-# 🛡️ Matriz de Ameaças, Falhas & Mitigações Defensivas (Padrão 2025/2026) · BomberCyber
+# 🛡️ Matriz de Ameaças, Falhas & Mitigações Defensivas (Padrão 2025/2026) · ChimeraGuard
 
 Esta matriz consolida todas as vulnerabilidades analisadas, incluindo ataques web clássicos, engenharia do caos, blindagem moderna de navegador e a nova taxonomia **OWASP Top 10 for LLM Applications (2025/2026)**.
 
@@ -15,7 +15,7 @@ Esta matriz consolida todas as vulnerabilidades analisadas, incluindo ataques we
 | **Prompt Injection & Jailbreak em Modelos de IA** | OWASP LLM01:2025<br>CWE-20 | **Alto (8.5)** | Módulo `llm-guard.ts` com isolamento de contexto delimitado por Nonce criptográfico e detecção de heurísticas. | `tests/security/llm_guard.test.ts` | 🛡️ Blindado |
 | **Vazamento de Informações Sensíveis / PII por IA** | OWASP LLM02:2025<br>CWE-200 / CWE-359 | **Alto (7.8)** | Motor de Redação de PII no `llm-guard.ts` (mascaramento automático de CPF, cartões e chaves de API). | `tests/security/llm_guard.test.ts` | 🛡️ Blindado |
 | **Insecure Output Handling (Execução de Saída da IA)** | OWASP LLM05:2025<br>CWE-79 / CWE-116 | **Alto (8.0)** | Validação Zero-Trust de respostas de IA com schemas tipados rígidos via Zod (`validateLLMOutput`). | `tests/security/llm_guard.test.ts` | 🛡️ Blindado |
-| **DOM XSS & DOM Clobbering no Navegador** | OWASP A03:2021<br>CWE-79 | **Alto (8.1)** | CSP Level 3 com `'strict-dynamic'`, Nonces e W3C **Trusted Types API** (`bomberPolicy`). | `tests/security/trusted_types_browser.test.ts` | 🛡️ Blindado |
+| **DOM XSS & DOM Clobbering no Navegador** | OWASP A03:2021<br>CWE-79 | **Alto (8.1)** | CSP Level 3 com `'strict-dynamic'`, Nonces e W3C **Trusted Types API** (`chimeraPolicy`). | `tests/security/trusted_types_browser.test.ts` | 🛡️ Blindado |
 | **HTTP Flood Concorrente (DDoS na Camada de Aplicação)** | OWASP A04:2021<br>CWE-400 | **Alto (7.5)** | `enforceRateLimit()` em duas camadas (Token Bucket em memória + hash SHA-256 de IPs) retornando HTTP 429 com `Retry-After`. | `tests/security/stress_resilience.test.ts` | 🛡️ Blindado |
 | **Botnets e Criação em Massa de Contas Anônimas** | OWASP A07:2021<br>CWE-307 / CWE-799 | **Alto (7.2)** | Rate limiting com cota agregada por sub-rede (`networkLimit`) e desafios matemáticos CAPTCHA HMAC-SHA256. | `tests/security/stress_resilience.test.ts` | 🛡️ Blindado |
 | **Usurpação de Host (Host Action Spoofing)** | OWASP A01:2021<br>CWE-287 | **Alto (7.8)** | `applyRoomAction()` valida flag `isHost` antes de permitir alterações de configurações, início de partidas ou avanço de turnos. | `tests/security/multiplayer_pentest.test.ts` | 🛡️ Blindado |

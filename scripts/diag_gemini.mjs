@@ -21,7 +21,7 @@ async function testAll() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "Diga apenas: 'BOMBERCYBER_ONLINE'" }] }]
+          contents: [{ parts: [{ text: "Diga apenas: 'CHIMERAGUARD_ONLINE'" }] }]
         }),
         signal: AbortSignal.timeout(6000)
       });

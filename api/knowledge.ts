@@ -138,7 +138,7 @@ jobs:
       language: "typescript",
       title: "Creating a W3C Trusted Types Policy",
       code: `if (window.trustedTypes && window.trustedTypes.createPolicy) {
-  window.trustedTypes.createPolicy("obsidianPolicy", {
+  window.trustedTypes.createPolicy("chimeraPolicy", {
     createHTML: (string) => DOMPurify.sanitize(string),
   });
 }`,

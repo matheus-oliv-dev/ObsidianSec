@@ -30,7 +30,7 @@ const REDIRECT_PARAMS = [
   "view", "login_url", "callback", "return_url", "checkout_url",
 ];
 
-const EVIL_DOMAIN = "https://evil.obsidiansec-test.com";
+const EVIL_DOMAIN = "https://evil.chimeraguard-test.com";
 
 async function testRedirectParam(baseUrl: string, param: string): Promise<RedirectTestResult> {
   const payload = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}${param}=${encodeURIComponent(EVIL_DOMAIN)}`;
@@ -43,7 +43,7 @@ async function testRedirectParam(baseUrl: string, param: string): Promise<Redire
       method: "GET",
       signal: controller.signal,
       redirect: "manual",
-      headers: { "User-Agent": "ObsidianSec-Redirect-Probe/1.2.2" },
+      headers: { "User-Agent": "ChimeraGuard-Redirect-Probe/1.2.2" },
     });
     clearTimeout(timeout);
 
@@ -56,9 +56,9 @@ async function testRedirectParam(baseUrl: string, param: string): Promise<Redire
       try {
         const targetHost = new URL(location).hostname;
         const baseHost = new URL(baseUrl).hostname;
-        isOpenRedirect = targetHost !== baseHost && location.includes("evil.obsidiansec-test.com");
+        isOpenRedirect = targetHost !== baseHost && location.includes("evil.chimeraguard-test.com");
       } catch {
-        isOpenRedirect = location.includes("evil.obsidiansec-test.com");
+        isOpenRedirect = location.includes("evil.chimeraguard-test.com");
       }
     }
 

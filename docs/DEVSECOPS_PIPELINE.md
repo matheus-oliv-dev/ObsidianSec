@@ -1,6 +1,6 @@
 # 🤖 Pipeline DevSecOps Multi-Agente & Automação de Quality Gate
 
-Este guia detalha a operação do **Esquadrão DevSecOps Multi-Agente** no ecossistema BomberCyber.
+Este guia detalha a operação do **Esquadrão DevSecOps Multi-Agente** no ecossistema ChimeraGuard.
 
 ---
 

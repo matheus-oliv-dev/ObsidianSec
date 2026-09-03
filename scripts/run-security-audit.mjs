@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { consolidateSecurityAudit } from "./security_squad/lead_orchestrator.mjs";
 
 console.log("\n╔══════════════════════════════════════════════════════════════════════╗");
-console.log("║    🛡️  BOMBERCYBER DEVSECOPS SQUAD 2026 · AUDITORIA MULTI-AGENTE       ║");
+console.log("║    🛡️  CHIMERAGUARD DEVSECOPS SQUAD 2026 · AUDITORIA MULTI-AGENTE       ║");
 console.log("╚══════════════════════════════════════════════════════════════════════╝\n");
 
 console.log("👉 [1/5] Executando Suítes de Penetração, Caos & IA (Vitest)...");

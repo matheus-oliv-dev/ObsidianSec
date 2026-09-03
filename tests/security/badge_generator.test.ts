@@ -29,7 +29,7 @@ describe("🏆 GitHub README SVG Badge Generator Suite", () => {
     expect(responseStatus).toBe(200);
     expect(responseHeaders["content-type"]).toContain("image/svg+xml");
     expect(responseBody).toContain("<svg");
-    expect(responseBody).toContain("OBSIDIANSEC");
+    expect(responseBody).toContain("CHIMERAGUARD");
     expect(responseBody).toContain("GRADE A+ (100/100)");
     expect(responseBody).toContain("#10b981"); // Verde
   });

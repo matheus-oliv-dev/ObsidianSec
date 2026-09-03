@@ -1,6 +1,6 @@
 /**
  * OASIS SARIF v2.1.0 Formatter (Static Analysis Results Interchange Format)
- * Converte achados de segurança do ObsidianSec no padrão oficial aceito pelo
+ * Converte achados de segurança do ChimeraGuard no padrão oficial aceito pelo
  * GitHub Code Scanning, SonarQube, DefectDojo e AWS Security Hub.
  */
 
@@ -94,7 +94,7 @@ export function convertSecretReportToSarif(
         defaultConfiguration: {
           level,
         },
-        helpUri: "https://obsidiansec.dev/docs/rules/" + finding.ruleId,
+        helpUri: "https://chimera-guard.vercel.app/docs/rules/" + finding.ruleId,
       });
     }
 
@@ -130,9 +130,9 @@ export function convertSecretReportToSarif(
       {
         tool: {
           driver: {
-            name: "ObsidianSec",
+            name: "ChimeraGuard",
             version,
-            informationUri: "https://obsidiansec.dev",
+            informationUri: "https://chimera-guard.vercel.app",
             rules: Array.from(ruleMap.values()),
           },
         },

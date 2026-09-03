@@ -8,7 +8,7 @@ import { enforceRateLimit } from "@/lib/security/rate-limit";
 describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
   describe("API1: Broken Object Level Authorization (BOLA / IDOR)", () => {
     it("TEST-001: bloqueia acesso a objetos de outros tenants em rotas de métricas", async () => {
-      const alienReq = new Request("https://bombercyber.io/api/admin/metrics", {
+      const alienReq = new Request("https://chimeraguard.io/api/admin/metrics", {
         headers: { Authorization: "Bearer token-usuario-comum" },
       });
       const result = await requireAdmin(alienReq);
@@ -32,7 +32,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
     });
 
     it("TEST-004: bloqueia operações destrutivas DELETE/PATCH em recursos de terceiros", async () => {
-      const req = new Request("https://bombercyber.io/api/admin/delete", {
+      const req = new Request("https://chimeraguard.io/api/admin/delete", {
         method: "DELETE",
         headers: { Authorization: "Bearer token-sem-admin" },
       });
@@ -43,7 +43,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
 
   describe("API2: Broken Authentication", () => {
     it("TEST-006: rejeita requisições sem header Authorization", async () => {
-      const req = new Request("https://bombercyber.io/api/admin/data");
+      const req = new Request("https://chimeraguard.io/api/admin/data");
       const result = await requireAdmin(req);
       expect("error" in result).toBe(true);
       if ("error" in result) {
@@ -52,7 +52,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
     });
 
     it("TEST-007: rejeita tokens de autorização vazios ou malformados", async () => {
-      const req = new Request("https://bombercyber.io/api/admin/data", {
+      const req = new Request("https://chimeraguard.io/api/admin/data", {
         headers: { Authorization: "Bearer " },
       });
       const result = await requireAdmin(req);
@@ -64,7 +64,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
       let lastRes: Response | null = null;
       for (let i = 0; i < 7; i++) {
         lastRes = await enforceRateLimit({
-          request: new Request("https://bombercyber.io/api/login"),
+          request: new Request("https://chimeraguard.io/api/login"),
           userId: user,
           scope: "login-brute",
           userLimit: 5,
@@ -147,7 +147,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
 
   describe("API5: Broken Function Level Authorization (BFLA)", () => {
     it("TEST-020: bloqueia invocação de funções privilegiadas por usuários comuns", async () => {
-      const req = new Request("https://bombercyber.io/api/admin/flush-cache", {
+      const req = new Request("https://chimeraguard.io/api/admin/flush-cache", {
         headers: { Authorization: "Bearer user-token" },
       });
       const result = await requireAdmin(req);
@@ -155,7 +155,7 @@ describe("🌐 OWASP API Security Top 10 Comprehensive Suite", () => {
     });
 
     it("TEST-021: impede que verbos HTTP mutativos contornem proteções de leitura", async () => {
-      const postReq = new Request("https://bombercyber.io/api/admin/users", {
+      const postReq = new Request("https://chimeraguard.io/api/admin/users", {
         method: "POST",
       });
       const result = await requireAdmin(postReq);

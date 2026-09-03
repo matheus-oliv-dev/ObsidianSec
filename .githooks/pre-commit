@@ -1,5 +1,5 @@
 #!/bin/sh
-# Hook de pré-commit do BomberCyber DevSecOps Squad
+# Hook de pré-commit do ChimeraGuard DevSecOps Squad
 echo "🛡️ Executando Esquadrão DevSecOps no pré-commit..."
 
 node scripts/run-security-audit.mjs
